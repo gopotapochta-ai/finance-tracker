@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Финансы">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
 <title>Финансы — Трекер</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -913,35 +914,10 @@ function updateHeaderDate() {
   document.getElementById('headerDate').textContent = new Date().toLocaleDateString('ru-RU', { weekday: 'short', day: '2-digit', month: 'long' });
 }
 
-// ==================== PWA ====================
+// ==================== PWA Service Worker ====================
 if ('serviceWorker' in navigator) {
-  const swCode = `
-self.addEventListener('install', e => self.skipWaiting());
-self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-self.addEventListener('fetch', e => {
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-});
-`;
-  const swBlob = new Blob([swCode], { type: 'application/javascript' });
-  const swUrl = URL.createObjectURL(swBlob);
-  navigator.serviceWorker.register(swUrl).catch(() => {});
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
-
-const manifest = {
-  name: 'Финансы — Трекер',
-  short_name: 'Финансы',
-  start_url: '.',
-  display: 'standalone',
-  background_color: '#0f172a',
-  theme_color: '#0f172a',
-  icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>", sizes: 'any' }]
-};
-const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-const manifestUrl = URL.createObjectURL(manifestBlob);
-const link = document.createElement('link');
-link.rel = 'manifest';
-link.href = manifestUrl;
-document.head.appendChild(link);
 
 // ==================== STARTUP ====================
 loadData();
