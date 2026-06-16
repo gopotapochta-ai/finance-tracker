@@ -926,7 +926,36 @@ if ('serviceWorker' in navigator) {
   diagLog('SW: not supported');
 }
 
-// Diagnostics panel - always show on first load
+// ==================== PWA Install Button ====================
+let deferredPrompt = null;
+const installBtn = document.createElement('button');
+installBtn.textContent = '📱 Установить';
+installBtn.style.cssText = 'position:fixed;top:12px;right:12px;z-index:800;background:#10b981;color:white;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;font-family:Inter,sans-serif;cursor:pointer;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.3)';
+installBtn.onclick = function() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(r) {
+      diagLog('Установка: ' + r.outcome);
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+    });
+  }
+};
+document.body.appendChild(installBtn);
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'block';
+  diagLog('Install: готово');
+});
+
+window.addEventListener('appinstalled', function() {
+  installBtn.style.display = 'none';
+  diagLog('Install: установлено');
+});
+
+// Diagnostics panel
 (function showDiag() {
   fetch('/finance-tracker/manifest.json')
     .then(r => r.ok ? r.json() : Promise.reject('HTTP ' + r.status))
@@ -936,7 +965,7 @@ if ('serviceWorker' in navigator) {
   setTimeout(function() {
     var div = document.createElement('div');
     div.id = 'pwa-diag';
-    div.style.cssText = 'position:fixed;bottom:80px;left:8px;right:8px;z-index:900;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;font-size:11px;font-family:monospace;color:#94a3b8;line-height:1.6';
+    div.style.cssText = 'position:fixed;bottom:96px;left:8px;right:8px;z-index:900;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;font-size:11px;font-family:monospace;color:#94a3b8;line-height:1.6';
     div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="color:#10b981">PWA Диагностика</b><button onclick="document.getElementById(\'pwa-diag\').remove()" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer">&times;</button></div>' + diag.map(function(s){return s}).join('<br>');
     document.body.appendChild(div);
   }, 1500);
