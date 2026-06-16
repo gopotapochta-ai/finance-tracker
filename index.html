@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Финансы">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/finance-tracker/manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
 <title>Финансы — Трекер</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -915,9 +915,32 @@ function updateHeaderDate() {
 }
 
 // ==================== PWA Service Worker ====================
+const diag = [];
+function diagLog(s) { diag.push(s); console.log('[PWA]', s); }
+
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.register('/finance-tracker/sw.js')
+    .then(reg => diagLog('SW: зарегистрирован, scope=' + reg.scope))
+    .catch(err => diagLog('SW: ошибка — ' + err.message));
+} else {
+  diagLog('SW: не поддерживается');
 }
+
+// ==================== DIAGNOSTICS PANEL (10 сек при загрузке) ====================
+setTimeout(() => {
+  const mf = document.querySelector('link[rel="manifest"]');
+  fetch(mf ? mf.href : 'manifest.json')
+    .then(r => r.ok ? r.json() : Promise.reject('HTTP ' + r.status))
+    .then(m => diagLog('Manifest: OK, name=' + m.name + ', icons=' + m.icons.length + ', display=' + m.display))
+    .catch(err => diagLog('Manifest: ошибка — ' + err));
+  setTimeout(() => {
+    const div = document.createElement('div');
+    div.style.cssText = 'position:fixed;bottom:80px;left:8px;right:8px;z-index:300;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:10px;font-size:11px;font-family:monospace;color:#94a3b8;max-height:160px;overflow-y:auto';
+    div.innerHTML = '<b style="color:#10b981">PWA Диагностика</b><br>' + diag.map(s => s.replace('<','&lt;')).join('<br>');
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 8000);
+  }, 2000);
+}, 500);
 
 // ==================== STARTUP ====================
 loadData();
