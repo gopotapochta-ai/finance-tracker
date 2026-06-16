@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Финансы">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+<title>Финансы — Трекер</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      colors: {
+        bg: { DEFAULT: '#0f172a', card: '#1e293b', hover: '#334155' },
+        green: { accent: '#10b981', soft: '#064e3b' },
+        red: { accent: '#ef4444', soft: '#450a0a' },
+        income: '#10b981',
+        expense: '#ef4444',
+      }
+    }
+  }
+}
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeSlideIn 0.3s ease; }
+  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal-overlay.open .modal { animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+  .tab-btn { transition: all 0.2s; }
+  .tab-btn.active { color: #10b981; border-top: 2px solid #10b981; }
+  .progress-bar { transition: width 0.5s ease; }
+  .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 200; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; animation: fadeSlideIn 0.3s ease; pointer-events: none; }
+  .toast.success { background: #065f46; color: #d1fae5; }
+  .toast.error { background: #7f1d1d; color: #fecaca; }
+  @media (min-width: 640px) {
+    .modal-overlay { align-items: center; }
+    .modal { max-width: 480px; border-radius: 16px; }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  }
+</style>
+</head>
+<body class="bg-bg text-gray-200 min-h-screen">
+
+<!-- ==================== TOAST ==================== -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- ==================== HEADER ==================== -->
+<header class="sticky top-0 z-50 bg-bg/95 backdrop-blur border-b border-gray-800 px-4 py-3">
+  <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <h1 id="screenTitle" class="text-lg font-bold text-white">Финансы</h1>
+    <span id="headerDate" class="text-xs text-gray-500"></span>
+  </div>
+</header>
+
+<!-- ==================== SCREENS CONTAINER ==================== -->
+<main class="max-w-5xl mx-auto px-4 pb-24 pt-4">
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="screen active space-y-4">
+    <!-- Balance Card -->
+    <div class="bg-bg-card rounded-xl p-6 text-center border border-gray-700/50">
+      <p class="text-sm text-gray-400 mb-2">Текущий баланс</p>
+      <p id="dashBalance" class="text-4xl font-extrabold text-white">0 ₽</p>
+      <p id="dashBalanceTrend" class="text-xs text-gray-500 mt-1"></p>
+    </div>
+    <!-- Income / Expense cards -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+        <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-green-accent"></span><span class="text-sm text-gray-400">Доходы</span></div>
+        <p id="dashIncome" class="text-xl font-bold text-green-accent">0 ₽</p>
+      </div>
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+        <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-red-accent"></span><span class="text-sm text-gray-400">Расходы</span></div>
+        <p id="dashExpense" class="text-xl font-bold text-red-accent">0 ₽</p>
+      </div>
+    </div>
+    <!-- Spent today / this week -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+        <p class="text-xs text-gray-500">Сегодня</p>
+        <p id="dashToday" class="text-lg font-semibold text-red-accent">0 ₽</p>
+      </div>
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+        <p class="text-xs text-gray-500">За неделю</p>
+        <p id="dashWeek" class="text-lg font-semibold text-red-accent">0 ₽</p>
+      </div>
+    </div>
+    <!-- Charts row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+        <p class="text-sm font-semibold text-gray-300 mb-3">Категории расходов</p>
+        <div class="h-48 flex items-center justify-center"><canvas id="doughnutChart"></canvas></div>
+      </div>
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+        <p class="text-sm font-semibold text-gray-300 mb-3">Динамика (30 дн.)</p>
+        <div class="h-48 flex items-center justify-center"><canvas id="lineChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="history" class="screen space-y-4">
+    <!-- Filters -->
+    <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 space-y-3">
+      <div class="flex flex-wrap gap-2">
+        <select id="histType" class="bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+          <option value="all">Все</option><option value="income">Доходы</option><option value="expense">Расходы</option>
+        </select>
+        <select id="histCategory" class="bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+          <option value="all">Все категории</option>
+        </select>
+        <input id="histDateFrom" type="date" class="bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50 w-36">
+        <input id="histDateTo" type="date" class="bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50 w-36">
+      </div>
+      <input id="histSearch" type="text" placeholder="Поиск по комментарию..." class="w-full bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+    </div>
+    <!-- List -->
+    <div id="historyList" class="space-y-2"></div>
+  </section>
+
+  <!-- ANALYTICS -->
+  <section id="analytics" class="screen space-y-4">
+    <!-- Period selector -->
+    <div class="flex flex-wrap gap-2">
+      <button data-period="week" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Неделя</button>
+      <button data-period="month" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Месяц</button>
+      <button data-period="year" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Год</button>
+      <input id="analDateFrom" type="date" class="bg-bg-card border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+      <input id="analDateTo" type="date" class="bg-bg-card border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+    </div>
+    <!-- Summary -->
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 text-center">
+        <p class="text-xs text-gray-500">Сумма</p>
+        <p id="analSum" class="text-lg font-bold text-white">0 ₽</p>
+      </div>
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 text-center">
+        <p class="text-xs text-gray-500">Средний чек</p>
+        <p id="analAvg" class="text-lg font-bold text-white">0 ₽</p>
+      </div>
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 text-center">
+        <p class="text-xs text-gray-500">Транзакций</p>
+        <p id="analCount" class="text-lg font-bold text-white">0</p>
+      </div>
+    </div>
+    <!-- Bar chart -->
+    <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+      <p class="text-sm font-semibold text-gray-300 mb-3">Доходы vs Расходы</p>
+      <div class="h-56"><canvas id="barChart"></canvas></div>
+    </div>
+    <!-- Two doughnuts -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+        <p class="text-sm font-semibold text-gray-300 mb-3">Структура расходов</p>
+        <div class="h-48"><canvas id="analDoughnutExpense"></canvas></div>
+      </div>
+      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+        <p class="text-sm font-semibold text-gray-300 mb-3">Структура доходов</p>
+        <div class="h-48"><canvas id="analDoughnutIncome"></canvas></div>
+      </div>
+    </div>
+    <!-- Top-5 categories -->
+    <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
+      <p class="text-sm font-semibold text-gray-300 mb-3">Топ-5 категорий расходов</p>
+      <div id="top5List" class="space-y-2"></div>
+    </div>
+  </section>
+
+  <!-- BUDGETS -->
+  <section id="budgets" class="screen space-y-4">
+    <div id="budgetList" class="space-y-3"></div>
+    <button onclick="showAddBudget()" class="w-full py-3 rounded-xl border border-dashed border-gray-600 text-gray-500 text-sm hover:border-gray-400 hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+      + Добавить бюджет
+    </button>
+  </section>
+
+</main>
+
+<!-- ==================== ADD TRANSACTION MODAL ==================== -->
+<div id="addModal" class="modal-overlay">
+  <div class="modal w-full sm:max-w-md bg-bg-card border-t sm:border border-gray-700 rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="sticky top-0 bg-bg-card px-5 py-4 border-b border-gray-700/50 flex items-center justify-between rounded-t-2xl">
+      <h2 class="text-lg font-bold text-white">Добавить запись</h2>
+      <button onclick="closeModal('addModal')" class="text-gray-400 hover:text-white text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-green-accent/50 rounded">&times;</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <!-- Type toggle -->
+      <div class="flex bg-bg rounded-xl p-1">
+        <button id="typeIncome" onclick="setType('income')" class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors bg-green-soft text-green-accent focus:outline-none focus:ring-2 focus:ring-green-accent/50">Доход</button>
+        <button id="typeExpense" onclick="setType('expense')" class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50">Расход</button>
+      </div>
+      <!-- Amount -->
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">Сумма</label>
+        <input id="addAmount" type="number" min="0.01" step="0.01" placeholder="0,00" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-lg text-white font-semibold focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+      </div>
+      <!-- Date -->
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">Дата</label>
+        <input id="addDate" type="date" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+      </div>
+      <!-- Category -->
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">Категория</label>
+        <select id="addCategory" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50"></select>
+      </div>
+      <!-- Comment -->
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">Комментарий</label>
+        <input id="addComment" type="text" placeholder="Необязательно" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off" maxlength="200">
+      </div>
+      <!-- Save button -->
+      <button onclick="saveTransaction()" class="w-full py-3 rounded-xl bg-green-accent text-white font-semibold text-base hover:bg-emerald-500 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-green-accent/50 focus:ring-offset-2 focus:ring-offset-bg-card">
+        Сохранить
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ADD BUDGET MODAL ==================== -->
+<div id="budgetModal" class="modal-overlay">
+  <div class="modal w-full sm:max-w-md bg-bg-card border-t sm:border border-gray-700 rounded-t-2xl sm:rounded-2xl" onclick="event.stopPropagation()">
+    <div class="sticky top-0 bg-bg-card px-5 py-4 border-b border-gray-700/50 flex items-center justify-between rounded-t-2xl">
+      <h2 class="text-lg font-bold text-white">Добавить бюджет</h2>
+      <button onclick="closeModal('budgetModal')" class="text-gray-400 hover:text-white text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-green-accent/50 rounded">&times;</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">Категория</label>
+        <select id="budgetCategory" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50"></select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">Лимит на месяц</label>
+        <input id="budgetLimit" type="number" min="1" step="1" placeholder="10000" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-lg text-white font-semibold focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+      </div>
+      <button onclick="saveBudget()" class="w-full py-3 rounded-xl bg-green-accent text-white font-semibold text-base hover:bg-emerald-500 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-green-accent/50 focus:ring-offset-2 focus:ring-offset-bg-card">
+        Сохранить
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DELETE CONFIRMATION MODAL ==================== -->
+<div id="deleteModal" class="modal-overlay">
+  <div class="modal w-full sm:max-w-sm bg-bg-card border-t sm:border border-gray-700 rounded-t-2xl sm:rounded-2xl p-6 text-center" onclick="event.stopPropagation()">
+    <p class="text-lg font-semibold text-white mb-2">Удалить запись?</p>
+    <p class="text-sm text-gray-400 mb-6">Это действие нельзя отменить.</p>
+    <div class="flex gap-3">
+      <button onclick="closeModal('deleteModal')" class="flex-1 py-2.5 rounded-xl bg-bg-hover text-gray-300 font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-green-accent/50">Отмена</button>
+      <button id="confirmDeleteBtn" class="flex-1 py-2.5 rounded-xl bg-red-soft text-red-accent font-medium hover:bg-red-900/50 focus:outline-none focus:ring-2 focus:ring-red-accent/50">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FAB ==================== -->
+<button onclick="openAddModal()" class="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full bg-green-accent text-white text-3xl shadow-lg hover:bg-emerald-500 active:scale-95 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-green-accent/50 focus:ring-offset-2 focus:ring-offset-bg" aria-label="Добавить запись">
+  +
+</button>
+
+<!-- ==================== BOTTOM NAV ==================== -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-bg-card border-t border-gray-800 safe-area-bottom">
+  <div class="max-w-5xl mx-auto flex">
+    <button data-screen="dashboard" class="tab-btn active flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">📊</span>Главная</button>
+    <button data-screen="history" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">📋</span>История</button>
+    <button data-screen="analytics" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">📈</span>Аналитика</button>
+    <button data-screen="budgets" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">🎯</span>Бюджеты</button>
+  </div>
+</nav>
+
+<script>
+// ==================== DATA & CONSTANTS ====================
+const CATEGORIES = {
+  income: [
+    { id: 'salary', name: 'Зарплата', emoji: '💼' },
+    { id: 'freelance', name: 'Фриланс', emoji: '💻' },
+    { id: 'gift', name: 'Подарки', emoji: '🎁' },
+    { id: 'investment', name: 'Инвестиции', emoji: '📈' },
+    { id: 'other_income', name: 'Другое', emoji: '💰' },
+  ],
+  expense: [
+    { id: 'food', name: 'Еда', emoji: '🍔' },
+    { id: 'transport', name: 'Транспорт', emoji: '🚗' },
+    { id: 'housing', name: 'Жильё', emoji: '🏠' },
+    { id: 'phone', name: 'Связь', emoji: '📱' },
+    { id: 'entertainment', name: 'Развлечения', emoji: '🎮' },
+    { id: 'health', name: 'Здоровье', emoji: '💊' },
+    { id: 'clothes', name: 'Одежда', emoji: '👕' },
+    { id: 'education', name: 'Образование', emoji: '📚' },
+    { id: 'other_expense', name: 'Другое', emoji: '📦' },
+  ]
+};
+
+const ALL_CATEGORIES = [...CATEGORIES.income, ...CATEGORIES.expense];
+function catById(id) { return ALL_CATEGORIES.find(c => c.id === id); }
+function catName(id) { const c = catById(id); return c ? `${c.emoji} ${c.name}` : id; }
+function catEmoji(id) { const c = catById(id); return c ? c.emoji : '❓'; }
+function isIncomeCat(id) { return CATEGORIES.income.some(c => c.id === id); }
+
+function uuid() { return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
+
+// ==================== STATE ====================
+let transactions = [];
+let budgets = [];
+let currentType = 'expense';
+let pendingDeleteId = null;
+
+// ==================== PERSISTENCE ====================
+function loadData() {
+  const raw = localStorage.getItem('finance_transactions');
+  if (raw) {
+    transactions = JSON.parse(raw);
+  } else {
+    transactions = generateDemoData();
+    saveData();
+  }
+  const rawB = localStorage.getItem('finance_budgets');
+  if (rawB) budgets = JSON.parse(rawB);
+  else budgets = [];
+}
+function saveData() { localStorage.setItem('finance_transactions', JSON.stringify(transactions)); }
+function saveBudgets() { localStorage.setItem('finance_budgets', JSON.stringify(budgets)); }
+
+function generateDemoData() {
+  const now = new Date();
+  const demo = [];
+  const incomeCats = ['salary','freelance','investment','gift','other_income'];
+  const expenseCats = ['food','transport','housing','phone','entertainment','health','clothes','education','other_expense'];
+
+  demo.push({ id: uuid(), type: 'income', amount: 85000, category: 'salary', comment: 'Аванс', createdAt: subDays(now, 28).toISOString() });
+  demo.push({ id: uuid(), type: 'income', amount: 120000, category: 'salary', comment: 'Зарплата', createdAt: subDays(now, 14).toISOString() });
+  demo.push({ id: uuid(), type: 'income', amount: 15000, category: 'freelance', comment: 'Вёрстка лендинга', createdAt: subDays(now, 10).toISOString() });
+  demo.push({ id: uuid(), type: 'expense', amount: 4500, category: 'food', comment: 'Продукты на неделю', createdAt: subDays(now, 7).toISOString() });
+  demo.push({ id: uuid(), type: 'expense', amount: 2500, category: 'transport', comment: 'Проездной', createdAt: subDays(now, 6).toISOString() });
+  demo.push({ id: uuid(), type: 'expense', amount: 18000, category: 'housing', comment: 'Аренда', createdAt: subDays(now, 5).toISOString() });
+  demo.push({ id: uuid(), type: 'expense', amount: 1200, category: 'phone', comment: 'Тариф', createdAt: subDays(now, 4).toISOString() });
+  demo.push({ id: uuid(), type: 'expense', amount: 3500, category: 'entertainment', comment: 'Кино и ужин', createdAt: subDays(now, 3).toISOString() });
+  demo.push({ id: uuid(), type: 'expense', amount: 800, category: 'food', comment: 'Кофе и снеки', createdAt: subDays(now, 1).toISOString() });
+  demo.push({ id: uuid(), type: 'income', amount: 5000, category: 'gift', comment: 'День рождения', createdAt: subDays(now, 2).toISOString() });
+  return demo;
+}
+function subDays(d, n) { const r = new Date(d); r.setDate(r.getDate() - n); return r; }
+
+// ==================== HELPERS ====================
+function formatCurrency(n) { return Math.abs(n).toLocaleString('ru-RU') + ' ₽'; }
+function formatDate(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+function formatDateShort(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }); }
+function getMonthRange() { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now }; }
+function isToday(iso) { const d = new Date(iso); const t = new Date(); return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate(); }
+function isThisWeek(iso) { const d = new Date(iso); const t = new Date(); const startOfWeek = new Date(t); startOfWeek.setDate(t.getDate() - t.getDay() + (t.getDay() === 0 ? -6 : 1)); startOfWeek.setHours(0,0,0,0); return d >= startOfWeek; }
+function isThisMonth(iso) { const d = new Date(iso); const t = new Date(); return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth(); }
+
+function getTransactionsInRange(from, to) {
+  return transactions.filter(t => {
+    const d = new Date(t.createdAt);
+    return d >= from && d <= to;
+  });
+}
+
+// ==================== TOAST ====================
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + type;
+  setTimeout(() => { el.classList.add('hidden'); }, 2000);
+}
+
+// ==================== MODALS ====================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function openAddModal() {
+  currentType = 'expense';
+  setType('expense');
+  document.getElementById('addAmount').value = '';
+  document.getElementById('addDate').valueAsDate = new Date();
+  document.getElementById('addComment').value = '';
+  populateCategorySelect();
+  openModal('addModal');
+}
+
+function setType(type) {
+  currentType = type;
+  if (type === 'income') {
+    document.getElementById('typeIncome').className = 'flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors bg-green-soft text-green-accent focus:outline-none focus:ring-2 focus:ring-green-accent/50';
+    document.getElementById('typeExpense').className = 'flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50';
+  } else {
+    document.getElementById('typeExpense').className = 'flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors bg-red-soft text-red-accent focus:outline-none focus:ring-2 focus:ring-green-accent/50';
+    document.getElementById('typeIncome').className = 'flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50';
+  }
+  populateCategorySelect();
+}
+
+function populateCategorySelect() {
+  const sel = document.getElementById('addCategory');
+  sel.innerHTML = '';
+  const cats = currentType === 'income' ? CATEGORIES.income : CATEGORIES.expense;
+  cats.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.emoji + ' ' + c.name;
+    sel.appendChild(opt);
+  });
+}
+
+function saveTransaction() {
+  const amountStr = document.getElementById('addAmount').value;
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount) || amount <= 0) { showToast('Введите сумму', 'error'); return; }
+  const dateVal = document.getElementById('addDate').value;
+  if (!dateVal) { showToast('Выберите дату', 'error'); return; }
+  const createdAt = new Date(dateVal + 'T12:00:00').toISOString();
+  const category = document.getElementById('addCategory').value;
+  const comment = document.getElementById('addComment').value.trim();
+
+  transactions.unshift({ id: uuid(), type: currentType, amount, category, comment, createdAt });
+  saveData();
+  closeModal('addModal');
+  refreshAll();
+  showToast('Запись добавлена', 'success');
+}
+
+// ==================== DELETE ====================
+function confirmDelete(id) {
+  pendingDeleteId = id;
+  openModal('deleteModal');
+}
+document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+  if (!pendingDeleteId) return;
+  transactions = transactions.filter(t => t.id !== pendingDeleteId);
+  saveData();
+  pendingDeleteId = null;
+  closeModal('deleteModal');
+  refreshAll();
+  showToast('Запись удалена', 'success');
+});
+
+document.getElementById('addModal').addEventListener('click', function(e) { if (e.target === this) closeModal('addModal'); });
+document.getElementById('budgetModal').addEventListener('click', function(e) { if (e.target === this) closeModal('budgetModal'); });
+document.getElementById('deleteModal').addEventListener('click', function(e) { if (e.target === this) closeModal('deleteModal'); });
+
+// ==================== NAVIGATION ====================
+const screens = ['dashboard', 'history', 'analytics', 'budgets'];
+const titles = { dashboard: 'Финансы', history: 'История', analytics: 'Аналитика', budgets: 'Бюджеты' };
+
+function switchScreen(name) {
+  screens.forEach(s => document.getElementById(s).classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-screen="${name}"]`).classList.add('active');
+  document.getElementById('screenTitle').textContent = titles[name];
+  if (name === 'history') renderHistory();
+  if (name === 'analytics') renderAnalytics();
+  if (name === 'budgets') renderBudgets();
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchScreen(btn.dataset.screen));
+});
+
+// ==================== DASHBOARD ====================
+let doughnutChartInstance = null, lineChartInstance = null;
+
+function renderDashboard() {
+  const month = getMonthRange();
+  const monthTx = transactions.filter(t => {
+    const d = new Date(t.createdAt);
+    return d >= month.from && d <= month.to;
+  });
+
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const balance = totalIncome - totalExpense;
+
+  const monthIncome = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const monthBalance = monthIncome - monthExpense;
+
+  const todayTx = transactions.filter(t => isToday(t.createdAt) && t.type === 'expense');
+  const todaySum = todayTx.reduce((s, t) => s + t.amount, 0);
+  const weekTx = transactions.filter(t => isThisWeek(t.createdAt) && t.type === 'expense');
+  const weekSum = weekTx.reduce((s, t) => s + t.amount, 0);
+
+  document.getElementById('dashBalance').textContent = (balance >= 0 ? '' : '−') + formatCurrency(balance);
+  document.getElementById('dashBalanceTrend').textContent = monthBalance >= 0 ? `↑ +${formatCurrency(monthBalance)} в этом месяце` : `↓ −${formatCurrency(Math.abs(monthBalance))} в этом месяце`;
+  document.getElementById('dashIncome').textContent = formatCurrency(monthIncome);
+  document.getElementById('dashExpense').textContent = formatCurrency(monthExpense);
+  document.getElementById('dashToday').textContent = formatCurrency(todaySum);
+  document.getElementById('dashWeek').textContent = formatCurrency(weekSum);
+
+  renderDoughnutChart(monthTx);
+  renderLineChart();
+}
+
+function renderDoughnutChart(monthTx) {
+  const ctx = document.getElementById('doughnutChart').getContext('2d');
+  if (doughnutChartInstance) doughnutChartInstance.destroy();
+
+  const expenseByCat = {};
+  monthTx.filter(t => t.type === 'expense').forEach(t => {
+    expenseByCat[t.category] = (expenseByCat[t.category] || 0) + t.amount;
+  });
+  const entries = Object.entries(expenseByCat).sort((a, b) => b[1] - a[1]);
+  const labels = entries.map(([cat]) => catName(cat));
+  const data = entries.map(([, sum]) => sum);
+
+  const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#6b7280'];
+
+  doughnutChartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors.slice(0, data.length), borderColor: '#1e293b', borderWidth: 3, hoverBorderColor: '#334155' }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 12, font: { size: 11, family: 'Inter' }, usePointStyle: true, pointStyleWidth: 8 } },
+        tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+      }
+    }
+  });
+}
+
+function renderLineChart() {
+  const ctx = document.getElementById('lineChart').getContext('2d');
+  if (lineChartInstance) lineChartInstance.destroy();
+
+  const days = [];
+  const balances = [];
+  let running = 0;
+  const allSorted = [...transactions].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  allSorted.forEach(t => {
+    running += t.type === 'income' ? t.amount : -t.amount;
+  });
+
+  const now = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    days.push(d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }));
+    let bal = 0;
+    for (const t of allSorted) {
+      if (new Date(t.createdAt) <= d) bal += t.type === 'income' ? t.amount : -t.amount;
+    }
+    balances.push(bal);
+  }
+
+  lineChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [{
+        label: 'Баланс',
+        data: balances,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16,185,129,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 1,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#10b981',
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${formatCurrency(ctx.raw)}` } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#64748b', maxTicksLimit: 7, font: { size: 10 } } },
+        y: { grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => Math.round(v/1000) + 'k' } }
+      },
+      interaction: { intersect: false, mode: 'index' }
+    }
+  });
+}
+
+// ==================== HISTORY ====================
+function renderHistory() {
+  let filtered = [...transactions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const typeFilter = document.getElementById('histType').value;
+  const catFilter = document.getElementById('histCategory').value;
+  const dateFrom = document.getElementById('histDateFrom').value;
+  const dateTo = document.getElementById('histDateTo').value;
+  const search = document.getElementById('histSearch').value.toLowerCase();
+
+  if (typeFilter !== 'all') filtered = filtered.filter(t => t.type === typeFilter);
+  if (catFilter !== 'all') filtered = filtered.filter(t => t.category === catFilter);
+  if (dateFrom) filtered = filtered.filter(t => new Date(t.createdAt) >= new Date(dateFrom + 'T00:00:00'));
+  if (dateTo) filtered = filtered.filter(t => new Date(t.createdAt) <= new Date(dateTo + 'T23:59:59'));
+  if (search) filtered = filtered.filter(t => t.comment.toLowerCase().includes(search));
+
+  const container = document.getElementById('historyList');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="text-center py-12 text-gray-500">Нет записей</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(t => `
+    <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 flex items-center gap-3 group hover:bg-bg-hover/50 transition-colors">
+      <div class="text-2xl">${catEmoji(t.category)}</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-white truncate">${catName(t.category)}</p>
+        <p class="text-xs text-gray-500 truncate">${t.comment || '—'}</p>
+        <p class="text-xs text-gray-600">${formatDate(t.createdAt)}</p>
+      </div>
+      <div class="text-right">
+        <p class="text-base font-bold ${t.type === 'income' ? 'text-green-accent' : 'text-red-accent'}">${t.type === 'income' ? '+' : '−'}${formatCurrency(t.amount)}</p>
+        <button onclick="confirmDelete('${t.id}')" class="text-xs text-gray-600 hover:text-red-accent mt-1 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">Удалить</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function populateHistoryCategoryFilter() {
+  const sel = document.getElementById('histCategory');
+  sel.innerHTML = '<option value="all">Все категории</option>';
+  ALL_CATEGORIES.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.emoji + ' ' + c.name;
+    sel.appendChild(opt);
+  });
+}
+
+document.getElementById('histType').addEventListener('change', renderHistory);
+document.getElementById('histCategory').addEventListener('change', renderHistory);
+document.getElementById('histDateFrom').addEventListener('change', renderHistory);
+document.getElementById('histDateTo').addEventListener('change', renderHistory);
+document.getElementById('histSearch').addEventListener('input', renderHistory);
+
+// ==================== ANALYTICS ====================
+let barChartInstance = null, analDoughnutExpenseInstance = null, analDoughnutIncomeInstance = null;
+let currentPeriod = 'month';
+
+function getPeriodRange() {
+  const now = new Date();
+  let from, to;
+  const dateFrom = document.getElementById('analDateFrom').value;
+  const dateTo = document.getElementById('analDateTo').value;
+  if (dateFrom && dateTo) {
+    from = new Date(dateFrom + 'T00:00:00');
+    to = new Date(dateTo + 'T23:59:59');
+  } else {
+    switch (currentPeriod) {
+      case 'week': from = new Date(now); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0); to = now; break;
+      case 'year': from = new Date(now.getFullYear(), 0, 1); to = now; break;
+      default: from = new Date(now.getFullYear(), now.getMonth(), 1); to = now;
+    }
+  }
+  return { from, to };
+}
+
+function renderAnalytics() {
+  const { from, to } = getPeriodRange();
+  const rangeTx = transactions.filter(t => {
+    const d = new Date(t.createdAt);
+    return d >= from && d <= to;
+  });
+
+  const totalIncome = rangeTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const totalExpense = rangeTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const net = totalIncome - totalExpense;
+  const avg = rangeTx.length > 0 ? (totalIncome + totalExpense) / rangeTx.length : 0;
+  const count = rangeTx.length;
+
+  document.getElementById('analSum').textContent = (net >= 0 ? '' : '−') + formatCurrency(Math.abs(net));
+  document.getElementById('analAvg').textContent = formatCurrency(avg);
+  document.getElementById('analCount').textContent = count;
+
+  renderBarChart(rangeTx, from, to);
+  renderAnalDoughnutEx(rangeTx);
+  renderAnalDoughnutIn(rangeTx);
+  renderTop5(rangeTx);
+}
+
+function renderBarChart(rangeTx, from, to) {
+  const ctx = document.getElementById('barChart').getContext('2d');
+  if (barChartInstance) barChartInstance.destroy();
+
+  const diffDays = Math.max(1, Math.round((to - from) / (1000 * 60 * 60 * 24)));
+  let labels, incomeData, expenseData;
+
+  if (diffDays <= 31) {
+    labels = [];
+    for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+      labels.push(d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }));
+    }
+    incomeData = labels.map(l => 0);
+    expenseData = labels.map(l => 0);
+    rangeTx.forEach(t => {
+      const idx = Math.floor((new Date(t.createdAt) - from) / (1000 * 60 * 60 * 24));
+      if (idx >= 0 && idx < labels.length) {
+        if (t.type === 'income') incomeData[idx] += t.amount;
+        else expenseData[idx] += t.amount;
+      }
+    });
+  } else {
+    const monthly = {};
+    rangeTx.forEach(t => {
+      const d = new Date(t.createdAt);
+      const key = d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+      if (!monthly[key]) monthly[key] = { income: 0, expense: 0 };
+      if (t.type === 'income') monthly[key].income += t.amount;
+      else monthly[key].expense += t.amount;
+    });
+    const keys = Object.keys(monthly).sort();
+    labels = keys;
+    incomeData = keys.map(k => monthly[k].income);
+    expenseData = keys.map(k => monthly[k].expense);
+  }
+
+  barChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Доходы', data: incomeData, backgroundColor: '#10b981', borderRadius: 4, borderSkipped: false },
+        { label: 'Расходы', data: expenseData, backgroundColor: '#ef4444', borderRadius: 4, borderSkipped: false },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 16, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
+        tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` } }
+      },
+      scales: {
+        x: { stacked: false, grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 12 } },
+        y: { stacked: false, grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => Math.round(v/1000) + 'k' } }
+      },
+      interaction: { intersect: false, mode: 'index' }
+    }
+  });
+}
+
+function renderAnalDoughnutEx(rangeTx) {
+  const ctx = document.getElementById('analDoughnutExpense').getContext('2d');
+  if (analDoughnutExpenseInstance) analDoughnutExpenseInstance.destroy();
+  const byCat = {};
+  rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
+  const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#6b7280'];
+  analDoughnutExpenseInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(([cat]) => catName(cat)),
+      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#1e293b', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 8, font: { size: 10, family: 'Inter' }, usePointStyle: true } },
+        tooltip: { backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+      }
+    }
+  });
+}
+
+function renderAnalDoughnutIn(rangeTx) {
+  const ctx = document.getElementById('analDoughnutIncome').getContext('2d');
+  if (analDoughnutIncomeInstance) analDoughnutIncomeInstance.destroy();
+  const byCat = {};
+  rangeTx.filter(t => t.type === 'income').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
+  const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  const colors = ['#10b981','#22c55e','#34d399','#6ee7b7','#a7f3d0'];
+  analDoughnutIncomeInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(([cat]) => catName(cat)),
+      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#1e293b', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 8, font: { size: 10, family: 'Inter' }, usePointStyle: true } },
+        tooltip: { backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+      }
+    }
+  });
+}
+
+function renderTop5(rangeTx) {
+  const byCat = {};
+  rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
+  const sorted = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const max = sorted.length > 0 ? sorted[0][1] : 1;
+  document.getElementById('top5List').innerHTML = sorted.map(([cat, sum]) => `
+    <div class="flex items-center gap-3">
+      <span class="text-lg w-8 text-center">${catEmoji(cat)}</span>
+      <span class="flex-1 text-sm text-gray-300">${catById(cat)?.name || cat}</span>
+      <span class="text-sm font-medium text-red-accent">${formatCurrency(sum)}</span>
+      <div class="w-24 bg-bg rounded-full h-2 overflow-hidden"><div class="h-full bg-red-accent rounded-full progress-bar" style="width:${(sum/max*100).toFixed(0)}%"></div></div>
+    </div>
+  `).join('') || '<p class="text-gray-500 text-sm">Нет данных</p>';
+}
+
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('bg-green-soft', 'text-green-accent', 'border-green-accent/30'));
+    btn.classList.add('bg-green-soft', 'text-green-accent', 'border-green-accent/30');
+    currentPeriod = btn.dataset.period;
+    renderAnalytics();
+  });
+});
+document.getElementById('analDateFrom').addEventListener('change', renderAnalytics);
+document.getElementById('analDateTo').addEventListener('change', renderAnalytics);
+
+// ==================== BUDGETS ====================
+function renderBudgets() {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const spentByCat = {};
+  transactions.filter(t => t.type === 'expense').forEach(t => {
+    const d = new Date(t.createdAt);
+    if (d >= monthStart && d <= now) spentByCat[t.category] = (spentByCat[t.category] || 0) + t.amount;
+  });
+
+  const container = document.getElementById('budgetList');
+  if (budgets.length === 0) {
+    container.innerHTML = '<div class="text-center py-12 text-gray-500">Бюджеты не установлены</div>';
+    return;
+  }
+  container.innerHTML = budgets.map(b => {
+    const spent = spentByCat[b.category] || 0;
+    const pct = Math.min(100, Math.round(spent / b.limit * 100));
+    const over = spent > b.limit;
+    return `
+      <div class="bg-bg-card rounded-xl p-4 border ${over ? 'border-red-500/50' : 'border-gray-700/50'}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-white">${catName(b.category)}</span>
+          <button onclick="deleteBudget('${b.category}')" class="text-xs text-gray-600 hover:text-red-accent focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>
+        </div>
+        <div class="flex justify-between text-xs text-gray-500 mb-1.5">
+          <span>${formatCurrency(spent)}</span>
+          <span>${formatCurrency(b.limit)}</span>
+        </div>
+        <div class="w-full bg-bg rounded-full h-2.5 overflow-hidden">
+          <div class="h-full rounded-full progress-bar ${over ? 'bg-red-accent' : pct > 80 ? 'bg-yellow-500' : 'bg-green-accent'}" style="width:${pct}%"></div>
+        </div>
+        <p class="text-xs mt-1.5 ${over ? 'text-red-accent font-medium' : 'text-gray-500'}">${over ? '⚠️ Превышен!' : pct + '% использовано'}</p>
+      </div>
+    `;
+  }).join('');
+}
+
+function showAddBudget() {
+  const sel = document.getElementById('budgetCategory');
+  sel.innerHTML = '';
+  CATEGORIES.expense.forEach(c => {
+    const exists = budgets.find(b => b.category === c.id);
+    if (!exists) {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.emoji + ' ' + c.name;
+      sel.appendChild(opt);
+    }
+  });
+  document.getElementById('budgetLimit').value = '';
+  openModal('budgetModal');
+}
+
+function saveBudget() {
+  const category = document.getElementById('budgetCategory').value;
+  const limit = parseInt(document.getElementById('budgetLimit').value);
+  if (!category) return;
+  if (isNaN(limit) || limit <= 0) { showToast('Введите лимит', 'error'); return; }
+  budgets = budgets.filter(b => b.category !== category);
+  budgets.push({ category, limit });
+  saveBudgets();
+  closeModal('budgetModal');
+  renderBudgets();
+  showToast('Бюджет сохранён', 'success');
+}
+
+function deleteBudget(cat) {
+  budgets = budgets.filter(b => b.category !== cat);
+  saveBudgets();
+  renderBudgets();
+}
+
+// ==================== INIT ====================
+function refreshAll() {
+  renderDashboard();
+  if (document.getElementById('history').classList.contains('active')) renderHistory();
+  if (document.getElementById('analytics').classList.contains('active')) renderAnalytics();
+  if (document.getElementById('budgets').classList.contains('active')) renderBudgets();
+  updateHeaderDate();
+}
+
+function updateHeaderDate() {
+  document.getElementById('headerDate').textContent = new Date().toLocaleDateString('ru-RU', { weekday: 'short', day: '2-digit', month: 'long' });
+}
+
+// ==================== PWA ====================
+if ('serviceWorker' in navigator) {
+  const swCode = `
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+self.addEventListener('fetch', e => {
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+});
+`;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+const manifest = {
+  name: 'Финансы — Трекер',
+  short_name: 'Финансы',
+  start_url: '.',
+  display: 'standalone',
+  background_color: '#0f172a',
+  theme_color: '#0f172a',
+  icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>", sizes: 'any' }]
+};
+const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+const manifestUrl = URL.createObjectURL(manifestBlob);
+const link = document.createElement('link');
+link.rel = 'manifest';
+link.href = manifestUrl;
+document.head.appendChild(link);
+
+// ==================== STARTUP ====================
+loadData();
+populateHistoryCategoryFilter();
+updateHeaderDate();
+renderDashboard();
+
+// Initial analytics period button styling
+document.querySelector('[data-period="month"]').classList.add('bg-green-soft', 'text-green-accent', 'border-green-accent/30');
+</script>
+</body>
+</html>
