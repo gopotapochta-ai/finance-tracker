@@ -152,6 +152,7 @@ tailwind.config = {
   <section id="analytics" class="screen space-y-4">
     <!-- Period selector -->
     <div class="flex flex-wrap gap-2">
+      <button data-period="all" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Всё</button>
       <button data-period="week" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Неделя</button>
       <button data-period="month" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Месяц</button>
       <button data-period="year" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Год</button>
@@ -567,7 +568,7 @@ function renderDashboard() {
   document.getElementById('dashToday').textContent = formatCurrency(todaySum);
   document.getElementById('dashWeek').textContent = formatCurrency(weekSum);
 
-  renderDoughnutChart(monthTx);
+  renderDoughnutChart(transactions);
   renderLineChart();
 }
 
@@ -716,7 +717,7 @@ document.getElementById('histSearch').addEventListener('input', renderHistory);
 
 // ==================== ANALYTICS ====================
 let barChartInstance = null, analDoughnutExpenseInstance = null, analDoughnutIncomeInstance = null;
-let currentPeriod = 'month';
+let currentPeriod = 'all';
 
 function getPeriodRange() {
   const now = new Date();
@@ -730,7 +731,8 @@ function getPeriodRange() {
     switch (currentPeriod) {
       case 'week': from = new Date(now); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0); to = now; break;
       case 'year': from = new Date(now.getFullYear(), 0, 1); to = now; break;
-      default: from = new Date(now.getFullYear(), now.getMonth(), 1); to = now;
+      case 'month': from = new Date(now.getFullYear(), now.getMonth(), 1); to = now; break;
+      default: from = new Date(2000, 0, 1); to = now; // 'all'
     }
   }
   return { from, to };
@@ -1118,7 +1120,7 @@ populateHistoryCategoryFilter();
 updateHeaderDate();
 renderDashboard();
 
-var periodBtn = document.querySelector('[data-period="month"]');
+var periodBtn = document.querySelector('[data-period="all"]');
 if (periodBtn) periodBtn.classList.add('bg-green-soft', 'text-green-accent', 'border-green-accent/30');
 </script>
 </body>
