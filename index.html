@@ -114,6 +114,20 @@ tailwind.config = {
     </div>
   </section>
 
+  <!-- SETTINGS / CATEGORIES -->
+  <section id="settings" class="screen space-y-4">
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="text-base font-bold text-white">Доходы</h2>
+      <button onclick="showAddCatModal('income')" class="text-xs px-3 py-1.5 rounded-lg bg-green-soft text-green-accent font-medium hover:bg-green-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">+ Добавить</button>
+    </div>
+    <div id="settingsIncomeList" class="space-y-1.5 mb-6"></div>
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="text-base font-bold text-white">Расходы</h2>
+      <button onclick="showAddCatModal('expense')" class="text-xs px-3 py-1.5 rounded-lg bg-red-soft text-red-accent font-medium hover:bg-red-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">+ Добавить</button>
+    </div>
+    <div id="settingsExpenseList" class="space-y-1.5"></div>
+  </section>
+
   <!-- HISTORY -->
   <section id="history" class="screen space-y-4">
     <!-- Filters -->
@@ -268,6 +282,29 @@ tailwind.config = {
   </div>
 </div>
 
+<!-- ==================== ADD CATEGORY MODAL ==================== -->
+<div id="catModal" class="modal-overlay">
+  <div class="modal w-full sm:max-w-md bg-bg-card border-t sm:border border-gray-700 rounded-t-2xl sm:rounded-2xl" onclick="event.stopPropagation()">
+    <div class="sticky top-0 bg-bg-card px-5 py-4 border-b border-gray-700/50 flex items-center justify-between rounded-t-2xl">
+      <h2 class="text-lg font-bold text-white" id="catModalTitle">Добавить категорию</h2>
+      <button onclick="closeModal('catModal')" class="text-gray-400 hover:text-white text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-green-accent/50 rounded">&times;</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">Название</label>
+        <input id="catNameInput" type="text" placeholder="Например: Питомец" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off" maxlength="30">
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">Emoji</label>
+        <input id="catEmojiInput" type="text" placeholder="🐱" maxlength="4" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-2xl text-center text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+      </div>
+      <button onclick="saveCustomCategory()" class="w-full py-3 rounded-xl bg-green-accent text-white font-semibold text-base hover:bg-emerald-500 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-green-accent/50 focus:ring-offset-2 focus:ring-offset-bg-card">
+        Добавить
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== FAB ==================== -->
 <button onclick="openAddModal()" class="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full bg-green-accent text-white text-3xl shadow-lg hover:bg-emerald-500 active:scale-95 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-green-accent/50 focus:ring-offset-2 focus:ring-offset-bg" aria-label="Добавить запись">
   +
@@ -280,12 +317,13 @@ tailwind.config = {
     <button data-screen="history" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">📋</span>История</button>
     <button data-screen="analytics" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">📈</span>Аналитика</button>
     <button data-screen="budgets" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">🎯</span>Бюджеты</button>
+    <button data-screen="settings" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">⚙️</span>Настр.</button>
   </div>
 </nav>
 
 <script>
 // ==================== DATA & CONSTANTS ====================
-const CATEGORIES = {
+const DEFAULT_CATEGORIES = {
   income: [
     { id: 'salary', name: 'Зарплата', emoji: '💼' },
     { id: 'freelance', name: 'Фриланс', emoji: '💻' },
@@ -306,11 +344,34 @@ const CATEGORIES = {
   ]
 };
 
-const ALL_CATEGORIES = [...CATEGORIES.income, ...CATEGORIES.expense];
-function catById(id) { return ALL_CATEGORIES.find(c => c.id === id); }
-function catName(id) { const c = catById(id); return c ? `${c.emoji} ${c.name}` : id; }
+let CATEGORIES = structuredClone(DEFAULT_CATEGORIES);
+
+function getCategories() { return CATEGORIES; }
+function saveCategories() { localStorage.setItem('finance_categories', JSON.stringify(CATEGORIES)); }
+function loadCategories() {
+  const raw = localStorage.getItem('finance_categories');
+  if (raw) {
+    try { CATEGORIES = JSON.parse(raw); } catch(e) { CATEGORIES = structuredClone(DEFAULT_CATEGORIES); }
+  } else {
+    CATEGORIES = structuredClone(DEFAULT_CATEGORIES);
+  }
+}
+function getAllCats() { return [...CATEGORIES.income, ...CATEGORIES.expense]; }
+function catById(id) { return getAllCats().find(c => c.id === id); }
+function catName(id) { const c = catById(id); return c ? `${c.emoji} ${c.name}` : `❓ ${id}`; }
 function catEmoji(id) { const c = catById(id); return c ? c.emoji : '❓'; }
 function isIncomeCat(id) { return CATEGORIES.income.some(c => c.id === id); }
+function addCategory(type, name, emoji) {
+  const id = 'custom_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+  CATEGORIES[type].push({ id, name, emoji });
+  saveCategories();
+  return id;
+}
+function deleteCategory(id) {
+  CATEGORIES.income = CATEGORIES.income.filter(c => c.id !== id);
+  CATEGORIES.expense = CATEGORIES.expense.filter(c => c.id !== id);
+  saveCategories();
+}
 
 function uuid() { return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
 
@@ -322,6 +383,7 @@ let pendingDeleteId = null;
 
 // ==================== PERSISTENCE ====================
 function loadData() {
+  loadCategories();
   const raw = localStorage.getItem('finance_transactions');
   if (raw) {
     transactions = JSON.parse(raw);
@@ -453,10 +515,11 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
 document.getElementById('addModal').addEventListener('click', function(e) { if (e.target === this) closeModal('addModal'); });
 document.getElementById('budgetModal').addEventListener('click', function(e) { if (e.target === this) closeModal('budgetModal'); });
 document.getElementById('deleteModal').addEventListener('click', function(e) { if (e.target === this) closeModal('deleteModal'); });
+document.getElementById('catModal').addEventListener('click', function(e) { if (e.target === this) closeModal('catModal'); });
 
 // ==================== NAVIGATION ====================
-const screens = ['dashboard', 'history', 'analytics', 'budgets'];
-const titles = { dashboard: 'Финансы', history: 'История', analytics: 'Аналитика', budgets: 'Бюджеты' };
+const screens = ['dashboard', 'history', 'analytics', 'budgets', 'settings'];
+const titles = { dashboard: 'Финансы', history: 'История', analytics: 'Аналитика', budgets: 'Бюджеты', settings: 'Категории' };
 
 function switchScreen(name) {
   screens.forEach(s => document.getElementById(s).classList.remove('active'));
@@ -467,6 +530,7 @@ function switchScreen(name) {
   if (name === 'history') renderHistory();
   if (name === 'analytics') renderAnalytics();
   if (name === 'budgets') renderBudgets();
+  if (name === 'settings') renderSettings();
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -636,7 +700,7 @@ function renderHistory() {
 function populateHistoryCategoryFilter() {
   const sel = document.getElementById('histCategory');
   sel.innerHTML = '<option value="all">Все категории</option>';
-  ALL_CATEGORIES.forEach(c => {
+  getAllCats().forEach(c => {
     const opt = document.createElement('option');
     opt.value = c.id;
     opt.textContent = c.emoji + ' ' + c.name;
@@ -901,12 +965,64 @@ function deleteBudget(cat) {
   renderBudgets();
 }
 
+// ==================== SETTINGS / CATEGORIES ====================
+function renderSettings() {
+  const incList = document.getElementById('settingsIncomeList');
+  const expList = document.getElementById('settingsExpenseList');
+  incList.innerHTML = CATEGORIES.income.map(c => `
+    <div class="flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-gray-700/50">
+      <span class="text-xl">${c.emoji}</span>
+      <span class="flex-1 text-sm text-gray-200">${c.name}</span>
+      <span class="text-[10px] text-gray-600">${c.id.startsWith('custom_') ? 'свой' : 'систем.'}</span>
+      ${c.id.startsWith('custom_') ? `<button onclick="deleteCustomCat('${c.id}')" class="text-gray-600 hover:text-red-accent text-lg leading-none focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>` : ''}
+    </div>
+  `).join('');
+  expList.innerHTML = CATEGORIES.expense.map(c => `
+    <div class="flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-gray-700/50">
+      <span class="text-xl">${c.emoji}</span>
+      <span class="flex-1 text-sm text-gray-200">${c.name}</span>
+      <span class="text-[10px] text-gray-600">${c.id.startsWith('custom_') ? 'свой' : 'систем.'}</span>
+      ${c.id.startsWith('custom_') ? `<button onclick="deleteCustomCat('${c.id}')" class="text-gray-600 hover:text-red-accent text-lg leading-none focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>` : ''}
+    </div>
+  `).join('');
+}
+
+let pendingCatType = 'income';
+function showAddCatModal(type) {
+  pendingCatType = type;
+  document.getElementById('catModalTitle').textContent = type === 'income' ? 'Добавить доход' : 'Добавить расход';
+  document.getElementById('catNameInput').value = '';
+  document.getElementById('catEmojiInput').value = '';
+  openModal('catModal');
+}
+
+function saveCustomCategory() {
+  const name = document.getElementById('catNameInput').value.trim();
+  let emoji = document.getElementById('catEmojiInput').value.trim();
+  if (!name) { showToast('Введите название', 'error'); return; }
+  if (!emoji) emoji = '📌';
+  addCategory(pendingCatType, name, emoji);
+  closeModal('catModal');
+  renderSettings();
+  populateHistoryCategoryFilter();
+  showToast('Категория добавлена', 'success');
+}
+
+function deleteCustomCat(id) {
+  if (!confirm('Удалить категорию? Записи с ней останутся.')) return;
+  deleteCategory(id);
+  renderSettings();
+  populateHistoryCategoryFilter();
+  showToast('Категория удалена', 'success');
+}
+
 // ==================== INIT ====================
 function refreshAll() {
   renderDashboard();
   if (document.getElementById('history').classList.contains('active')) renderHistory();
   if (document.getElementById('analytics').classList.contains('active')) renderAnalytics();
   if (document.getElementById('budgets').classList.contains('active')) renderBudgets();
+  if (document.getElementById('settings').classList.contains('active')) renderSettings();
   updateHeaderDate();
 }
 
