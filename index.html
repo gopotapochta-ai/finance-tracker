@@ -572,19 +572,25 @@ function renderDashboard() {
   renderLineChart();
 }
 
-function renderDoughnutChart(monthTx) {
+function renderDoughnutChart(allTx) {
   const ctx = document.getElementById('doughnutChart').getContext('2d');
   if (doughnutChartInstance) doughnutChartInstance.destroy();
 
+  const expenseTx = allTx.filter(t => t.type === 'expense');
   const expenseByCat = {};
-  monthTx.filter(t => t.type === 'expense').forEach(t => {
+  expenseTx.forEach(t => {
     expenseByCat[t.category] = (expenseByCat[t.category] || 0) + t.amount;
   });
   const entries = Object.entries(expenseByCat).sort((a, b) => b[1] - a[1]);
+
+  // DEBUG: выводим на консоль что реально в данных
+  console.log('Doughnut data:', { totalExpenseTx: expenseTx.length, categories: entries.map(([id, sum]) => ({ id, sum, display: catName(id) })) });
+
   const labels = entries.map(([cat]) => catName(cat));
   const data = entries.map(([, sum]) => sum);
 
-  const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#6b7280'];
+  // больше цветов для кастомных категорий
+  const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#6b7280','#84cc16','#f43f5e','#06b6d4','#a855f7','#e11d48','#ca8a04','#2563eb'];
 
   doughnutChartInstance = new Chart(ctx, {
     type: 'doughnut',
@@ -597,7 +603,7 @@ function renderDoughnutChart(monthTx) {
       maintainAspectRatio: false,
       cutout: '60%',
       plugins: {
-        legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 12, font: { size: 11, family: 'Inter' }, usePointStyle: true, pointStyleWidth: 8 } },
+        legend: { display: true, position: 'bottom', labels: { color: '#9ca3af', padding: 12, font: { size: 11, family: 'Inter' }, usePointStyle: true, pointStyleWidth: 8 } },
         tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
       }
     }
@@ -828,7 +834,8 @@ function renderAnalDoughnutEx(rangeTx) {
   const byCat = {};
   rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#6b7280'];
+  console.log('Anal Expense doughnut:', { categories: entries.map(([id, sum]) => ({ id, sum, display: catName(id) })) });
+  const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#6b7280','#84cc16','#f43f5e','#06b6d4','#a855f7','#e11d48','#ca8a04','#2563eb'];
   analDoughnutExpenseInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -851,7 +858,7 @@ function renderAnalDoughnutIn(rangeTx) {
   const byCat = {};
   rangeTx.filter(t => t.type === 'income').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const colors = ['#10b981','#22c55e','#34d399','#6ee7b7','#a7f3d0'];
+  const colors = ['#10b981','#22c55e','#34d399','#6ee7b7','#a7f3d0','#059669','#047857','#065f46','#047857','#14b8a6'];
   analDoughnutIncomeInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
