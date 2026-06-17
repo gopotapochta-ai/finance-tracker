@@ -287,6 +287,26 @@ tailwind.config = {
       <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
       <button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) { localStorage.clear(); location.reload(); }" class="w-full py-2.5 rounded-xl bg-red-soft text-red-accent font-medium text-sm hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">🗑 Сбросить все данные</button>
     </div>
+    <div class="border-t border-gray-700/50 pt-4 space-y-3">
+      <h2 class="text-base font-bold text-white">☁️ Синхронизация (GitHub Gist)</h2>
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">GitHub токен</label>
+        <input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 block mb-1">Gist ID</label>
+        <input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+      </div>
+      <div class="flex gap-3">
+        <button onclick="saveSyncSettings()" class="flex-1 py-2.5 rounded-xl bg-green-accent text-white font-medium text-sm hover:bg-emerald-500 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">💾 Сохранить</button>
+        <button onclick="createGist()" class="flex-1 py-2.5 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">🆕 Создать Gist</button>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="pullFromGist()" class="flex-1 py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">⬇️ Загрузить из облака</button>
+        <button onclick="pushToGist()" class="flex-1 py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">⬆️ Выгрузить в облако</button>
+      </div>
+      <p id="syncStatus" class="text-xs text-gray-500"></p>
+    </div>
   </section>
 
   <!-- HISTORY -->
@@ -1215,6 +1235,125 @@ function importData(input) {
   input.value = '';
 }
 
+// ==================== GITHUB GIST SYNC ====================
+function getSyncConfig() {
+  const raw = localStorage.getItem('sync_config');
+  return raw ? JSON.parse(raw) : { token: '', gistId: '' };
+}
+function saveSyncSettings() {
+  const token = document.getElementById('syncToken').value.trim();
+  const gistId = document.getElementById('syncGistId').value.trim();
+  if (!token || !gistId) { showToast('Заполни оба поля', 'error'); return; }
+  localStorage.setItem('sync_config', JSON.stringify({ token, gistId }));
+  document.getElementById('syncStatus').textContent = '✅ Настройки сохранены';
+  showToast('Синхронизация настроена', 'success');
+  autoPullGist();
+}
+function loadSyncUI() {
+  const cfg = getSyncConfig();
+  document.getElementById('syncToken').value = cfg.token || '';
+  document.getElementById('syncGistId').value = cfg.gistId || '';
+  if (cfg.token && cfg.gistId) {
+    document.getElementById('syncStatus').textContent = '✅ Настроено';
+  }
+}
+
+function gistApi(method, body) {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) return Promise.reject('not configured');
+  const opts = {
+    method,
+    headers: { 'Authorization': 'token ' + cfg.token, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  return fetch('https://api.github.com/gists/' + cfg.gistId, opts).then(r => {
+    if (!r.ok) return r.json().then(e => { throw new Error(e.message || 'HTTP ' + r.status); });
+    return r.json();
+  });
+}
+
+function createGist() {
+  const cfg = getSyncConfig();
+  const token = document.getElementById('syncToken').value.trim();
+  if (!token) { showToast('Сначала введи GitHub токен', 'error'); return; }
+  const data = {
+    description: 'Finance tracker data',
+    public: false,
+    files: { 'finance-data.json': { content: JSON.stringify({ transactions, budgets, categories: CATEGORIES, updated: new Date().toISOString() }) } }
+  };
+  fetch('https://api.github.com/gists', {
+    method: 'POST',
+    headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(r => r.json()).then(gist => {
+    document.getElementById('syncGistId').value = gist.id;
+    document.getElementById('syncToken').value = token;
+    saveSyncSettings();
+    showToast('Gist создан: ' + gist.id, 'success');
+  }).catch(e => showToast('Ошибка: ' + e.message, 'error'));
+}
+
+function pushToGist() {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) { showToast('Настрой синхронизацию', 'error'); return; }
+  const content = JSON.stringify({ transactions, budgets, categories: CATEGORIES, updated: new Date().toISOString() });
+  gistApi('PATCH', { files: { 'finance-data.json': { content } } })
+    .then(() => { document.getElementById('syncStatus').textContent = '⬆️ Выгружено ' + new Date().toLocaleTimeString('ru-RU'); showToast('Данные в облаке', 'success'); })
+    .catch(e => showToast('Ошибка: ' + e.message, 'error'));
+}
+
+function pullFromGist() {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) { showToast('Настрой синхронизацию', 'error'); return; }
+  gistApi('GET').then(gist => {
+    const file = gist.files && gist.files['finance-data.json'];
+    if (!file) { showToast('Gist пуст', 'error'); return; }
+    const data = JSON.parse(file.content);
+    if (data.transactions) { transactions = data.transactions; saveData(); }
+    if (data.budgets) { budgets = data.budgets; saveBudgets(); }
+    if (data.categories) { CATEGORIES = data.categories; saveCategories(); }
+    document.getElementById('syncStatus').textContent = '⬇️ Загружено ' + new Date().toLocaleTimeString('ru-RU');
+    refreshAll();
+    showToast('Синхронизировано!', 'success');
+  }).catch(e => showToast('Ошибка: ' + e.message, 'error'));
+}
+
+function autoPullGist() {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) return;
+  gistApi('GET').then(gist => {
+    const file = gist.files && gist.files['finance-data.json'];
+    if (!file) return;
+    const remote = JSON.parse(file.content);
+    if (!remote.updated) return;
+    const localUpdated = localStorage.getItem('finance_lastSync') || '';
+    if (remote.updated > localUpdated) {
+      if (remote.transactions) { transactions = remote.transactions; saveData(); }
+      if (remote.budgets) { budgets = remote.budgets; saveBudgets(); }
+      if (remote.categories) { CATEGORIES = remote.categories; saveCategories(); }
+      localStorage.setItem('finance_lastSync', remote.updated);
+      refreshAll();
+    }
+  }).catch(() => {});
+}
+
+function autoPushGist() {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) return;
+  const now = new Date().toISOString();
+  localStorage.setItem('finance_lastSync', now);
+  const content = JSON.stringify({ transactions, budgets, categories: CATEGORIES, updated: now });
+  gistApi('PATCH', { files: { 'finance-data.json': { content } } }).catch(() => {});
+}
+
+// Hook save functions to auto-push
+const origSaveData = saveData;
+saveData = function() { origSaveData(); autoPushGist(); };
+const origSaveBudgets = saveBudgets;
+saveBudgets = function() { origSaveBudgets(); autoPushGist(); };
+const origSaveCategories = saveCategories;
+saveCategories = function() { origSaveCategories(); autoPushGist(); };
+
 // ==================== INIT ====================
 function refreshAll() {
   renderDashboard();
@@ -1316,6 +1455,8 @@ loadData();
 populateHistoryCategoryFilter();
 updateHeaderDate();
 renderDashboard();
+loadSyncUI();
+autoPullGist();
 
 var periodBtn = document.querySelector('[data-period="all"]');
 if (periodBtn) periodBtn.classList.add('bg-green-soft', 'text-green-accent', 'border-green-accent/30');
