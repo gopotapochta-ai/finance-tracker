@@ -1427,28 +1427,8 @@ setTimeout(function() {
   }
 }, 5000);
 
-// Diagnostics panel
-(function showDiag() {
-  fetch('/finance-tracker/manifest.json')
-    .then(r => {
-      diagLog('Manifest HTTP: ' + r.status + ' ct=' + r.headers.get('content-type'));
-      return r.ok ? r.json() : Promise.reject('HTTP ' + r.status);
-    })
-    .then(m => diagLog('Manifest: OK, icons=' + m.icons.length + ', display=' + m.display))
-    .catch(err => diagLog('Manifest: ERR ' + err));
+// Diagnostics panel — отключена
 
-  fetch('/finance-tracker/icon-192.png')
-    .then(r => diagLog('Icon-192 HTTP: ' + r.status + ' ct=' + r.headers.get('content-type')))
-    .catch(err => diagLog('Icon-192: ERR ' + err));
-
-  setTimeout(function() {
-    var div = document.createElement('div');
-    div.id = 'pwa-diag';
-    div.style.cssText = 'position:fixed;bottom:96px;left:8px;right:8px;z-index:900;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;font-size:11px;font-family:monospace;color:#94a3b8;line-height:1.6';
-    div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="color:#10b981">PWA Диагностика</b><button onclick="document.getElementById(\'pwa-diag\').remove()" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer">&times;</button></div>' + diag.map(function(s){return s}).join('<br>');
-    document.body.appendChild(div);
-  }, 2500);
-})();
 
 // ==================== STARTUP ====================
 loadData();
