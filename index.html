@@ -277,7 +277,16 @@ tailwind.config = {
       <h2 class="text-base font-bold text-white">Расходы</h2>
       <button onclick="showAddCatModal('expense')" class="text-xs px-3 py-1.5 rounded-lg bg-red-soft text-red-accent font-medium hover:bg-red-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">+ Добавить</button>
     </div>
-    <div id="settingsExpenseList" class="space-y-1.5"></div>
+    <div id="settingsExpenseList" class="space-y-1.5 mb-6"></div>
+    <div class="border-t border-gray-700/50 pt-4 space-y-3">
+      <h2 class="text-base font-bold text-white">Данные</h2>
+      <div class="flex gap-3">
+        <button onclick="exportData()" class="flex-1 py-2.5 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">📤 Экспорт (JSON)</button>
+        <button onclick="document.getElementById('importFile').click()" class="flex-1 py-2.5 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">📥 Импорт (JSON)</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
+      <button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) { localStorage.clear(); location.reload(); }" class="w-full py-2.5 rounded-xl bg-red-soft text-red-accent font-medium text-sm hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">🗑 Сбросить все данные</button>
+    </div>
   </section>
 
   <!-- HISTORY -->
@@ -1175,6 +1184,35 @@ function deleteCustomCat(id) {
   renderSettings();
   populateHistoryCategoryFilter();
   showToast('Категория удалена', 'success');
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify({ transactions, budgets, categories: CATEGORIES }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'finance-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showToast('Файл скачан', 'success');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.transactions) { transactions = data.transactions; saveData(); }
+      if (data.budgets) { budgets = data.budgets; saveBudgets(); }
+      if (data.categories) { CATEGORIES = data.categories; saveCategories(); }
+      showToast('Данные импортированы!', 'success');
+      refreshAll();
+    } catch(err) {
+      showToast('Ошибка: неверный формат файла', 'error');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
 }
 
 // ==================== INIT ====================
