@@ -30,10 +30,14 @@
   <button class="btn gray" onclick="showStorage()">👁 Показать localStorage</button>
   <button class="btn gray" onclick="showSW()">👁 Показать Service Workers</button>
   <a class="btn gray" href="./?bust=1">↗ Открыть приложение как есть</a>
+  <button class="btn red" onclick="recoverOrphanedCats()">🩹 Восстановить осиротевшие категории</button>
 </div>
 
-<div class="card">
-  <div class="big">Лог:</div>
+<div class="card" id="orphanCard" style="display:none">
+  <div class="big">Осиротевшие категории (есть в транзакциях, нет в списке):</div>
+  <div id="orphanList"></div>
+  <p class="muted" style="font-size:12px">Каждая найденная категория используется в твоих транзакциях, но пропала из списка. Введи имя и эмодзи — категория будет восстановлена и сохранена.</p>
+</div>
   <pre id="log">нажми «Запустить восстановление»</pre>
 </div>
 
@@ -151,9 +155,76 @@ async function runFix() {
     location.href = './?fixed=' + Date.now();
   }, 2000);
 }
-
+function findOrphanedCustomCats() {
+  let cats, txs;
+  try { cats = JSON.parse(localStorage.getItem('finance_categories') || '{}'); } catch (e) { cats = {}; }
+  try { txs = JSON.parse(localStorage.getItem('finance_transactions') || '[]'); } catch (e) { txs = []; }
+  const knownIds = new Set();
+  (cats.income || []).forEach(c => knownIds.add(c.id));
+  (cats.expense || []).forEach(c => knownIds.add(c.id));
+  const orphanMap = new Map(); // id -> { type, count, sum, sampleComment }
+  txs.forEach(t => {
+    if (typeof t.category === 'string' && t.category.startsWith('custom_') && !knownIds.has(t.category)) {
+      const o = orphanMap.get(t.category) || { id: t.category, type: t.type, count: 0, sum: 0, sampleComment: '' };
+      o.count += 1;
+      o.sum += Number(t.amount) || 0;
+      if (!o.sampleComment && t.comment) o.sampleComment = t.comment;
+      orphanMap.set(t.category, o);
+    }
+  });
+  return Array.from(orphanMap.values());
+}
+function renderOrphans() {
+  const orphans = findOrphanedCustomCats();
+  const card = document.getElementById('orphanCard');
+  const list = document.getElementById('orphanList');
+  if (!orphans.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  list.innerHTML = '';
+  orphans.forEach(o => {
+    const row = document.createElement('div');
+    row.style.cssText = 'background:#0f172a;padding:12px;border-radius:8px;margin:8px 0;border:1px solid #334155';
+    row.innerHTML = `
+      <div style="font-family:monospace;font-size:11px;color:#94a3b8;margin-bottom:6px">id: ${o.id}</div>
+      <div style="margin-bottom:6px"><b>Тип:</b> ${o.type} · <b>Использований:</b> ${o.count} · <b>Сумма:</b> ${o.sum} ₽</div>
+      <div style="margin-bottom:8px"><b>Пример комментария:</b> "${o.sampleComment || '—'}"</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="name-${o.id}" type="text" placeholder="Имя категории" maxlength="30" style="flex:1;min-width:160px;padding:8px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0">
+        <input id="emoji-${o.id}" type="text" placeholder="🎁" maxlength="4" style="width:60px;padding:8px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#e2e8f0;text-align:center">
+        <button class="btn" style="padding:8px 14px;font-size:13px;margin:0" onclick="saveOrphan('${o.id}')">💾 Сохранить</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+function saveOrphan(id) {
+  const name = document.getElementById('name-' + id).value.trim();
+  const emoji = (document.getElementById('emoji-' + id).value.trim() || '📌').slice(0, 8);
+  if (!name) { alert('Введи имя'); return; }
+  const orphans = findOrphanedCustomCats();
+  const o = orphans.find(x => x.id === id);
+  if (!o) { alert('Категория уже восстановлена'); return; }
+  let cats;
+  try { cats = JSON.parse(localStorage.getItem('finance_categories') || '{}'); } catch (e) { cats = { income: [], expense: [] }; }
+  if (!Array.isArray(cats[o.type])) cats[o.type] = [];
+  // Avoid duplicates
+  if (!cats[o.type].some(c => c.id === id)) {
+    cats[o.type].push({ id, name: name.slice(0, 60), emoji });
+    localStorage.setItem('finance_categories', JSON.stringify(cats));
+    log('✅ Восстановлено: ' + o.type + '/' + name + ' ' + emoji + ' (' + id + ')');
+  }
+  renderOrphans();
+  showStorage();
+}
+function recoverOrphanedCats() {
+  renderOrphans();
+  const orphans = findOrphanedCustomCats();
+  if (!orphans.length) log('ℹ️ Осиротевших категорий не найдено.');
+  else log('🔍 Найдено осиротевших: ' + orphans.length + '. Заполни имя/эмодзи и нажми Сохранить.');
+}
 showSW();
 showStorage();
+renderOrphans();
 info('Сборка: ' + BUILD);
 info('Открой эту страницу ТОЛЬКО по прямой ссылке (НЕ из PWA) — иначе старый SW перехватит.');
 </script>
