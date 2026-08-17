@@ -571,15 +571,69 @@ function normalizeCategories(value) {
     expense: normalizeList(source.expense, DEFAULT_CATEGORIES.expense),
   };
 }
+function isCustomCatId(id) { return typeof id === 'string' && id.startsWith('custom_'); }
+function dedupeCat(items) {
+  const seen = new Set();
+  const out = [];
+  items.forEach(c => {
+    if (!c || typeof c.id !== 'string' || !c.id.trim()) return;
+    if (seen.has(c.id)) return;
+    seen.add(c.id);
+    out.push({ id: c.id.trim(), name: String(c.name || '').trim().slice(0, 60), emoji: String(c.emoji || '📌').trim().slice(0, 8) });
+  });
+  return out;
+}
+// Union local + remote categories so a stale gist / import never wipes user's custom cats.
+// Order: defaults → local custom (preserves user order on this device) → remote custom.
+function mergeCategories(local, remote) {
+  const mergeList = (localList, remoteList, defaults) => {
+    const localCustom = Array.isArray(localList) ? localList.filter(c => isCustomCatId(c && c.id)) : [];
+    const remoteCustom = Array.isArray(remoteList) ? remoteList.filter(c => isCustomCatId(c && c.id)) : [];
+    const defaultCustom = dedupeCat(defaults);
+    // Remote values win for matching ids (so renames/emoji edits propagate).
+    const valueById = new Map();
+    defaultCustom.forEach(c => valueById.set(c.id, c));
+    localCustom.forEach(c => valueById.set(c.id, c));
+    remoteCustom.forEach(c => valueById.set(c.id, c));
+    return dedupeCat([...defaultCustom, ...localCustom, ...remoteCustom]).map(c => valueById.get(c.id) || c);
+  };
+  return {
+    income: mergeList(local && local.income, remote && remote.income, DEFAULT_CATEGORIES.income),
+    expense: mergeList(local && local.expense, remote && remote.expense, DEFAULT_CATEGORIES.expense),
+  };
+}
+function hasAnyCustomCats(value) {
+  if (!isRecord(value)) return false;
+  const lists = [].concat(value.income || [], value.expense || []);
+  return lists.some(c => c && isCustomCatId(c.id));
+}
+function loadCategories() {
+  CATEGORIES = normalizeCategories(readStoredJson(STORAGE_KEYS.categories));
+  localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(CATEGORIES));
+}
+function restoreCustomCategoriesFromCloud() {
+  // Last-ditch: gist may carry cats that localStorage lost (cleared cache, reset, fresh profile).
+  // Only acts if local has NO custom cats and remote has some — never overwrites existing state.
+  const cfg = (typeof getSyncConfig === 'function') ? getSyncConfig() : { token: '', gistId: '' };
+  if (!cfg.token || !cfg.gistId) return Promise.resolve(false);
+  if (hasAnyCustomCats(CATEGORIES)) return Promise.resolve(false);
+  return gistApi('GET').then(gist => {
+    const file = gist && gist.files && gist.files['finance-data.json'];
+    if (!file || typeof file.content !== 'string') return false;
+    let remote;
+    try { remote = JSON.parse(file.content); } catch (e) { return false; }
+    if (!remote || !isRecord(remote.categories)) return false;
+    if (!hasAnyCustomCats(remote.categories)) return false;
+    CATEGORIES = mergeCategories(CATEGORIES, remote.categories);
+    saveCategories();
+    return true;
+  }).catch(() => false);
+}
 
 function getCategories() { return CATEGORIES; }
 function saveCategories() {
   localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(CATEGORIES));
   if (syncWritesEnabled) autoPushGist();
-}
-function loadCategories() {
-  CATEGORIES = normalizeCategories(readStoredJson(STORAGE_KEYS.categories));
-  localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(CATEGORIES));
 }
 
 function getAllCats() { return [...CATEGORIES.income, ...CATEGORIES.expense]; }
@@ -1396,7 +1450,7 @@ function applyDataPayload(value, pushAfter = false) {
       saveBudgets();
     }
     if (Object.prototype.hasOwnProperty.call(payload, 'categories')) {
-      CATEGORIES = payload.categories;
+      CATEGORIES = mergeCategories(CATEGORIES, payload.categories);
       saveCategories();
     }
   } finally {
@@ -1648,6 +1702,14 @@ renderDashboard();
 loadSyncUI();
 syncWritesEnabled = true;
 autoPullGist();
+// Если локально кастомных нет, но в гисте они есть — восстанавливаем (иначе пользователь думает, что всё пропало).
+restoreCustomCategoriesFromCloud().then(restored => {
+  if (restored) {
+    populateHistoryCategoryFilter();
+    refreshAll();
+    showToast('Кастомные категории восстановлены из облака', 'success');
+  }
+});
 
 var periodBtn = document.querySelector('[data-period="all"]');
 if (periodBtn) periodBtn.classList.add('bg-green-soft', 'text-green-accent', 'border-green-accent/30');
