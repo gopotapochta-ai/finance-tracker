@@ -209,7 +209,10 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   }
 </style>
 </head>
-<body class="bg-bg text-gray-200 min-h-screen">
+<body class="bg-bg text-gray-200 min-h-screen" data-build="2026-08-17-r3">
+<!-- Always-visible build stamp so the user can SEE which code is loaded (even on the old SW). -->
+<div id="buildBadge" style="position:fixed;left:8px;bottom:8px;z-index:9999;font:600 10px/1 ui-monospace,monospace;color:#94a3b8;background:#1e293bcc;border:1px solid #334155;border-radius:6px;padding:4px 6px;pointer-events:none">build: 2026-08-17-r3</div>
+<script>document.body.setAttribute('data-build', '2026-08-17-r3'); document.getElementById('buildBadge').textContent = 'build: 2026-08-17-r3';</script>
 
 <!-- ==================== TOAST ==================== -->
 <div id="toast" class="toast hidden"></div>
@@ -1630,9 +1633,8 @@ function autoPushGist() {
       }
     });
 }
-const BUILD_VERSION = '2026-08-17-r2';
+const BUILD_VERSION = '2026-08-17-r3';
 function diagSnapshot() {
-  const cfg = (typeof getSyncConfig === 'function') ? getSyncConfig() : { token: '', gistId: '' };
   const localCats = readStoredJson(STORAGE_KEYS.categories);
   const incCount = Array.isArray(localCats && localCats.income) ? localCats.income.length : 0;
   const expCount = Array.isArray(localCats && localCats.expense) ? localCats.expense.length : 0;
@@ -1779,9 +1781,40 @@ const diag = [];
 function diagLog(s) { diag.push(s); }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register(new URL('sw.js', document.baseURI))
-    .then(reg => diagLog('SW: OK scope=' + reg.scope))
+  // Version param busts HTTP cache so the browser is forced to refetch sw.js and detect the new build.
+  // sw2.js is a copy of sw.js under a different URL. The OLD sw.js is unregisterable
+  // and the OLD code's registration of sw.js (no query) now points to a file that
+  // either doesn't exist or, if it does, gets orphaned the moment a new SW activates.
+  const swUrl = new URL('sw2.js?build=' + encodeURIComponent(BUILD_VERSION) + '&t=' + Date.now(), document.baseURI);
+  navigator.serviceWorker.register(swUrl)
+    .then(reg => {
+      diagLog('SW: OK scope=' + reg.scope);
+      // Force-check on every load, then auto-apply if a new worker is waiting.
+      reg.update().catch(() => {});
+      if (reg.waiting) { try { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (e) {} }
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            // New SW installed but old still controls — refresh hard.
+            showToast('Новая версия установлена — перезагружаю…', 'info');
+            setTimeout(() => location.reload(), 600);
+          }
+        });
+      });
+    })
     .catch(err => diagLog('SW: ERR ' + err.message));
+  // If a new SW takes over mid-session, reload so the new code is actually used.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (window.__swReloading) return;
+    window.__swReloading = true;
+    location.reload();
+  });
+  // Old SWs that don't listen for SKIP_WAITING still block. Tell them to die.
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => { if (r.active && r.active.scriptURL.indexOf('build=' + encodeURIComponent(BUILD_VERSION)) === -1) { try { r.unregister(); } catch (e) {} } });
+  }).catch(() => {});
 } else {
   diagLog('SW: not supported');
 }

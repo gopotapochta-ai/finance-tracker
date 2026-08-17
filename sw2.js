@@ -25,7 +25,7 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   // Network-first for navigations and the shell so cache version bumps take effect immediately.
-  if (event.request.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname === '/' || url.pathname.endsWith('/sw.js')) {
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname === '/' || url.pathname.endsWith('/sw.js') || url.pathname.endsWith('/sw2.js')) {
     event.respondWith((async () => {
       try {
         const response = await fetch(event.request, { cache: 'no-store' });
