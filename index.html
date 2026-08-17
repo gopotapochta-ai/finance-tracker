@@ -7,14 +7,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Финансы">
-<link rel="manifest" href="/finance-tracker/manifest.json">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
 <title>Финансы — Трекер</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
-tailwind.config = {
+if (typeof tailwind !== 'undefined') tailwind.config = {
   theme: {
     extend: {
       fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
@@ -27,7 +27,7 @@ tailwind.config = {
       }
     }
   }
-}
+};
 </script>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
@@ -131,6 +131,8 @@ tailwind.config = {
   .h-14 { height: 3.5rem; }
   .h-48 { height: 12rem; }
   .h-56 { height: 14rem; }
+  .h-full { height: 100%; }
+  .bg-yellow-500 { background-color: #eab308; }
   .max-h-\[90vh\] { max-height: 90vh; }
   .min-h-screen { min-height: 100vh; }
   .max-w-5xl { max-width: 64rem; }
@@ -285,7 +287,7 @@ tailwind.config = {
         <button onclick="document.getElementById('importFile').click()" class="flex-1 py-2.5 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">📥 Импорт (JSON)</button>
       </div>
       <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
-      <button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) { localStorage.clear(); location.reload(); }" class="w-full py-2.5 rounded-xl bg-red-soft text-red-accent font-medium text-sm hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">🗑 Сбросить все данные</button>
+      <button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) resetAllData();" class="w-full py-2.5 rounded-xl bg-red-soft text-red-accent font-medium text-sm hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">🗑 Сбросить все данные</button>
     </div>
     <div class="border-t border-gray-700/50 pt-4 space-y-3">
       <h2 class="text-base font-bold text-white">☁️ Синхронизация (GitHub Gist)</h2>
@@ -526,18 +528,60 @@ const DEFAULT_CATEGORIES = {
   ]
 };
 
-let CATEGORIES = structuredClone(DEFAULT_CATEGORIES);
+let CATEGORIES = cloneCategories();
+const STORAGE_KEYS = Object.freeze({
+  categories: 'finance_categories',
+  transactions: 'finance_transactions',
+  budgets: 'finance_budgets',
+  syncConfig: 'sync_config',
+  syncToken: 'sync_token',
+  lastSync: 'finance_lastSync',
+});
+
+function isRecord(value) { return value !== null && typeof value === 'object' && !Array.isArray(value); }
+function readStoredJson(key) {
+  const raw = localStorage.getItem(key);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch (e) { return null; }
+}
+function cloneCategories() {
+  return {
+    income: DEFAULT_CATEGORIES.income.map(c => ({ ...c })),
+    expense: DEFAULT_CATEGORIES.expense.map(c => ({ ...c })),
+  };
+}
+function normalizeCategories(value) {
+  const source = isRecord(value) ? value : {};
+  const normalizeList = (items, fallback) => {
+    if (!Array.isArray(items)) return fallback.map(c => ({ ...c }));
+    const seen = new Set();
+    const result = items.map(item => {
+      if (!isRecord(item)) return null;
+      const id = typeof item.id === 'string' ? item.id.trim() : '';
+      const name = typeof item.name === 'string' ? item.name.trim() : '';
+      const emoji = typeof item.emoji === 'string' ? item.emoji.trim() : '';
+      if (!id || !name || seen.has(id)) return null;
+      seen.add(id);
+      return { id, name: name.slice(0, 60), emoji: (emoji || '📌').slice(0, 8) };
+    }).filter(Boolean);
+    return result.length ? result : fallback.map(c => ({ ...c }));
+  };
+  return {
+    income: normalizeList(source.income, DEFAULT_CATEGORIES.income),
+    expense: normalizeList(source.expense, DEFAULT_CATEGORIES.expense),
+  };
+}
 
 function getCategories() { return CATEGORIES; }
-function saveCategories() { localStorage.setItem('finance_categories', JSON.stringify(CATEGORIES)); }
-function loadCategories() {
-  const raw = localStorage.getItem('finance_categories');
-  if (raw) {
-    try { CATEGORIES = JSON.parse(raw); } catch(e) { CATEGORIES = structuredClone(DEFAULT_CATEGORIES); }
-  } else {
-    CATEGORIES = structuredClone(DEFAULT_CATEGORIES);
-  }
+function saveCategories() {
+  localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(CATEGORIES));
+  if (syncWritesEnabled) autoPushGist();
 }
+function loadCategories() {
+  CATEGORIES = normalizeCategories(readStoredJson(STORAGE_KEYS.categories));
+  localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(CATEGORIES));
+}
+
 function getAllCats() { return [...CATEGORIES.income, ...CATEGORIES.expense]; }
 function catById(id) { return getAllCats().find(c => c.id === id); }
 function catName(id) { const c = catById(id); return c ? `${c.emoji} ${c.name}` : `❓ ${id}`; }
@@ -562,23 +606,59 @@ let transactions = [];
 let budgets = [];
 let currentType = 'expense';
 let pendingDeleteId = null;
+let syncWritesEnabled = false;
+let syncPushInFlight = null;
+let syncPushQueued = false;
 
 // ==================== PERSISTENCE ====================
+function normalizeTransactions(value) {
+  if (!Array.isArray(value)) return [];
+  const ids = new Set();
+  return value.map(item => {
+    if (!isRecord(item)) return null;
+    const type = item.type === 'income' || item.type === 'expense' ? item.type : '';
+    const amount = Number(item.amount);
+    const category = typeof item.category === 'string' ? item.category.trim() : '';
+    const date = new Date(item.createdAt);
+    if (!type || !category || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(date.getTime())) return null;
+    let id = typeof item.id === 'string' && item.id.trim() ? item.id.trim() : uuid();
+    while (ids.has(id)) id = uuid();
+    ids.add(id);
+    return { id, type, amount, category, comment: typeof item.comment === 'string' ? item.comment.slice(0, 200) : '', createdAt: date.toISOString() };
+  }).filter(Boolean);
+}
+function normalizeBudgets(value) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  return value.map(item => {
+    if (!isRecord(item)) return null;
+    const category = typeof item.category === 'string' ? item.category.trim() : '';
+    const limit = Number(item.limit);
+    if (!category || seen.has(category) || !Number.isFinite(limit) || limit <= 0) return null;
+    seen.add(category);
+    return { category, limit };
+  }).filter(Boolean);
+}
 function loadData() {
   loadCategories();
-  const raw = localStorage.getItem('finance_transactions');
-  if (raw) {
-    transactions = JSON.parse(raw);
+  const storedTransactions = readStoredJson(STORAGE_KEYS.transactions);
+  if (Array.isArray(storedTransactions)) {
+    transactions = normalizeTransactions(storedTransactions);
   } else {
     transactions = generateDemoData();
-    saveData();
+    localStorage.setItem(STORAGE_KEYS.transactions, JSON.stringify(transactions));
   }
-  const rawB = localStorage.getItem('finance_budgets');
-  if (rawB) budgets = JSON.parse(rawB);
-  else budgets = [];
+  budgets = normalizeBudgets(readStoredJson(STORAGE_KEYS.budgets));
+  localStorage.setItem(STORAGE_KEYS.budgets, JSON.stringify(budgets));
 }
-function saveData() { localStorage.setItem('finance_transactions', JSON.stringify(transactions)); }
-function saveBudgets() { localStorage.setItem('finance_budgets', JSON.stringify(budgets)); }
+function saveData() {
+  localStorage.setItem(STORAGE_KEYS.transactions, JSON.stringify(transactions));
+  if (syncWritesEnabled) autoPushGist();
+}
+function saveBudgets() {
+  localStorage.setItem(STORAGE_KEYS.budgets, JSON.stringify(budgets));
+  if (syncWritesEnabled) autoPushGist();
+}
 
 function generateDemoData() {
   const now = new Date();
@@ -602,6 +682,9 @@ function subDays(d, n) { const r = new Date(d); r.setDate(r.getDate() - n); retu
 
 // ==================== HELPERS ====================
 function formatCurrency(n) { return Math.abs(n).toLocaleString('ru-RU') + ' ₽'; }
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+}
 function formatDate(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
 function formatDateShort(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }); }
 function getMonthRange() { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now }; }
@@ -665,7 +748,7 @@ function populateCategorySelect() {
 function saveTransaction() {
   const amountStr = document.getElementById('addAmount').value;
   const amount = parseFloat(amountStr);
-  if (isNaN(amount) || amount <= 0) { showToast('Введите сумму', 'error'); return; }
+  if (!Number.isFinite(amount) || amount <= 0) { showToast('Введите сумму', 'error'); return; }
   const dateVal = document.getElementById('addDate').value;
   if (!dateVal) { showToast('Выберите дату', 'error'); return; }
   const createdAt = new Date(dateVal + 'T12:00:00').toISOString();
@@ -753,9 +836,34 @@ function renderDashboard() {
   renderLineChart();
 }
 
+function getChartContext(id) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return null;
+  const parent = canvas.parentElement;
+  let fallback = parent.querySelector('.chart-fallback');
+  if (typeof Chart !== 'function') {
+    canvas.hidden = true;
+    if (!fallback) {
+      fallback = document.createElement('p');
+      fallback.className = 'chart-fallback text-xs text-gray-500 text-center';
+      fallback.textContent = 'График доступен при подключении к интернету';
+      fallback.style.padding = '2rem 0';
+      parent.appendChild(fallback);
+    }
+    return null;
+  }
+  canvas.hidden = false;
+  if (fallback) fallback.remove();
+  return canvas.getContext('2d');
+}
+
 function renderDoughnutChart(allTx) {
-  const ctx = document.getElementById('doughnutChart').getContext('2d');
-  if (doughnutChartInstance) doughnutChartInstance.destroy();
+  if (doughnutChartInstance) {
+    doughnutChartInstance.destroy();
+    doughnutChartInstance = null;
+  }
+  const ctx = getChartContext('doughnutChart');
+  if (!ctx) return;
 
   const expenseTx = allTx.filter(t => t.type === 'expense');
   const expenseByCat = {};
@@ -763,14 +871,8 @@ function renderDoughnutChart(allTx) {
     expenseByCat[t.category] = (expenseByCat[t.category] || 0) + t.amount;
   });
   const entries = Object.entries(expenseByCat).sort((a, b) => b[1] - a[1]);
-
-  // DEBUG: выводим на консоль что реально в данных
-  console.log('Doughnut data:', { totalExpenseTx: expenseTx.length, categories: entries.map(([id, sum]) => ({ id, sum, display: catName(id) })) });
-
   const labels = entries.map(([cat]) => catName(cat));
   const data = entries.map(([, sum]) => sum);
-
-  // больше цветов для кастомных категорий
   const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#6b7280','#84cc16','#f43f5e','#06b6d4','#a855f7','#e11d48','#ca8a04','#2563eb'];
 
   doughnutChartInstance = new Chart(ctx, {
@@ -792,28 +894,37 @@ function renderDoughnutChart(allTx) {
 }
 
 function renderLineChart() {
-  const ctx = document.getElementById('lineChart').getContext('2d');
-  if (lineChartInstance) lineChartInstance.destroy();
+  if (lineChartInstance) {
+    lineChartInstance.destroy();
+    lineChartInstance = null;
+  }
+  const ctx = getChartContext('lineChart');
+  if (!ctx) return;
 
   const days = [];
   const balances = [];
-  let running = 0;
   const allSorted = [...transactions].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  allSorted.forEach(t => {
-    running += t.type === 'income' ? t.amount : -t.amount;
-  });
-
   const now = new Date();
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    d.setHours(0, 0, 0, 0);
-    days.push(d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }));
-    let bal = 0;
-    for (const t of allSorted) {
-      if (new Date(t.createdAt) <= d) bal += t.type === 'income' ? t.amount : -t.amount;
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - 29);
+  let running = allSorted
+    .filter(t => new Date(t.createdAt) < start)
+    .reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
+  let index = allSorted.findIndex(t => new Date(t.createdAt) >= start);
+  if (index < 0) index = allSorted.length;
+
+  for (let i = 0; i < 30; i++) {
+    const day = new Date(start);
+    day.setDate(start.getDate() + i);
+    const end = new Date(day);
+    end.setHours(23, 59, 59, 999);
+    while (index < allSorted.length && new Date(allSorted[index].createdAt) <= end) {
+      const transaction = allSorted[index++];
+      running += transaction.type === 'income' ? transaction.amount : -transaction.amount;
     }
-    balances.push(bal);
+    days.push(day.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }));
+    balances.push(running);
   }
 
   lineChartInstance = new Chart(ctx, {
@@ -848,7 +959,6 @@ function renderLineChart() {
     }
   });
 }
-
 // ==================== HISTORY ====================
 function renderHistory() {
   let filtered = [...transactions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -862,7 +972,7 @@ function renderHistory() {
   if (catFilter !== 'all') filtered = filtered.filter(t => t.category === catFilter);
   if (dateFrom) filtered = filtered.filter(t => new Date(t.createdAt) >= new Date(dateFrom + 'T00:00:00'));
   if (dateTo) filtered = filtered.filter(t => new Date(t.createdAt) <= new Date(dateTo + 'T23:59:59'));
-  if (search) filtered = filtered.filter(t => t.comment.toLowerCase().includes(search));
+  if (search) filtered = filtered.filter(t => String(t.comment || '').toLowerCase().includes(search));
 
   const container = document.getElementById('historyList');
   if (filtered.length === 0) {
@@ -871,15 +981,15 @@ function renderHistory() {
   }
   container.innerHTML = filtered.map(t => `
     <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 flex items-center gap-3 group hover:bg-bg-hover/50 transition-colors">
-      <div class="text-2xl">${catEmoji(t.category)}</div>
+      <div class="text-2xl">${escapeHtml(catEmoji(t.category))}</div>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-white truncate">${catName(t.category)}</p>
-        <p class="text-xs text-gray-500 truncate">${t.comment || '—'}</p>
+        <p class="text-sm font-medium text-white truncate">${escapeHtml(catName(t.category))}</p>
+        <p class="text-xs text-gray-500 truncate">${escapeHtml(t.comment || '—')}</p>
         <p class="text-xs text-gray-600">${formatDate(t.createdAt)}</p>
       </div>
       <div class="text-right">
         <p class="text-base font-bold ${t.type === 'income' ? 'text-green-accent' : 'text-red-accent'}">${t.type === 'income' ? '+' : '−'}${formatCurrency(t.amount)}</p>
-        <button onclick="confirmDelete('${t.id}')" class="text-xs text-gray-600 hover:text-red-accent mt-1 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">Удалить</button>
+        <button data-delete-transaction="${escapeHtml(t.id)}" class="text-xs text-gray-600 hover:text-red-accent mt-1 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">Удалить</button>
       </div>
     </div>
   `).join('');
@@ -901,6 +1011,10 @@ document.getElementById('histCategory').addEventListener('change', renderHistory
 document.getElementById('histDateFrom').addEventListener('change', renderHistory);
 document.getElementById('histDateTo').addEventListener('change', renderHistory);
 document.getElementById('histSearch').addEventListener('input', renderHistory);
+document.getElementById('historyList').addEventListener('click', event => {
+  const button = event.target.closest('[data-delete-transaction]');
+  if (button) confirmDelete(button.dataset.deleteTransaction);
+});
 
 // ==================== ANALYTICS ====================
 let barChartInstance = null, analDoughnutExpenseInstance = null, analDoughnutIncomeInstance = null;
@@ -908,18 +1022,20 @@ let currentPeriod = 'all';
 
 function getPeriodRange() {
   const now = new Date();
-  let from, to;
   const dateFrom = document.getElementById('analDateFrom').value;
   const dateTo = document.getElementById('analDateTo').value;
-  if (dateFrom && dateTo) {
-    from = new Date(dateFrom + 'T00:00:00');
-    to = new Date(dateTo + 'T23:59:59');
+  let from;
+  let to;
+  if (dateFrom || dateTo) {
+    from = dateFrom ? new Date(dateFrom + 'T00:00:00') : new Date(0);
+    to = dateTo ? new Date(dateTo + 'T23:59:59') : now;
+    if (from > to) [from, to] = [to, from];
   } else {
     switch (currentPeriod) {
       case 'week': from = new Date(now); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0); to = now; break;
       case 'year': from = new Date(now.getFullYear(), 0, 1); to = now; break;
       case 'month': from = new Date(now.getFullYear(), now.getMonth(), 1); to = now; break;
-      default: from = new Date(2000, 0, 1); to = now; // 'all'
+      default: from = new Date(0); to = now;
     }
   }
   return { from, to };
@@ -949,39 +1065,55 @@ function renderAnalytics() {
 }
 
 function renderBarChart(rangeTx, from, to) {
-  const ctx = document.getElementById('barChart').getContext('2d');
-  if (barChartInstance) barChartInstance.destroy();
+  if (barChartInstance) {
+    barChartInstance.destroy();
+    barChartInstance = null;
+  }
+  const ctx = getChartContext('barChart');
+  if (!ctx) return;
 
   const diffDays = Math.max(1, Math.round((to - from) / (1000 * 60 * 60 * 24)));
-  let labels, incomeData, expenseData;
+  let labels;
+  let incomeData;
+  let expenseData;
 
   if (diffDays <= 31) {
-    labels = [];
+    const dayKeys = [];
     for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
-      labels.push(d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }));
+      const day = new Date(d);
+      day.setHours(0, 0, 0, 0);
+      dayKeys.push(day);
     }
-    incomeData = labels.map(l => 0);
-    expenseData = labels.map(l => 0);
+    labels = dayKeys.map(day => day.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }));
+    incomeData = dayKeys.map(() => 0);
+    expenseData = dayKeys.map(() => 0);
     rangeTx.forEach(t => {
-      const idx = Math.floor((new Date(t.createdAt) - from) / (1000 * 60 * 60 * 24));
-      if (idx >= 0 && idx < labels.length) {
+      const date = new Date(t.createdAt);
+      const idx = dayKeys.findIndex(day => date.getFullYear() === day.getFullYear() && date.getMonth() === day.getMonth() && date.getDate() === day.getDate());
+      if (idx >= 0) {
         if (t.type === 'income') incomeData[idx] += t.amount;
         else expenseData[idx] += t.amount;
       }
     });
   } else {
-    const monthly = {};
+    const monthly = new Map();
     rangeTx.forEach(t => {
-      const d = new Date(t.createdAt);
-      const key = d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
-      if (!monthly[key]) monthly[key] = { income: 0, expense: 0 };
-      if (t.type === 'income') monthly[key].income += t.amount;
-      else monthly[key].expense += t.amount;
+      const date = new Date(t.createdAt);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (!monthly.has(key)) monthly.set(key, {
+        label: date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }),
+        date: new Date(date.getFullYear(), date.getMonth(), 1),
+        income: 0,
+        expense: 0,
+      });
+      const month = monthly.get(key);
+      if (t.type === 'income') month.income += t.amount;
+      else month.expense += t.amount;
     });
-    const keys = Object.keys(monthly).sort();
-    labels = keys;
-    incomeData = keys.map(k => monthly[k].income);
-    expenseData = keys.map(k => monthly[k].expense);
+    const months = [...monthly.values()].sort((a, b) => a.date - b.date);
+    labels = months.map(month => month.label);
+    incomeData = months.map(month => month.income);
+    expenseData = months.map(month => month.expense);
   }
 
   barChartInstance = new Chart(ctx, {
@@ -1010,8 +1142,12 @@ function renderBarChart(rangeTx, from, to) {
 }
 
 function renderAnalDoughnutEx(rangeTx) {
-  const ctx = document.getElementById('analDoughnutExpense').getContext('2d');
-  if (analDoughnutExpenseInstance) analDoughnutExpenseInstance.destroy();
+if (analDoughnutExpenseInstance) {
+  analDoughnutExpenseInstance.destroy();
+  analDoughnutExpenseInstance = null;
+}
+const ctx = getChartContext('analDoughnutExpense');
+if (!ctx) return;
   const byCat = {};
   rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
@@ -1034,8 +1170,12 @@ function renderAnalDoughnutEx(rangeTx) {
 }
 
 function renderAnalDoughnutIn(rangeTx) {
-  const ctx = document.getElementById('analDoughnutIncome').getContext('2d');
-  if (analDoughnutIncomeInstance) analDoughnutIncomeInstance.destroy();
+if (analDoughnutIncomeInstance) {
+  analDoughnutIncomeInstance.destroy();
+  analDoughnutIncomeInstance = null;
+}
+const ctx = getChartContext('analDoughnutIncome');
+if (!ctx) return;
   const byCat = {};
   rangeTx.filter(t => t.type === 'income').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
@@ -1063,8 +1203,8 @@ function renderTop5(rangeTx) {
   const max = sorted.length > 0 ? sorted[0][1] : 1;
   document.getElementById('top5List').innerHTML = sorted.map(([cat, sum]) => `
     <div class="flex items-center gap-3">
-      <span class="text-lg w-8 text-center">${catEmoji(cat)}</span>
-      <span class="flex-1 text-sm text-gray-300">${catById(cat)?.name || cat}</span>
+      <span class="text-lg w-8 text-center">${escapeHtml(catEmoji(cat))}</span>
+      <span class="flex-1 text-sm text-gray-300">${escapeHtml(catById(cat)?.name || cat)}</span>
       <span class="text-sm font-medium text-red-accent">${formatCurrency(sum)}</span>
       <div class="w-24 bg-bg rounded-full h-2 overflow-hidden"><div class="h-full bg-red-accent rounded-full progress-bar" style="width:${(sum/max*100).toFixed(0)}%"></div></div>
     </div>
@@ -1104,8 +1244,8 @@ function renderBudgets() {
     return `
       <div class="bg-bg-card rounded-xl p-4 border ${over ? 'border-red-500/50' : 'border-gray-700/50'}">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-white">${catName(b.category)}</span>
-          <button onclick="deleteBudget('${b.category}')" class="text-xs text-gray-600 hover:text-red-accent focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>
+          <span class="text-sm font-medium text-white">${escapeHtml(catName(b.category))}</span>
+          <button data-delete-budget="${escapeHtml(b.category)}" class="text-xs text-gray-600 hover:text-red-accent focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>
         </div>
         <div class="flex justify-between text-xs text-gray-500 mb-1.5">
           <span>${formatCurrency(spent)}</span>
@@ -1138,9 +1278,9 @@ function showAddBudget() {
 
 function saveBudget() {
   const category = document.getElementById('budgetCategory').value;
-  const limit = parseInt(document.getElementById('budgetLimit').value);
+  const limit = Number(document.getElementById('budgetLimit').value);
   if (!category) return;
-  if (isNaN(limit) || limit <= 0) { showToast('Введите лимит', 'error'); return; }
+  if (!Number.isFinite(limit) || limit <= 0) { showToast('Введите лимит', 'error'); return; }
   budgets = budgets.filter(b => b.category !== category);
   budgets.push({ category, limit });
   saveBudgets();
@@ -1154,6 +1294,10 @@ function deleteBudget(cat) {
   saveBudgets();
   renderBudgets();
 }
+document.getElementById('budgetList').addEventListener('click', event => {
+  const button = event.target.closest('[data-delete-budget]');
+  if (button) deleteBudget(button.dataset.deleteBudget);
+});
 
 // ==================== SETTINGS / CATEGORIES ====================
 function renderSettings() {
@@ -1161,18 +1305,18 @@ function renderSettings() {
   const expList = document.getElementById('settingsExpenseList');
   incList.innerHTML = CATEGORIES.income.map(c => `
     <div class="flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-gray-700/50">
-      <span class="text-xl">${c.emoji}</span>
-      <span class="flex-1 text-sm text-gray-200">${c.name}</span>
+      <span class="text-xl">${escapeHtml(c.emoji)}</span>
+      <span class="flex-1 text-sm text-gray-200">${escapeHtml(c.name)}</span>
       <span class="text-[10px] text-gray-600">${c.id.startsWith('custom_') ? 'свой' : 'систем.'}</span>
-      ${c.id.startsWith('custom_') ? `<button onclick="deleteCustomCat('${c.id}')" class="text-gray-600 hover:text-red-accent text-lg leading-none focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>` : ''}
+      ${c.id.startsWith('custom_') ? `<button data-delete-category="${escapeHtml(c.id)}" class="text-gray-600 hover:text-red-accent text-lg leading-none focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>` : ''}
     </div>
   `).join('');
   expList.innerHTML = CATEGORIES.expense.map(c => `
     <div class="flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-gray-700/50">
-      <span class="text-xl">${c.emoji}</span>
-      <span class="flex-1 text-sm text-gray-200">${c.name}</span>
+      <span class="text-xl">${escapeHtml(c.emoji)}</span>
+      <span class="flex-1 text-sm text-gray-200">${escapeHtml(c.name)}</span>
       <span class="text-[10px] text-gray-600">${c.id.startsWith('custom_') ? 'свой' : 'систем.'}</span>
-      ${c.id.startsWith('custom_') ? `<button onclick="deleteCustomCat('${c.id}')" class="text-gray-600 hover:text-red-accent text-lg leading-none focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>` : ''}
+      ${c.id.startsWith('custom_') ? `<button data-delete-category="${escapeHtml(c.id)}" class="text-gray-600 hover:text-red-accent text-lg leading-none focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>` : ''}
     </div>
   `).join('');
 }
@@ -1205,6 +1349,10 @@ function deleteCustomCat(id) {
   populateHistoryCategoryFilter();
   showToast('Категория удалена', 'success');
 }
+document.getElementById('settings').addEventListener('click', event => {
+  const button = event.target.closest('[data-delete-category]');
+  if (button) deleteCustomCat(button.dataset.deleteCategory);
+});
 
 function exportData() {
   const blob = new Blob([JSON.stringify({ transactions, budgets, categories: CATEGORIES }, null, 2)], { type: 'application/json' });
@@ -1215,20 +1363,58 @@ function exportData() {
   showToast('Файл скачан', 'success');
 }
 
+function validateDataPayload(value) {
+  if (!isRecord(value)) throw new Error('Файл должен содержать объект');
+  const payload = {};
+  if (Object.prototype.hasOwnProperty.call(value, 'transactions')) {
+    if (!Array.isArray(value.transactions)) throw new Error('Некорректные транзакции');
+    payload.transactions = normalizeTransactions(value.transactions);
+  }
+  if (Object.prototype.hasOwnProperty.call(value, 'budgets')) {
+    if (!Array.isArray(value.budgets)) throw new Error('Некорректные бюджеты');
+    payload.budgets = normalizeBudgets(value.budgets);
+  }
+  if (Object.prototype.hasOwnProperty.call(value, 'categories')) {
+    if (!isRecord(value.categories)) throw new Error('Некорректные категории');
+    payload.categories = normalizeCategories(value.categories);
+  }
+  if (Object.keys(payload).length === 0) throw new Error('В файле нет данных');
+  return payload;
+}
+function applyDataPayload(value, pushAfter = false) {
+  const payload = validateDataPayload(value);
+  const shouldPush = pushAfter && syncWritesEnabled;
+  const previousSyncState = syncWritesEnabled;
+  syncWritesEnabled = false;
+  try {
+    if (Object.prototype.hasOwnProperty.call(payload, 'transactions')) {
+      transactions = payload.transactions;
+      saveData();
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'budgets')) {
+      budgets = payload.budgets;
+      saveBudgets();
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'categories')) {
+      CATEGORIES = payload.categories;
+      saveCategories();
+    }
+  } finally {
+    syncWritesEnabled = previousSyncState;
+  }
+  if (shouldPush) autoPushGist();
+}
 function importData(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const data = JSON.parse(e.target.result);
-      if (data.transactions) { transactions = data.transactions; saveData(); }
-      if (data.budgets) { budgets = data.budgets; saveBudgets(); }
-      if (data.categories) { CATEGORIES = data.categories; saveCategories(); }
+      applyDataPayload(JSON.parse(e.target.result), true);
       showToast('Данные импортированы!', 'success');
       refreshAll();
-    } catch(err) {
-      showToast('Ошибка: неверный формат файла', 'error');
+    } catch (err) {
+      showToast('Ошибка импорта: ' + err.message, 'error');
     }
   };
   reader.readAsText(file);
@@ -1237,122 +1423,146 @@ function importData(input) {
 
 // ==================== GITHUB GIST SYNC ====================
 function getSyncConfig() {
-  const raw = localStorage.getItem('sync_config');
-  return raw ? JSON.parse(raw) : { token: '', gistId: '' };
+  const stored = readStoredJson(STORAGE_KEYS.syncConfig);
+  const legacyToken = isRecord(stored) && typeof stored.token === 'string' ? stored.token.trim() : '';
+  const token = sessionStorage.getItem(STORAGE_KEYS.syncToken) || legacyToken;
+  const gistIdValue = isRecord(stored) ? stored.gistId : '';
+  const gistId = typeof gistIdValue === 'string' && /^[A-Za-z0-9_-]+$/.test(gistIdValue.trim()) ? gistIdValue.trim() : '';
+  if (legacyToken) {
+    sessionStorage.setItem(STORAGE_KEYS.syncToken, legacyToken);
+    localStorage.setItem(STORAGE_KEYS.syncConfig, JSON.stringify({ gistId }));
+  }
+  return { token, gistId };
 }
 function saveSyncSettings() {
   const token = document.getElementById('syncToken').value.trim();
   const gistId = document.getElementById('syncGistId').value.trim();
-  if (!token || !gistId) { showToast('Заполни оба поля', 'error'); return; }
-  localStorage.setItem('sync_config', JSON.stringify({ token, gistId }));
-  document.getElementById('syncStatus').textContent = '✅ Настройки сохранены';
+  if (!token || !/^[A-Za-z0-9_-]+$/.test(gistId)) { showToast('Заполни корректные данные', 'error'); return; }
+  sessionStorage.setItem(STORAGE_KEYS.syncToken, token);
+  localStorage.setItem(STORAGE_KEYS.syncConfig, JSON.stringify({ gistId }));
+  document.getElementById('syncStatus').textContent = '✅ Настройки сохранены. Направление синхронизации выбери вручную.';
   showToast('Синхронизация настроена', 'success');
-  autoPullGist();
+}
+function resetAllData() {
+  Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
+  sessionStorage.removeItem(STORAGE_KEYS.syncToken);
+  location.reload();
 }
 function loadSyncUI() {
   const cfg = getSyncConfig();
-  document.getElementById('syncToken').value = cfg.token || '';
-  document.getElementById('syncGistId').value = cfg.gistId || '';
-  if (cfg.token && cfg.gistId) {
-    document.getElementById('syncStatus').textContent = '✅ Настроено';
-  }
+  document.getElementById('syncToken').value = cfg.token;
+  document.getElementById('syncGistId').value = cfg.gistId;
+  if (cfg.token && cfg.gistId) document.getElementById('syncStatus').textContent = '✅ Настроено';
 }
-
+async function parseApiResponse(response) {
+  const text = await response.text();
+  let data = {};
+  if (text) {
+    try { data = JSON.parse(text); } catch (e) { data = {}; }
+  }
+  if (!response.ok) throw new Error(data.message || 'HTTP ' + response.status);
+  return data;
+}
 function gistApi(method, body) {
   const cfg = getSyncConfig();
-  if (!cfg.token || !cfg.gistId) return Promise.reject('not configured');
+  if (!cfg.token || !cfg.gistId) return Promise.reject(new Error('Синхронизация не настроена'));
   const opts = {
     method,
     headers: { 'Authorization': 'token ' + cfg.token, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' }
   };
   if (body) opts.body = JSON.stringify(body);
-  return fetch('https://api.github.com/gists/' + cfg.gistId, opts).then(r => {
-    if (!r.ok) return r.json().then(e => { throw new Error(e.message || 'HTTP ' + r.status); });
-    return r.json();
-  });
+  return fetch('https://api.github.com/gists/' + encodeURIComponent(cfg.gistId), opts).then(parseApiResponse);
 }
-
+function syncPayload(updated = new Date().toISOString()) {
+  return { transactions, budgets, categories: CATEGORIES, updated };
+}
+function normalizedSyncTimestamp(value) {
+  if (typeof value !== 'string') return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
 function createGist() {
-  const cfg = getSyncConfig();
   const token = document.getElementById('syncToken').value.trim();
   if (!token) { showToast('Сначала введи GitHub токен', 'error'); return; }
-  const data = {
-    description: 'Finance tracker data',
-    public: false,
-    files: { 'finance-data.json': { content: JSON.stringify({ transactions, budgets, categories: CATEGORIES, updated: new Date().toISOString() }) } }
-  };
+  const updated = new Date().toISOString();
+  const data = { description: 'Finance tracker data', public: false, files: { 'finance-data.json': { content: JSON.stringify(syncPayload(updated)) } } };
   fetch('https://api.github.com/gists', {
     method: 'POST',
-    headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+    headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
     body: JSON.stringify(data)
-  }).then(r => r.json()).then(gist => {
+  }).then(parseApiResponse).then(gist => {
+    if (!gist.id) throw new Error('GitHub не вернул ID Gist');
     document.getElementById('syncGistId').value = gist.id;
     document.getElementById('syncToken').value = token;
     saveSyncSettings();
+    localStorage.setItem(STORAGE_KEYS.lastSync, updated);
     showToast('Gist создан: ' + gist.id, 'success');
   }).catch(e => showToast('Ошибка: ' + e.message, 'error'));
 }
-
 function pushToGist() {
   const cfg = getSyncConfig();
   if (!cfg.token || !cfg.gistId) { showToast('Настрой синхронизацию', 'error'); return; }
-  const content = JSON.stringify({ transactions, budgets, categories: CATEGORIES, updated: new Date().toISOString() });
-  gistApi('PATCH', { files: { 'finance-data.json': { content } } })
-    .then(() => { document.getElementById('syncStatus').textContent = '⬆️ Выгружено ' + new Date().toLocaleTimeString('ru-RU'); showToast('Данные в облаке', 'success'); })
+  const updated = new Date().toISOString();
+  gistApi('PATCH', { files: { 'finance-data.json': { content: JSON.stringify(syncPayload(updated)) } } })
+    .then(() => {
+      localStorage.setItem(STORAGE_KEYS.lastSync, updated);
+      document.getElementById('syncStatus').textContent = '⬆️ Выгружено ' + new Date().toLocaleTimeString('ru-RU');
+      showToast('Данные в облаке', 'success');
+    })
     .catch(e => showToast('Ошибка: ' + e.message, 'error'));
 }
-
 function pullFromGist() {
   const cfg = getSyncConfig();
   if (!cfg.token || !cfg.gistId) { showToast('Настрой синхронизацию', 'error'); return; }
   gistApi('GET').then(gist => {
     const file = gist.files && gist.files['finance-data.json'];
-    if (!file) { showToast('Gist пуст', 'error'); return; }
-    const data = JSON.parse(file.content);
-    if (data.transactions) { transactions = data.transactions; saveData(); }
-    if (data.budgets) { budgets = data.budgets; saveBudgets(); }
-    if (data.categories) { CATEGORIES = data.categories; saveCategories(); }
+    if (!file || typeof file.content !== 'string') throw new Error('Gist пуст');
+    const remote = JSON.parse(file.content);
+    applyDataPayload(remote, false);
+    localStorage.setItem(STORAGE_KEYS.lastSync, normalizedSyncTimestamp(remote.updated) || new Date().toISOString());
     document.getElementById('syncStatus').textContent = '⬇️ Загружено ' + new Date().toLocaleTimeString('ru-RU');
     refreshAll();
     showToast('Синхронизировано!', 'success');
   }).catch(e => showToast('Ошибка: ' + e.message, 'error'));
 }
-
 function autoPullGist() {
   const cfg = getSyncConfig();
-  if (!cfg.token || !cfg.gistId) return;
+  const localUpdated = normalizedSyncTimestamp(localStorage.getItem(STORAGE_KEYS.lastSync)) || '';
+  if (!cfg.token || !cfg.gistId || !localUpdated) return;
   gistApi('GET').then(gist => {
     const file = gist.files && gist.files['finance-data.json'];
-    if (!file) return;
+    if (!file || typeof file.content !== 'string') return;
     const remote = JSON.parse(file.content);
-    if (!remote.updated) return;
-    const localUpdated = localStorage.getItem('finance_lastSync') || '';
-    if (remote.updated > localUpdated) {
-      if (remote.transactions) { transactions = remote.transactions; saveData(); }
-      if (remote.budgets) { budgets = remote.budgets; saveBudgets(); }
-      if (remote.categories) { CATEGORIES = remote.categories; saveCategories(); }
-      localStorage.setItem('finance_lastSync', remote.updated);
-      refreshAll();
-    }
+    const remoteUpdated = normalizedSyncTimestamp(remote.updated);
+    if (!remoteUpdated || remoteUpdated <= localUpdated) return;
+    applyDataPayload(remote, false);
+    localStorage.setItem(STORAGE_KEYS.lastSync, remoteUpdated);
+    refreshAll();
   }).catch(() => {});
 }
-
 function autoPushGist() {
+  if (!syncWritesEnabled) return;
   const cfg = getSyncConfig();
   if (!cfg.token || !cfg.gistId) return;
-  const now = new Date().toISOString();
-  localStorage.setItem('finance_lastSync', now);
-  const content = JSON.stringify({ transactions, budgets, categories: CATEGORIES, updated: now });
-  gistApi('PATCH', { files: { 'finance-data.json': { content } } }).catch(() => {});
+  if (syncPushInFlight) {
+    syncPushQueued = true;
+    return;
+  }
+  const updated = new Date().toISOString();
+  syncPushInFlight = gistApi('PATCH', { files: { 'finance-data.json': { content: JSON.stringify(syncPayload(updated)) } } })
+    .then(() => localStorage.setItem(STORAGE_KEYS.lastSync, updated))
+    .catch(error => {
+      const status = document.getElementById('syncStatus');
+      if (status) status.textContent = '⚠️ Ошибка фоновой синхронизации';
+    })
+    .finally(() => {
+      syncPushInFlight = null;
+      if (syncPushQueued) {
+        syncPushQueued = false;
+        autoPushGist();
+      }
+    });
 }
-
-// Hook save functions to auto-push
-const origSaveData = saveData;
-saveData = function() { origSaveData(); autoPushGist(); };
-const origSaveBudgets = saveBudgets;
-saveBudgets = function() { origSaveBudgets(); autoPushGist(); };
-const origSaveCategories = saveCategories;
-saveCategories = function() { origSaveCategories(); autoPushGist(); };
 
 // ==================== INIT ====================
 function refreshAll() {
@@ -1373,7 +1583,7 @@ const diag = [];
 function diagLog(s) { diag.push(s); }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/finance-tracker/sw.js')
+  navigator.serviceWorker.register(new URL('sw.js', document.baseURI))
     .then(reg => diagLog('SW: OK scope=' + reg.scope))
     .catch(err => diagLog('SW: ERR ' + err.message));
 } else {
@@ -1436,6 +1646,7 @@ populateHistoryCategoryFilter();
 updateHeaderDate();
 renderDashboard();
 loadSyncUI();
+syncWritesEnabled = true;
 autoPullGist();
 
 var periodBtn = document.querySelector('[data-period="all"]');

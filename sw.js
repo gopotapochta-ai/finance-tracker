@@ -1,39 +1,46 @@
-const CACHE = 'finance-v2';
+const CACHE = 'finance-v3';
+const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
-self.addEventListener('install', e => {
-  console.log('[SW] install');
+self.addEventListener('install', event => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE).then(cache => {
-      return cache.addAll(['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png']).catch(err => {
-        console.log('[SW] cache addAll failed:', err);
-      });
-    })
-  );
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(APP_SHELL)));
 });
 
-self.addEventListener('activate', e => {
-  console.log('[SW] activate');
-  e.waitUntil(
-    Promise.all([
-      clients.claim(),
-      caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-    ])
-  );
+self.addEventListener('activate', event => {
+  event.waitUntil(Promise.all([
+    clients.claim(),
+    caches.keys().then(keys => Promise.all(
+      keys.filter(key => key.startsWith('finance-') && key !== CACHE).map(key => caches.delete(key))
+    ))
+  ]));
 });
 
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      const fetched = fetch(e.request).then(res => {
-        if (res.ok && res.type === 'basic') {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith((async () => {
+    const cached = await caches.match(event.request);
+    if (cached) {
+      fetch(event.request).then(response => {
+        if (response.ok && response.type === 'basic') {
+          const clone = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, clone)).catch(() => {});
         }
-        return res;
-      });
-      return cached || fetched;
-    })
-  );
+      }).catch(() => {});
+      return cached;
+    }
+    try {
+      const response = await fetch(event.request);
+      if (response.ok && response.type === 'basic') {
+        const clone = response.clone();
+        caches.open(CACHE).then(cache => cache.put(event.request, clone)).catch(() => {});
+      }
+      return response;
+    } catch (error) {
+      if (event.request.mode === 'navigate') {
+        const shell = await caches.match('./index.html');
+        if (shell) return shell;
+      }
+      return new Response('', { status: 503, statusText: 'Offline' });
+    }
+  })());
 });
