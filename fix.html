@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color"="#0f172a">
+<title>Восстановление — Финансы</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;padding:24px;line-height:1.5}
+  h1{color:#10b981;font-size:20px;margin:0 0 16px}
+  .card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px;margin:12px 0}
+  .btn{display:inline-block;padding:14px 20px;background:#10b981;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin:6px 4px;text-decoration:none;text-align:center}
+  .btn.gray{background:#334155}
+  .btn.red{background:#dc2626}
+  pre{background:#0f172a;color:#a7f3d0;padding:12px;border-radius:8px;overflow:auto;font-size:12px;max-height:50vh;white-space:pre-wrap;word-break:break-all}
+  .ok{color:#10b981}
+  .err{color:#ef4444}
+  .warn{color:#fbbf24}
+  .muted{color:#94a3b8}
+  .big{font-size:18px;font-weight:600;margin:12px 0}
+</style>
+</head>
+<body>
+<h1>🔧 Восстановление приложения Финансы</h1>
+
+<div class="card">
+  <p class="muted">Эта страница ломает цикл старого Service Worker'а. Открой её <b>один раз</b> — она автоматически снесёт застрявший SW, поставит новый и вернёт тебя в приложение с диагностикой.</p>
+  <button class="btn" id="goBtn" onclick="runFix()">▶ Запустить восстановление</button>
+  <button class="btn gray" onclick="showStorage()">👁 Показать localStorage</button>
+  <button class="btn gray" onclick="showSW()">👁 Показать Service Workers</button>
+  <a class="btn gray" href="./?bust=1">↗ Открыть приложение как есть</a>
+</div>
+
+<div class="card">
+  <div class="big">Лог:</div>
+  <pre id="log">нажми «Запустить восстановление»</pre>
+</div>
+
+<div class="card">
+  <div class="big">localStorage:</div>
+  <pre id="storage">—</pre>
+</div>
+
+<div class="card">
+  <div class="big">Service Workers:</div>
+  <pre id="sw">—</pre>
+</div>
+
+<script>
+const BUILD = '2026-08-17-r4';
+const log = (...a) => {
+  const el = document.getElementById('log');
+  el.textContent += '\n' + a.map(x => typeof x === 'string' ? x : JSON.stringify(x)).join(' ');
+  el.scrollTop = el.scrollHeight;
+};
+const ok = (m) => log('✅ ' + m);
+const warn = (m) => log('⚠️ ' + m);
+const err = (m) => log('❌ ' + m);
+const info = (m) => log('ℹ️ ' + m);
+
+function showStorage() {
+  const out = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    let v = localStorage.getItem(k);
+    if (v && v.length > 400) v = v.slice(0, 400) + '…';
+    try { v = JSON.stringify(JSON.parse(v), null, 2); } catch (e) {}
+    out[k] = v;
+  }
+  document.getElementById('storage').textContent = JSON.stringify(out, null, 2);
+}
+async function showSW() {
+  if (!('serviceWorker' in navigator)) { document.getElementById('sw').textContent = 'SW не поддерживается'; return; }
+  const regs = await navigator.serviceWorker.getRegistrations();
+  const txt = regs.map(r => ({
+    scope: r.scope,
+    active: r.active && r.active.scriptURL,
+    waiting: r.waiting && r.waiting.scriptURL,
+    installing: r.installing && r.installing.scriptURL,
+  }));
+  document.getElementById('sw').textContent = JSON.stringify(txt, null, 2);
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    document.getElementById('sw').textContent += '\n\nCACHES:\n' + keys.join('\n');
+  }
+}
+
+async function runFix() {
+  document.getElementById('goBtn').disabled = true;
+  log('=== Восстановление build ' + BUILD + ' ===');
+  log('Старт: ' + new Date().toISOString());
+
+  // 1. Inspect SWs first
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    info('Найдено SW регистраций: ' + regs.length);
+    for (const r of regs) {
+      info('  scope=' + r.scope);
+      if (r.active) info('    active=' + r.active.scriptURL);
+      if (r.waiting) info('    waiting=' + r.waiting.scriptURL);
+    }
+
+    // 2. Unregister ALL old SWs (the ones controlling the page)
+    for (const r of regs) {
+      try {
+        const ok2 = await r.unregister();
+        info('unregister(' + r.scope + '): ' + ok2);
+      } catch (e) { err('unregister failed: ' + e.message); }
+    }
+
+    // 3. Register new SW
+    try {
+      const newReg = await navigator.serviceWorker.register('./sw2.js?fix=' + Date.now());
+      ok('Новый SW зарегистрирован: ' + newReg.scope);
+      // Wait until active
+      await new Promise((resolve, reject) => {
+        const sw = newReg.installing || newReg.waiting || newReg.active;
+        if (sw && sw.state === 'activated') return resolve();
+        if (!sw) return reject(new Error('no SW'));
+        sw.addEventListener('statechange', function once() {
+          info('SW state: ' + sw.state);
+          if (sw.state === 'activated') { sw.removeEventListener('statechange', once); resolve(); }
+          if (sw.state === 'redundant') { sw.removeEventListener('statechange', once); reject(new Error('redundant')); }
+        });
+        setTimeout(() => resolve(), 5000);
+      });
+      ok('Новый SW активирован.');
+    } catch (e) { err('Регистрация нового SW: ' + e.message); }
+  } else {
+    warn('Service Worker не поддерживается этим браузером.');
+  }
+
+  // 4. Nuke old caches
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    info('Кэшей: ' + keys.length);
+    for (const k of keys) {
+      try { await caches.delete(k); ok('Кэш удалён: ' + k); }
+      catch (e) { err('Не смог удалить ' + k + ': ' + e.message); }
+    }
+  }
+
+  // 5. Show post-state
+  await showSW();
+  showStorage();
+
+  ok('Готово. Через 2 сек открою приложение с новым SW.');
+  setTimeout(() => {
+    // Use a query to bust any HTTP cache
+    location.href = './?fixed=' + Date.now();
+  }, 2000);
+}
+
+showSW();
+showStorage();
+info('Сборка: ' + BUILD);
+info('Открой эту страницу ТОЛЬКО по прямой ссылке (НЕ из PWA) — иначе старый SW перехватит.');
+</script>
+</body>
+</html>
