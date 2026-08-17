@@ -309,6 +309,18 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
       </div>
       <p id="syncStatus" class="text-xs text-gray-500"></p>
     </div>
+    <div class="border-t border-gray-700/50 pt-4 space-y-3">
+      <h2 class="text-base font-bold text-white">🐛 Диагностика</h2>
+      <div class="bg-bg-card rounded-xl p-3 border border-gray-700/50 text-xs text-gray-300 space-y-1 font-mono" id="diagInfo">
+        <div>Загрузка...</div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="manualRestoreFromCloud()" class="flex-1 min-w-[140px] py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">☁️ Восстановить категории из облака</button>
+        <button onclick="forcePullAndMerge()" class="flex-1 min-w-[140px] py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">⬇️ Дотянуть и слить с облаком</button>
+        <button onclick="checkForUpdate()" class="flex-1 min-w-[140px] py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">🔄 Проверить обновления</button>
+        <button onclick="hardResetApp()" class="flex-1 min-w-[140px] py-2 rounded-xl bg-red-soft text-red-accent font-medium text-sm hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">🧨 Снести кэш и SW</button>
+      </div>
+    </div>
   </section>
 
   <!-- HISTORY -->
@@ -1373,6 +1385,7 @@ function renderSettings() {
       ${c.id.startsWith('custom_') ? `<button data-delete-category="${escapeHtml(c.id)}" class="text-gray-600 hover:text-red-accent text-lg leading-none focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>` : ''}
     </div>
   `).join('');
+  renderDiagnostics();
 }
 
 let pendingCatType = 'income';
@@ -1617,6 +1630,135 @@ function autoPushGist() {
       }
     });
 }
+const BUILD_VERSION = '2026-08-17-r2';
+function diagSnapshot() {
+  const cfg = (typeof getSyncConfig === 'function') ? getSyncConfig() : { token: '', gistId: '' };
+  const localCats = readStoredJson(STORAGE_KEYS.categories);
+  const incCount = Array.isArray(localCats && localCats.income) ? localCats.income.length : 0;
+  const expCount = Array.isArray(localCats && localCats.expense) ? localCats.expense.length : 0;
+  const incCustom = (localCats && localCats.income || []).filter(c => c && isCustomCatId(c.id)).length;
+  const expCustom = (localCats && localCats.expense || []).filter(c => c && isCustomCatId(c.id)).length;
+  const memInc = CATEGORIES.income.length;
+  const memExp = CATEGORIES.expense.length;
+  const memIncCustom = CATEGORIES.income.filter(c => isCustomCatId(c.id)).length;
+  const memExpCustom = CATEGORIES.expense.filter(c => isCustomCatId(c.id)).length;
+  const lastSync = localStorage.getItem(STORAGE_KEYS.lastSync) || '—';
+  const swStatus = (typeof navigator !== 'undefined' && navigator.serviceWorker)
+    ? (navigator.serviceWorker.controller ? 'контролирует' : 'НЕ контролирует')
+    : 'нет';
+  return {
+    cfg, incCount, expCount, incCustom, expCustom, memInc, memExp, memIncCustom, memExpCustom, lastSync, swStatus,
+  };
+}
+function renderDiagnostics() {
+  const el = document.getElementById('diagInfo');
+  if (!el) return;
+  const d = diagSnapshot();
+  const token = d.cfg.token ? (d.cfg.token.slice(0, 6) + '…' + d.cfg.token.slice(-4)) : 'не задан';
+  const gist = d.cfg.gistId || 'не задан';
+  el.innerHTML = [
+    '<div>build: <b>' + BUILD_VERSION + '</b></div>',
+    '<div>SW: ' + d.swStatus + '</div>',
+    '<div>localStorage: income=' + d.incCount + ' (custom ' + d.incCustom + '), expense=' + d.expCount + ' (custom ' + d.expCustom + ')</div>',
+    '<div>memory:     income=' + d.memInc + ' (custom ' + d.memIncCustom + '), expense=' + d.memExp + ' (custom ' + d.memExpCustom + ')</div>',
+    '<div>token: ' + token + '</div>',
+    '<div>gist: ' + gist + '</div>',
+    '<div>lastSync: ' + d.lastSync + '</div>',
+  ].join('');
+}
+async function manualRestoreFromCloud() {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) { showToast('Сначала настрой синхронизацию', 'error'); return; }
+  showToast('Тяну из облака…', 'info');
+  try {
+    const gist = await gistApi('GET');
+    const file = gist && gist.files && gist.files['finance-data.json'];
+    if (!file || typeof file.content !== 'string') { showToast('Gist пуст', 'error'); return; }
+    const remote = JSON.parse(file.content);
+    if (!remote || !isRecord(remote.categories)) { showToast('В гисте нет категорий', 'error'); return; }
+    if (!hasAnyCustomCats(remote.categories)) {
+      showToast('В облаке нет кастомных категорий', 'info');
+      renderDiagnostics();
+      return;
+    }
+    const before = hasAnyCustomCats(CATEGORIES);
+    CATEGORIES = mergeCategories(CATEGORIES, remote.categories);
+    saveCategories();
+    populateHistoryCategoryFilter();
+    refreshAll();
+    renderDiagnostics();
+    const after = hasAnyCustomCats(CATEGORIES);
+    if (!before && after) showToast('Кастомные категории восстановлены', 'success');
+    else showToast('Категории слиты с облаком', 'success');
+  } catch (e) {
+    showToast('Ошибка: ' + e.message, 'error');
+  }
+}
+async function forcePullAndMerge() {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) { showToast('Сначала настрой синхронизацию', 'error'); return; }
+  showToast('Тяну и сливаю…', 'info');
+  try {
+    const gist = await gistApi('GET');
+    const file = gist && gist.files && gist.files['finance-data.json'];
+    if (!file || typeof file.content !== 'string') { showToast('Gist пуст', 'error'); return; }
+    const remote = JSON.parse(file.content);
+    const incCount = (remote && remote.transactions || []).length;
+    const customCount = hasAnyCustomCats(remote && remote.categories) ? (remote.categories.income.concat(remote.categories.expense).filter(c => isCustomCatId(c && c.id)).length) : 0;
+    CATEGORIES = mergeCategories(CATEGORIES, remote && remote.categories);
+    saveCategories();
+    if (Array.isArray(remote && remote.transactions)) { transactions = normalizeTransactions(remote.transactions); saveData(); }
+    if (Array.isArray(remote && remote.budgets)) { budgets = normalizeBudgets(remote.budgets); saveBudgets(); }
+    localStorage.setItem(STORAGE_KEYS.lastSync, normalizedSyncTimestamp(remote && remote.updated) || new Date().toISOString());
+    populateHistoryCategoryFilter();
+    refreshAll();
+    renderDiagnostics();
+    showToast('Слито. Транзакций: ' + incCount + ', кастомных: ' + customCount, 'success');
+  } catch (e) {
+    showToast('Ошибка: ' + e.message, 'error');
+  }
+}
+function checkForUpdate() {
+  showToast('Проверяю обновления…', 'info');
+  // Bust HTTP cache and force SW check.
+  fetch('./sw.js?bust=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.text())
+    .then(text => {
+      const m = text.match(/finance-v\d+/);
+      const newVer = m ? m[0] : 'unknown';
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then(reg => {
+          if (reg) {
+            reg.update().then(() => {
+              showToast('SW проверен. На сервере: ' + newVer + '. Перезагрузи страницу.', 'info');
+            }).catch(e => showToast('Ошибка update: ' + e.message, 'error'));
+          } else {
+            showToast('SW не зарегистрирован. На сервере: ' + newVer, 'info');
+          }
+        });
+      } else {
+        showToast('SW не поддерживается. Версия на сервере: ' + newVer, 'info');
+      }
+    })
+    .catch(e => showToast('Ошибка: ' + e.message, 'error'));
+}
+async function hardResetApp() {
+  if (!confirm('Снести все кэши SW и обнулить локальные данные? Действие необратимо.')) return;
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    showToast('Кэш снесён. Перезагружаю…', 'info');
+    setTimeout(() => location.reload(), 800);
+  } catch (e) {
+    showToast('Ошибка: ' + e.message, 'error');
+  }
+}
 
 // ==================== INIT ====================
 function refreshAll() {
@@ -1713,6 +1855,8 @@ restoreCustomCategoriesFromCloud().then(restored => {
 
 var periodBtn = document.querySelector('[data-period="all"]');
 if (periodBtn) periodBtn.classList.add('bg-green-soft', 'text-green-accent', 'border-green-accent/30');
+console.log('%c[Finance Tracker] build: ' + BUILD_VERSION, 'color:#10b981;font-weight:bold');
+renderDiagnostics();
 </script>
 </body>
 </html>
