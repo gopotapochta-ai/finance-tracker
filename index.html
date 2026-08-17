@@ -3,62 +3,152 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#F5F1E8">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Финансы">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
 <title>Финансы — Трекер</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&display=swap" rel="stylesheet">
 <script>
 if (typeof tailwind !== 'undefined') tailwind.config = {
   theme: {
     extend: {
-      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+      },
       colors: {
-        bg: { DEFAULT: '#0f172a', card: '#1e293b', hover: '#334155' },
-        green: { accent: '#10b981', soft: '#064e3b' },
-        red: { accent: '#ef4444', soft: '#450a0a' },
-        income: '#10b981',
-        expense: '#ef4444',
+        paper: { DEFAULT: '#F5F1E8', card: '#EFE9DB', elev: '#E8E0CE', line: '#E0D7C2' },
+        ink: { DEFAULT: '#2A2520', soft: '#6B6259', mute: '#9C9285' },
+        forest: { DEFAULT: '#2D4A3E', soft: '#3D6B5A', pale: '#7DA88F' },
+        terra: { DEFAULT: '#B85C3E', soft: '#C97B5C', pale: '#E5B3A0' },
+        income: '#2D4A3E',
+        expense: '#B85C3E',
       }
     }
   }
 };
 </script>
 <style>
+  /* ========== DESIGN TOKENS ========== */
+  :root {
+    --paper: #F5F1E8;
+    --paper-card: #EFE9DB;
+    --paper-elev: #E8E0CE;
+    --paper-line: #E0D7C2;
+    --ink: #2A2520;
+    --ink-soft: #6B6259;
+    --ink-mute: #9C9285;
+    --forest: #2D4A3E;
+    --forest-soft: #3D6B5A;
+    --terra: #B85C3E;
+    --terra-soft: #C97B5C;
+    --shadow-sm: 0 1px 2px rgba(42, 37, 32, 0.05);
+    --shadow-md: 0 2px 12px rgba(42, 37, 32, 0.06);
+    --shadow-lg: 0 12px 32px rgba(42, 37, 32, 0.10);
+  }
+  /* ========== BASE ========== */
   *, *::before, *::after { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; font-size: 14px; line-height: 1.5; -webkit-tap-highlight-color: transparent; margin: 0; }
-  body { background: #0f172a; color: #e2e8f0; min-height: 100vh; }
-  .bg-bg { background-color: #0f172a; }
-  .bg-bg-card { background-color: #1e293b; }
-  .bg-bg-hover { background-color: #334155; }
-  .text-white { color: #fff; }
-  .text-gray-200 { color: #e2e8f0; }
-  .text-gray-300 { color: #cbd5e1; }
-  .text-gray-400 { color: #94a3b8; }
-  .text-gray-500 { color: #64748b; }
-  .text-gray-600 { color: #475569; }
-  .text-green-accent { color: #10b981; }
-  .text-red-accent { color: #ef4444; }
-  .bg-green-accent { background-color: #10b981; }
-  .bg-green-soft { background-color: #064e3b; }
-  .bg-red-soft { background-color: #450a0a; }
-  .bg-red-accent { background-color: #ef4444; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    background: var(--paper);
+    min-height: 100vh;
+    margin: 0;
+    -webkit-tap-highlight-color: transparent;
+    /* Subtle paper grain via tiny SVG noise — keeps the design tactile without an image */
+    background-image:
+      radial-gradient(at 20% 10%, rgba(184, 92, 62, 0.04), transparent 50%),
+      radial-gradient(at 80% 90%, rgba(45, 74, 62, 0.04), transparent 50%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.14  0 0 0 0 0.12  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-attachment: fixed;
+  }
+  .font-serif { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; }
+  /* ========== TYPOGRAPHY UTILITIES ========== */
+  .num-display {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    font-variation-settings: "wght" 500, "opsz" 144, "SOFT" 30;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    letter-spacing: -0.02em;
+  }
+  .num-medium {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    font-variation-settings: "wght" 600, "opsz" 36, "SOFT" 20;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    letter-spacing: -0.01em;
+  }
+  .head-serif {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    font-variation-settings: "wght" 600, "opsz" 36, "SOFT" 20;
+    letter-spacing: -0.01em;
+  }
+  .label-caps {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .num-tabular { font-feature-settings: "tnum" 1, "lnum" 1; }
+  /* ========== TAILWIND TOKEN ALIASES (so existing markup keeps working) ========== */
+  .bg-bg { background-color: var(--paper); }
+  .bg-bg-card { background-color: var(--paper-card); }
+  .bg-bg-hover { background-color: var(--paper-elev); }
+  .text-white { color: var(--ink); }
+  .text-gray-200 { color: var(--ink); }
+  .text-gray-300 { color: var(--ink-soft); }
+  .text-gray-400 { color: var(--ink-soft); }
+  .text-gray-500 { color: var(--ink-mute); }
+  .text-gray-600 { color: var(--ink-mute); }
+  .text-green-accent { color: var(--forest); }
+  .text-red-accent { color: var(--terra); }
+  .bg-green-accent { background-color: var(--forest); }
+  .bg-green-soft { background-color: rgba(45, 74, 62, 0.08); }
+  .bg-red-soft { background-color: rgba(184, 92, 62, 0.08); }
+  .bg-red-accent { background-color: var(--terra); }
+  .border-gray-600 { border-color: var(--paper-line); }
+  .border-gray-700 { border-color: var(--paper-line); }
+  .border-gray-700\/50 { border-color: rgba(224, 215, 194, 0.5); }
+  .border-gray-800 { border-color: var(--paper-line); }
+  .border-green-accent\/30 { border-color: rgba(45, 74, 62, 0.30); }
+  .border-red-500\/50 { border-color: rgba(184, 92, 62, 0.30); }
+  .hover\:bg-bg-hover:hover { background-color: var(--paper-elev); }
+  .hover\:bg-bg-hover\/50:hover { background-color: rgba(232, 224, 206, 0.5); }
+  .hover\:bg-emerald-500:hover { background-color: var(--forest-soft); }
+  .hover\:bg-green-900\/30:hover { background-color: rgba(45, 74, 62, 0.16); }
+  .hover\:bg-red-900\/50:hover { background-color: rgba(184, 92, 62, 0.16); }
+  .hover\:bg-gray-600:hover { background-color: var(--paper-elev); }
+  .hover\:text-gray-200:hover { color: var(--ink); }
+  .hover\:text-gray-300:hover { color: var(--ink); }
+  .hover\:text-white:hover { color: var(--ink); }
+  .hover\:text-red-accent:hover { color: var(--terra); }
+  .hover\:border-gray-400:hover { border-color: var(--ink-soft); }
+  .bg-bg\/95 { background-color: rgba(245, 241, 232, 0.92); }
+  .border-green-accent\/50 { border-color: rgba(45, 74, 62, 0.5); }
+  .border-red-accent\/50 { border-color: rgba(184, 92, 62, 0.5); }
+  .focus\:ring-green-accent\/50:focus { box-shadow: 0 0 0 2px rgba(45, 74, 62, 0.4); }
+  .focus\:ring-red-accent\/50:focus { box-shadow: 0 0 0 2px rgba(184, 92, 62, 0.4); }
+  .focus\:ring-offset-bg-card:focus { outline-color: var(--paper-card); }
+  .focus\:ring-offset-bg:focus { outline-color: var(--paper); }
+  /* ========== LAYOUT PRIMITIVES ========== */
   .rounded-lg { border-radius: 0.5rem; }
   .rounded-xl { border-radius: 0.75rem; }
   .rounded-2xl { border-radius: 1rem; }
   .rounded-full { border-radius: 9999px; }
-  .border-gray-600 { border-color: #4b5563; }
-  .border-gray-700 { border-color: #374151; }
-  .border-gray-700\/50 { border-color: rgba(55, 65, 81, 0.5); }
-  .border-gray-800 { border-color: #1f2937; }
-  .border-green-accent\/30 { border-color: rgba(16, 185, 129, 0.3); }
-  .border-red-500\/50 { border-color: rgba(239, 68, 68, 0.5); }
   .border-t-2 { border-top-width: 2px; }
   .border-b { border-bottom-width: 1px; }
   .border { border-width: 1px; border-style: solid; }
@@ -78,7 +168,7 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   .gap-4 { gap: 1rem; }
   .space-y-2 > * + * { margin-top: 0.5rem; }
   .space-y-3 > * + * { margin-top: 0.75rem; }
-  .space-y-4 > * + * { margin-top: 1rem; }
+  .space-y-4 > * + * { margin-top: 1.25rem; }
   .space-y-1\.5 > * + * { margin-top: 0.375rem; }
   .flex-1 { flex: 1 1 0%; }
   .min-w-0 { min-width: 0; }
@@ -88,7 +178,8 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   .text-xl { font-size: 1.25rem; }
   .text-2xl { font-size: 1.5rem; }
   .text-3xl { font-size: 1.875rem; }
-  .text-4xl { font-size: 2.25rem; }
+  .text-4xl { font-size: 2.5rem; }
+  .text-5xl { font-size: 3.25rem; }
   .text-sm { font-size: 0.875rem; }
   .text-xs { font-size: 0.75rem; }
   .text-base { font-size: 1rem; }
@@ -98,28 +189,29 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   .font-semibold { font-weight: 600; }
   .font-medium { font-weight: 500; }
   .leading-none { line-height: 1; }
+  .leading-tight { line-height: 1.2; }
   .p-1 { padding: 0.25rem; }
-  .p-4 { padding: 1rem; }
-  .p-5 { padding: 1.25rem; }
-  .p-6 { padding: 1.5rem; }
+  .p-4 { padding: 1.25rem; }
+  .p-5 { padding: 1.5rem; }
+  .p-6 { padding: 2rem; }
   .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
-  .px-4 { padding-left: 1rem; padding-right: 1rem; }
-  .px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .px-4 { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .px-5 { padding-left: 1.5rem; padding-right: 1.5rem; }
   .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-  .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
-  .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-  .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
-  .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-  .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
-  .pt-4 { padding-top: 1rem; }
+  .py-1\.5 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+  .py-2 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+  .py-2\.5 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+  .py-3 { padding-top: 1rem; padding-bottom: 1rem; }
+  .py-4 { padding-top: 1.25rem; padding-bottom: 1.25rem; }
+  .pt-4 { padding-top: 1.25rem; }
   .pb-24 { padding-bottom: 6rem; }
   .mt-1 { margin-top: 0.25rem; }
   .mt-1\.5 { margin-top: 0.375rem; }
   .mb-1 { margin-bottom: 0.25rem; }
-  .mb-1\.5 { margin-bottom: 0.375rem; }
-  .mb-2 { margin-bottom: 0.5rem; }
-  .mb-3 { margin-bottom: 0.75rem; }
-  .mb-6 { margin-bottom: 1.5rem; }
+  .mb-1\.5 { margin-bottom: 0.5rem; }
+  .mb-2 { margin-bottom: 0.625rem; }
+  .mb-3 { margin-bottom: 1rem; }
+  .mb-6 { margin-bottom: 1.75rem; }
   .w-full { width: 100%; }
   .w-2 { width: 0.5rem; }
   .w-8 { width: 2rem; }
@@ -129,10 +221,10 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   .h-2 { height: 0.5rem; }
   .h-2\.5 { height: 0.625rem; }
   .h-14 { height: 3.5rem; }
-  .h-48 { height: 12rem; }
-  .h-56 { height: 14rem; }
+  .h-48 { height: 13rem; }
+  .h-56 { height: 15rem; }
   .h-full { height: 100%; }
-  .bg-yellow-500 { background-color: #eab308; }
+  .bg-yellow-500 { background-color: #C8A951; }
   .max-h-\[90vh\] { max-height: 90vh; }
   .min-h-screen { min-height: 100vh; }
   .max-w-5xl { max-width: 64rem; }
@@ -148,249 +240,367 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   .bottom-24 { bottom: 6rem; }
   .left-0 { left: 0; }
   .right-0 { right: 0; }
-  .right-4 { right: 1rem; }
+  .right-4 { right: 1.25rem; }
+  .right-6 { right: 1.5rem; }
   .z-50 { z-index: 50; }
   .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
   .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
-  .backdrop-blur { backdrop-filter: blur(8px); }
-  .bg-bg\/95 { background-color: rgba(15, 23, 42, 0.95); }
-  .transition-colors { transition: color 0.15s, background-color 0.15s, border-color 0.15s; }
-  .transition-all { transition: all 0.15s; }
-  .hover\:bg-bg-hover:hover { background-color: #334155; }
-  .hover\:bg-bg-hover\/50:hover { background-color: rgba(51, 65, 85, 0.5); }
-  .hover\:bg-emerald-500:hover { background-color: #10b981; }
-  .hover\:bg-green-900\/30:hover { background-color: rgba(6, 78, 59, 0.3); }
-  .hover\:bg-red-900\/50:hover { background-color: rgba(69, 10, 10, 0.5); }
-  .hover\:bg-gray-600:hover { background-color: #4b5563; }
-  .hover\:text-gray-200:hover { color: #e2e8f0; }
-  .hover\:text-gray-300:hover { color: #cbd5e1; }
-  .hover\:text-white:hover { color: #fff; }
-  .hover\:text-red-accent:hover { color: #ef4444; }
-  .hover\:border-gray-400:hover { border-color: #9ca3af; }
-  .focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
-  .focus\:ring-2:focus { box-shadow: 0 0 0 2px; }
-  .focus\:ring-green-accent\/50:focus { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.5); }
-  .focus\:ring-red-accent\/50:focus { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5); }
-  .focus\:ring-offset-2:focus { outline-offset: 2px; }
-  .focus\:ring-offset-bg-card:focus { outline-color: #1e293b; }
-  .focus\:ring-offset-bg:focus { outline-color: #0f172a; }
+  .shadow-lg { box-shadow: var(--shadow-lg); }
+  .backdrop-blur { backdrop-filter: blur(12px); }
+  .transition-colors { transition: color 0.18s, background-color 0.18s, border-color 0.18s; }
+  .transition-all { transition: all 0.18s ease; }
   .active\:scale-95:active { transform: scale(0.95); }
   .active\:scale-\[0\.98\]:active { transform: scale(0.98); }
   .opacity-50 { opacity: 0.5; }
   .cursor-not-allowed { cursor: not-allowed; }
   @media (min-width: 640px) {
     .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .sm\:max-w-md { max-width: 28rem; }
-    .sm\:max-w-sm { max-width: 24rem; }
+    .sm\:max-w-md { max-width: 32rem; }
+    .sm\:max-w-sm { max-width: 26rem; }
     .sm\:border { border-width: 1px; border-style: solid; }
-    .sm\:rounded-2xl { border-radius: 1rem; }
+    .sm\:rounded-2xl { border-radius: 1.25rem; }
+  }
+  /* ========== COMPONENT PRIMITIVES ========== */
+  .paper-card {
+    background: var(--paper-card);
+    border: 1px solid var(--paper-line);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .divider {
+    height: 1px;
+    background: var(--paper-line);
+    border: 0;
+    margin: 1.25rem 0;
   }
   .screen { display: none; }
-  .screen.active { display: block; animation: fadeSlideIn 0.3s ease; }
-  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; justify-content: center; }
+  .screen.active { display: block; animation: fadeIn 0.35s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(42, 37, 32, 0.42);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
   .modal-overlay.open { display: flex; }
-  .modal-overlay.open .modal { animation: slideUp 0.3s ease; }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-overlay.open .modal { animation: slideUp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   input[type="number"] { -moz-appearance: textfield; }
-  .tab-btn { transition: all 0.2s; }
-  .tab-btn.active { color: #10b981; border-top: 2px solid #10b981; }
-  .progress-bar { transition: width 0.5s ease; }
-  .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 200; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; animation: fadeSlideIn 0.3s ease; pointer-events: none; }
-  .toast.success { background: #065f46; color: #d1fae5; }
-  .toast.error { background: #7f1d1d; color: #fecaca; }
+  /* ========== INPUTS / SELECTS ========== */
+  .field {
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 12px;
+    padding: 0.875rem 1.1rem;
+    font: inherit;
+    color: var(--ink);
+    transition: border-color 0.18s, box-shadow 0.18s;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--forest);
+    box-shadow: 0 0 0 3px rgba(45, 74, 62, 0.12);
+  }
+  .field::placeholder { color: var(--ink-mute); }
+  .field-amount {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: "wght" 500, "opsz" 72, "SOFT" 30;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    font-size: 1.5rem;
+  }
+  /* ========== BUTTONS ========== */
+  .btn-primary {
+    width: 100%;
+    padding: 0.95rem 1rem;
+    background: var(--forest);
+    color: var(--paper);
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.18s, transform 0.1s;
+  }
+  .btn-primary:hover { background: var(--forest-soft); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:focus { outline: none; box-shadow: 0 0 0 3px rgba(45, 74, 62, 0.30); }
+  .btn-secondary {
+    flex: 1;
+    padding: 0.85rem 1rem;
+    background: var(--paper-elev);
+    color: var(--ink);
+    font-weight: 500;
+    font-size: 14px;
+    border: 1px solid var(--paper-line);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.18s;
+  }
+  .btn-secondary:hover { background: var(--paper-line); }
+  .btn-danger {
+    background: rgba(184, 92, 62, 0.10);
+    color: var(--terra);
+    border: 1px solid rgba(184, 92, 62, 0.25);
+  }
+  .btn-danger:hover { background: rgba(184, 92, 62, 0.18); }
+  /* ========== TAB / NAV ========== */
+  .tab-btn { transition: color 0.18s, transform 0.18s; color: var(--ink-mute); position: relative; }
+  .tab-btn .tab-label { font-size: 10px; letter-spacing: 0.05em; }
+  .tab-btn .tab-dot {
+    width: 4px; height: 4px; border-radius: 50%; background: transparent; margin-top: 4px;
+    transition: background-color 0.18s, transform 0.18s;
+  }
+  .tab-btn.active { color: var(--forest); }
+  .tab-btn.active .tab-dot { background: var(--forest); transform: scale(1.5); }
+  .tab-btn:focus { outline: none; }
+  /* ========== PROGRESS / MISC ========== */
+  .progress-bar { transition: width 0.5s ease; border-radius: 999px; }
+  /* ========== TOAST ========== */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    animation: toastIn 0.3s ease;
+    pointer-events: none;
+    box-shadow: var(--shadow-lg);
+  }
+  .toast.success { background: var(--forest); color: var(--paper); }
+  .toast.error { background: var(--terra); color: var(--paper); }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  /* ========== MODAL (desktop center, mobile bottom-sheet) ========== */
+  .modal {
+    background: var(--paper-card);
+    border-radius: 18px 18px 0 0;
+    border-top: 1px solid var(--paper-line);
+    box-shadow: var(--shadow-lg);
+  }
   @media (min-width: 640px) {
     .modal-overlay { align-items: center; }
-    .modal { max-width: 480px; border-radius: 16px; }
-    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal { border-radius: 18px; border: 1px solid var(--paper-line); max-width: 32rem; }
   }
+  /* ========== FAB ========== */
+  .fab {
+    position: fixed;
+    bottom: 5.5rem;
+    right: 1.5rem;
+    z-index: 50;
+    width: 3.75rem;
+    height: 3.75rem;
+    border-radius: 50%;
+    background: var(--forest);
+    color: var(--paper);
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    line-height: 1;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(45, 74, 62, 0.30);
+    transition: transform 0.18s, background-color 0.18s, box-shadow 0.18s;
+  }
+  .fab:hover { background: var(--forest-soft); transform: translateY(-1px); box-shadow: 0 12px 28px rgba(45, 74, 62, 0.36); }
+  .fab:active { transform: scale(0.94); }
+  .fab:focus { outline: none; box-shadow: 0 0 0 4px rgba(45, 74, 62, 0.20); }
+  /* ========== SAFE AREA ========== */
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
 </style>
 </head>
-<body class="bg-bg text-gray-200 min-h-screen" data-build="2026-08-17-r5">
+<body class="bg-bg text-gray-200 min-h-screen" data-build="2026-08-17-r6">
 <!-- Always-visible build stamp so the user can SEE which code is loaded (even on the old SW). -->
-<div id="buildBadge" style="position:fixed;left:8px;bottom:8px;z-index:9999;font:600 10px/1 ui-monospace,monospace;color:#94a3b8;background:#1e293bcc;border:1px solid #334155;border-radius:6px;padding:4px 6px;pointer-events:none">build: 2026-08-17-r5</div>
-<script>document.body.setAttribute('data-build', '2026-08-17-r5'); document.getElementById('buildBadge').textContent = 'build: ' + '2026-08-17-r5';</script>
+<div id="buildBadge" style="position:fixed;left:8px;bottom:8px;z-index:9999;font:600 10px/1 ui-monospace,monospace;color:#6B6259;background:#EFE9DBcc;border:1px solid #E0D7C2;border-radius:6px;padding:4px 6px;pointer-events:none;backdrop-filter:blur(6px)">build: 2026-08-17-r6</div>
+<script>document.body.setAttribute('data-build', '2026-08-17-r6'); document.getElementById('buildBadge').textContent = 'build: ' + '2026-08-17-r6';</script>
 
 <!-- ==================== TOAST ==================== -->
 <div id="toast" class="toast hidden"></div>
 
 <!-- ==================== HEADER ==================== -->
-<header class="sticky top-0 z-50 bg-bg/95 backdrop-blur border-b border-gray-800 px-4 py-3">
-  <div class="max-w-5xl mx-auto flex items-center justify-between">
-    <h1 id="screenTitle" class="text-lg font-bold text-white">Финансы</h1>
-    <span id="headerDate" class="text-xs text-gray-500"></span>
+<header class="sticky top-0 z-50 bg-bg/95 backdrop-blur px-5 py-4" style="border-bottom: 1px solid var(--paper-line)">
+  <div class="max-w-5xl mx-auto flex items-baseline justify-between gap-4">
+    <div class="flex items-baseline gap-2.5">
+      <span style="font-family:'Fraunces',serif;font-variation-settings:'wght' 600, 'opsz' 144, 'SOFT' 30; font-size: 22px; color: var(--forest); letter-spacing:-0.02em">₽</span>
+      <h1 class="head-serif" style="font-size: 19px; font-variation-settings: 'wght' 600, 'opsz' 36; color: var(--ink); letter-spacing: -0.01em">Финансы</h1>
+    </div>
+    <span id="headerDate" class="num-tabular" style="font-family:'Fraunces',serif;font-variation-settings:'wght' 400, 'opsz' 36, 'SOFT' 50, 'wght' 400; font-style: italic; font-size: 13px; color: var(--ink-soft)"></span>
   </div>
 </header>
-
-<!-- ==================== SCREENS CONTAINER ==================== -->
-<main class="max-w-5xl mx-auto px-4 pb-24 pt-4">
+<main class="max-w-5xl mx-auto px-5 pb-28 pt-6">
 
   <!-- DASHBOARD -->
-  <section id="dashboard" class="screen active space-y-4">
-    <!-- Balance Card -->
-    <div class="bg-bg-card rounded-xl p-6 text-center border border-gray-700/50">
-      <p class="text-sm text-gray-400 mb-2">Текущий баланс</p>
-      <p id="dashBalance" class="text-4xl font-extrabold text-white">0 ₽</p>
-      <p id="dashBalanceTrend" class="text-xs text-gray-500 mt-1"></p>
+  <section id="dashboard" class="screen active space-y-5">
+    <!-- Balance — editorial hero -->
+    <div class="paper-card" style="padding: 2rem 1.5rem 1.75rem; text-align: left; position: relative; overflow: hidden">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem">
+        <span class="label-caps">Баланс</span>
+        <span style="font-family:'Fraunces',serif; font-style: italic; font-size: 12px; color: var(--ink-mute)" id="dashBalanceTrend"></span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 0.6rem">
+        <span class="num-display" style="font-size: clamp(40px, 13vw, 64px); line-height: 1; color: var(--ink)" id="dashBalance">0</span>
+        <span class="num-medium" style="font-size: clamp(20px, 5vw, 28px); color: var(--ink-soft)">₽</span>
+      </div>
+      <hr class="divider" style="margin-top: 1.5rem; margin-bottom: 1.25rem">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem">
+        <div>
+          <div class="label-caps" style="color: var(--forest); margin-bottom: 0.4rem">Доход</div>
+          <div class="num-medium" style="font-size: 20px; color: var(--forest)" id="dashIncome">0 ₽</div>
+        </div>
+        <div>
+          <div class="label-caps" style="color: var(--terra); margin-bottom: 0.4rem">Расход</div>
+          <div class="num-medium" style="font-size: 20px; color: var(--terra)" id="dashExpense">0 ₽</div>
+        </div>
+      </div>
     </div>
-    <!-- Income / Expense cards -->
+    <!-- Today / Week — paired stats -->
     <div class="grid grid-cols-2 gap-3">
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-        <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-green-accent"></span><span class="text-sm text-gray-400">Доходы</span></div>
-        <p id="dashIncome" class="text-xl font-bold text-green-accent">0 ₽</p>
+      <div class="paper-card" style="padding: 1.1rem 1.25rem">
+        <div class="label-caps" style="margin-bottom: 0.4rem">Сегодня</div>
+        <div class="num-medium" style="font-size: 18px; color: var(--ink)" id="dashToday">0 ₽</div>
       </div>
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-        <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-red-accent"></span><span class="text-sm text-gray-400">Расходы</span></div>
-        <p id="dashExpense" class="text-xl font-bold text-red-accent">0 ₽</p>
-      </div>
-    </div>
-    <!-- Spent today / this week -->
-    <div class="grid grid-cols-2 gap-3">
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-        <p class="text-xs text-gray-500">Сегодня</p>
-        <p id="dashToday" class="text-lg font-semibold text-red-accent">0 ₽</p>
-      </div>
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-        <p class="text-xs text-gray-500">За неделю</p>
-        <p id="dashWeek" class="text-lg font-semibold text-red-accent">0 ₽</p>
+      <div class="paper-card" style="padding: 1.1rem 1.25rem">
+        <div class="label-caps" style="margin-bottom: 0.4rem">Неделя</div>
+        <div class="num-medium" style="font-size: 18px; color: var(--ink)" id="dashWeek">0 ₽</div>
       </div>
     </div>
     <!-- Charts row -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-        <p class="text-sm font-semibold text-gray-300 mb-3">Категории расходов</p>
+      <div class="paper-card" style="padding: 1.25rem">
+        <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem; color: var(--ink)">Категории расходов</p>
         <div class="h-48 flex items-center justify-center"><canvas id="doughnutChart"></canvas></div>
       </div>
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-        <p class="text-sm font-semibold text-gray-300 mb-3">Динамика (30 дн.)</p>
+      <div class="paper-card" style="padding: 1.25rem">
+        <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem; color: var(--ink)">Динамика · 30 дней</p>
         <div class="h-48 flex items-center justify-center"><canvas id="lineChart"></canvas></div>
       </div>
     </div>
   </section>
 
   <!-- SETTINGS / CATEGORIES -->
-  <section id="settings" class="screen space-y-4">
-    <div class="flex items-center justify-between mb-1">
-      <h2 class="text-base font-bold text-white">Доходы</h2>
-      <button onclick="showAddCatModal('income')" class="text-xs px-3 py-1.5 rounded-lg bg-green-soft text-green-accent font-medium hover:bg-green-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">+ Добавить</button>
+  <section id="settings" class="screen space-y-5">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.75rem">
+      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)">Категории доходов</h2>
+      <button onclick="showAddCatModal('income')" style="font-size: 12px; padding: 0.4rem 0.85rem; border-radius: 999px; background: rgba(45,74,62,0.08); color: var(--forest); border: 1px solid rgba(45,74,62,0.15); font-weight: 500; cursor: pointer">+ Добавить</button>
     </div>
-    <div id="settingsIncomeList" class="space-y-1.5 mb-6"></div>
-    <div class="flex items-center justify-between mb-1">
-      <h2 class="text-base font-bold text-white">Расходы</h2>
-      <button onclick="showAddCatModal('expense')" class="text-xs px-3 py-1.5 rounded-lg bg-red-soft text-red-accent font-medium hover:bg-red-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">+ Добавить</button>
+    <div id="settingsIncomeList" class="space-y-1.5" style="margin-bottom: 1.5rem"></div>
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.75rem">
+      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)">Категории расходов</h2>
+      <button onclick="showAddCatModal('expense')" style="font-size: 12px; padding: 0.4rem 0.85rem; border-radius: 999px; background: rgba(184,92,62,0.08); color: var(--terra); border: 1px solid rgba(184,92,62,0.15); font-weight: 500; cursor: pointer">+ Добавить</button>
     </div>
-    <div id="settingsExpenseList" class="space-y-1.5 mb-6"></div>
-    <div class="border-t border-gray-700/50 pt-4 space-y-3">
-      <h2 class="text-base font-bold text-white">Данные</h2>
-      <div class="flex gap-3">
-        <button onclick="exportData()" class="flex-1 py-2.5 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">📤 Экспорт (JSON)</button>
-        <button onclick="document.getElementById('importFile').click()" class="flex-1 py-2.5 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">📥 Импорт (JSON)</button>
-      </div>
-      <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
-      <button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) resetAllData();" class="w-full py-2.5 rounded-xl bg-red-soft text-red-accent font-medium text-sm hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">🗑 Сбросить все данные</button>
+    <div id="settingsExpenseList" class="space-y-1.5" style="margin-bottom: 1.5rem"></div>
+    <hr class="divider">
+    <h2 class="head-serif" style="font-size: 22px; color: var(--ink); margin-bottom: 1rem">Данные</h2>
+    <div class="flex gap-3" style="margin-bottom: 0.75rem">
+      <button onclick="exportData()" class="btn-secondary">📤 Экспорт</button>
+      <button onclick="document.getElementById('importFile').click()" class="btn-secondary">📥 Импорт</button>
     </div>
-    <div class="border-t border-gray-700/50 pt-4 space-y-3">
-      <h2 class="text-base font-bold text-white">☁️ Синхронизация (GitHub Gist)</h2>
+    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
+    <button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) resetAllData();" class="btn-secondary btn-danger" style="width: 100%">🗑 Сбросить все данные</button>
+    <hr class="divider">
+    <h2 class="head-serif" style="font-size: 22px; color: var(--ink); margin-bottom: 1rem">☁️ Синхронизация · GitHub Gist</h2>
+    <div class="space-y-3">
       <div>
-        <label class="text-xs text-gray-500 block mb-1">GitHub токен</label>
-        <input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">GitHub токен</label>
+        <input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="field" style="font-size: 14px" autocomplete="off">
       </div>
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Gist ID</label>
-        <input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Gist ID</label>
+        <input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="field" style="font-size: 14px" autocomplete="off">
       </div>
       <div class="flex gap-3">
-        <button onclick="saveSyncSettings()" class="flex-1 py-2.5 rounded-xl bg-green-accent text-white font-medium text-sm hover:bg-emerald-500 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">💾 Сохранить</button>
-        <button onclick="createGist()" class="flex-1 py-2.5 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">🆕 Создать Gist</button>
+        <button onclick="saveSyncSettings()" class="btn-primary" style="flex: 1; padding: 0.75rem 1rem; font-size: 14px">💾 Сохранить</button>
+        <button onclick="createGist()" class="btn-secondary">🆕 Создать Gist</button>
       </div>
       <div class="flex gap-3">
-        <button onclick="pullFromGist()" class="flex-1 py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">⬇️ Загрузить из облака</button>
-        <button onclick="pushToGist()" class="flex-1 py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">⬆️ Выгрузить в облако</button>
+        <button onclick="pullFromGist()" class="btn-secondary">⬇️ Из облака</button>
+        <button onclick="pushToGist()" class="btn-secondary">⬆️ В облако</button>
       </div>
-      <p id="syncStatus" class="text-xs text-gray-500"></p>
+      <p id="syncStatus" style="font-size: 12px; color: var(--ink-mute); font-style: italic; font-family: 'Fraunces', serif"></p>
     </div>
-    <div class="border-t border-gray-700/50 pt-4 space-y-3">
-      <h2 class="text-base font-bold text-white">🐛 Диагностика</h2>
-      <div class="bg-bg-card rounded-xl p-3 border border-gray-700/50 text-xs text-gray-300 space-y-1 font-mono" id="diagInfo">
-        <div>Загрузка...</div>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <button onclick="manualRestoreFromCloud()" class="flex-1 min-w-[140px] py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">☁️ Восстановить категории из облака</button>
-        <button onclick="forcePullAndMerge()" class="flex-1 min-w-[140px] py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">⬇️ Дотянуть и слить с облаком</button>
-        <button onclick="checkForUpdate()" class="flex-1 min-w-[140px] py-2 rounded-xl bg-bg-hover text-gray-300 font-medium text-sm hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">🔄 Проверить обновления</button>
-        <button onclick="hardResetApp()" class="flex-1 min-w-[140px] py-2 rounded-xl bg-red-soft text-red-accent font-medium text-sm hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50">🧨 Снести кэш и SW</button>
-      </div>
+    <hr class="divider">
+    <h2 class="head-serif" style="font-size: 22px; color: var(--ink); margin-bottom: 1rem">🐛 Диагностика</h2>
+    <div class="paper-card" style="padding: 1rem 1.1rem; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 0.85rem" id="diagInfo">
+      <div>Загрузка...</div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button onclick="manualRestoreFromCloud()" class="btn-secondary" style="font-size: 12px; min-width: 140px; padding: 0.6rem 0.8rem">☁️ Из облака</button>
+      <button onclick="forcePullAndMerge()" class="btn-secondary" style="font-size: 12px; min-width: 140px; padding: 0.6rem 0.8rem">⬇️ Слить</button>
+      <button onclick="checkForUpdate()" class="btn-secondary" style="font-size: 12px; min-width: 140px; padding: 0.6rem 0.8rem">🔄 Обновления</button>
+      <button onclick="hardResetApp()" class="btn-secondary btn-danger" style="font-size: 12px; min-width: 140px; padding: 0.6rem 0.8rem">🧨 Снести SW</button>
     </div>
   </section>
 
   <!-- HISTORY -->
   <section id="history" class="screen space-y-4">
-    <!-- Filters -->
-    <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 space-y-3">
-      <div class="flex flex-wrap gap-2">
-        <select id="histType" class="bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
-          <option value="all">Все</option><option value="income">Доходы</option><option value="expense">Расходы</option>
+    <div class="paper-card" style="padding: 1.1rem 1.25rem">
+      <div class="flex flex-wrap gap-2" style="margin-bottom: 0.75rem">
+        <select id="histType" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; flex: 0 0 auto; width: auto">
+          <option value="all">Все типы</option><option value="income">Доход</option><option value="expense">Расход</option>
         </select>
-        <select id="histCategory" class="bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+        <select id="histCategory" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; flex: 1 1 140px">
           <option value="all">Все категории</option>
         </select>
-        <input id="histDateFrom" type="date" class="bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50 w-36">
-        <input id="histDateTo" type="date" class="bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50 w-36">
+        <input id="histDateFrom" type="date" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; width: auto; flex: 0 0 auto">
+        <input id="histDateTo" type="date" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; width: auto; flex: 0 0 auto">
       </div>
-      <input id="histSearch" type="text" placeholder="Поиск по комментарию..." class="w-full bg-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+      <input id="histSearch" type="text" placeholder="Поиск по комментарию..." class="field" style="font-size: 13px; padding: 0.55rem 0.85rem" autocomplete="off">
     </div>
-    <!-- List -->
     <div id="historyList" class="space-y-2"></div>
   </section>
 
   <!-- ANALYTICS -->
-  <section id="analytics" class="screen space-y-4">
-    <!-- Period selector -->
+  <section id="analytics" class="screen space-y-5">
     <div class="flex flex-wrap gap-2">
-      <button data-period="all" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Всё</button>
-      <button data-period="week" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Неделя</button>
-      <button data-period="month" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Месяц</button>
-      <button data-period="year" class="period-btn px-4 py-2 rounded-lg text-sm font-medium bg-bg-card border border-gray-700 text-gray-300 hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-green-accent/50">Год</button>
-      <input id="analDateFrom" type="date" class="bg-bg-card border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
-      <input id="analDateTo" type="date" class="bg-bg-card border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+      <button data-period="all" class="period-btn" style="padding: 0.5rem 1rem; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--paper-card); border: 1px solid var(--paper-line); color: var(--ink-soft); cursor: pointer">Всё</button>
+      <button data-period="week" class="period-btn" style="padding: 0.5rem 1rem; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--paper-card); border: 1px solid var(--paper-line); color: var(--ink-soft); cursor: pointer">Неделя</button>
+      <button data-period="month" class="period-btn" style="padding: 0.5rem 1rem; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--paper-card); border: 1px solid var(--paper-line); color: var(--ink-soft); cursor: pointer">Месяц</button>
+      <button data-period="year" class="period-btn" style="padding: 0.5rem 1rem; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--paper-card); border: 1px solid var(--paper-line); color: var(--ink-soft); cursor: pointer">Год</button>
+      <input id="analDateFrom" type="date" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; width: auto; flex: 0 0 auto">
+      <input id="analDateTo" type="date" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; width: auto; flex: 0 0 auto">
     </div>
-    <!-- Summary -->
     <div class="grid grid-cols-3 gap-3">
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 text-center">
-        <p class="text-xs text-gray-500">Сумма</p>
-        <p id="analSum" class="text-lg font-bold text-white">0 ₽</p>
+      <div class="paper-card" style="padding: 1rem 0.75rem; text-align: center">
+        <div class="label-caps" style="font-size: 10px; margin-bottom: 0.3rem">Сумма</div>
+        <div class="num-medium" style="font-size: 17px" id="analSum">0 ₽</div>
       </div>
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 text-center">
-        <p class="text-xs text-gray-500">Средний чек</p>
-        <p id="analAvg" class="text-lg font-bold text-white">0 ₽</p>
+      <div class="paper-card" style="padding: 1rem 0.75rem; text-align: center">
+        <div class="label-caps" style="font-size: 10px; margin-bottom: 0.3rem">Средний</div>
+        <div class="num-medium" style="font-size: 17px" id="analAvg">0 ₽</div>
       </div>
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 text-center">
-        <p class="text-xs text-gray-500">Транзакций</p>
-        <p id="analCount" class="text-lg font-bold text-white">0</p>
+      <div class="paper-card" style="padding: 1rem 0.75rem; text-align: center">
+        <div class="label-caps" style="font-size: 10px; margin-bottom: 0.3rem">Записей</div>
+        <div class="num-medium" style="font-size: 17px" id="analCount">0</div>
       </div>
     </div>
-    <!-- Bar chart -->
-    <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-      <p class="text-sm font-semibold text-gray-300 mb-3">Доходы vs Расходы</p>
+    <div class="paper-card" style="padding: 1.25rem">
+      <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem">Доходы vs Расходы</p>
       <div class="h-56"><canvas id="barChart"></canvas></div>
     </div>
-    <!-- Two doughnuts -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-        <p class="text-sm font-semibold text-gray-300 mb-3">Структура расходов</p>
+      <div class="paper-card" style="padding: 1.25rem">
+        <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem">Расходы</p>
         <div class="h-48"><canvas id="analDoughnutExpense"></canvas></div>
       </div>
-      <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-        <p class="text-sm font-semibold text-gray-300 mb-3">Структура доходов</p>
+      <div class="paper-card" style="padding: 1.25rem">
+        <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem">Доходы</p>
         <div class="h-48"><canvas id="analDoughnutIncome"></canvas></div>
       </div>
     </div>
-    <!-- Top-5 categories -->
-    <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50">
-      <p class="text-sm font-semibold text-gray-300 mb-3">Топ-5 категорий расходов</p>
+    <div class="paper-card" style="padding: 1.25rem">
+      <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem">Топ-5 расходов</p>
       <div id="top5List" class="space-y-2"></div>
     </div>
   </section>
@@ -398,7 +608,7 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   <!-- BUDGETS -->
   <section id="budgets" class="screen space-y-4">
     <div id="budgetList" class="space-y-3"></div>
-    <button onclick="showAddBudget()" class="w-full py-3 rounded-xl border border-dashed border-gray-600 text-gray-500 text-sm hover:border-gray-400 hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+    <button onclick="showAddBudget()" style="width: 100%; padding: 0.95rem 1rem; border-radius: 12px; border: 1px dashed rgba(45,74,62,0.30); color: var(--forest); font-size: 14px; font-weight: 500; background: transparent; cursor: pointer">
       + Добавить бюджет
     </button>
   </section>
@@ -406,117 +616,103 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
 </main>
 
 <!-- ==================== ADD TRANSACTION MODAL ==================== -->
-<div id="addModal" class="modal-overlay">
-  <div class="modal w-full sm:max-w-md bg-bg-card border-t sm:border border-gray-700 rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-    <div class="sticky top-0 bg-bg-card px-5 py-4 border-b border-gray-700/50 flex items-center justify-between rounded-t-2xl">
-      <h2 class="text-lg font-bold text-white">Добавить запись</h2>
-      <button onclick="closeModal('addModal')" class="text-gray-400 hover:text-white text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-green-accent/50 rounded">&times;</button>
+<div id="addModal" class="modal-overlay" onclick="closeModal('addModal')">
+  <div class="modal w-full sm:max-w-md max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="sticky top-0" style="background: var(--paper-card); padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--paper-line); display: flex; align-items: center; justify-content: space-between; border-radius: 18px 18px 0 0">
+      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)">Новая запись</h2>
+      <button onclick="closeModal('addModal')" style="background: transparent; border: none; font-family: 'Fraunces', serif; font-size: 28px; color: var(--ink-mute); cursor: pointer; padding: 0 0.5rem; line-height: 1">&times;</button>
     </div>
-    <div class="p-5 space-y-4">
-      <!-- Type toggle -->
-      <div class="flex bg-bg rounded-xl p-1">
-        <button id="typeIncome" onclick="setType('income')" class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors bg-green-soft text-green-accent focus:outline-none focus:ring-2 focus:ring-green-accent/50">Доход</button>
-        <button id="typeExpense" onclick="setType('expense')" class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50">Расход</button>
+    <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem">
+      <div style="display: flex; gap: 6px; background: var(--paper); padding: 4px; border-radius: 999px; border: 1px solid var(--paper-line)">
+        <button id="typeIncome" onclick="setType('income')" style="flex: 1; padding: 0.65rem; border: none; border-radius: 999px; font-size: 14px; font-weight: 500; background: transparent; color: var(--ink-soft); cursor: pointer; transition: all 0.18s">Доход</button>
+        <button id="typeExpense" onclick="setType('expense')" style="flex: 1; padding: 0.65rem; border: none; border-radius: 999px; font-size: 14px; font-weight: 500; background: transparent; color: var(--ink-soft); cursor: pointer; transition: all 0.18s">Расход</button>
       </div>
-      <!-- Amount -->
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Сумма</label>
-        <input id="addAmount" type="number" min="0.01" step="0.01" placeholder="0,00" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-lg text-white font-semibold focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Сумма</label>
+        <input id="addAmount" type="number" min="0.01" step="0.01" placeholder="0,00" class="field field-amount" autocomplete="off">
       </div>
-      <!-- Date -->
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Дата</label>
-        <input id="addDate" type="date" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50">
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Дата</label>
+        <input id="addDate" type="date" class="field">
       </div>
-      <!-- Category -->
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Категория</label>
-        <select id="addCategory" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50"></select>
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Категория</label>
+        <select id="addCategory" class="field"></select>
       </div>
-      <!-- Comment -->
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Комментарий</label>
-        <input id="addComment" type="text" placeholder="Необязательно" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off" maxlength="200">
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Комментарий</label>
+        <input id="addComment" type="text" placeholder="Необязательно" class="field" autocomplete="off" maxlength="200">
       </div>
-      <!-- Save button -->
-      <button onclick="saveTransaction()" class="w-full py-3 rounded-xl bg-green-accent text-white font-semibold text-base hover:bg-emerald-500 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-green-accent/50 focus:ring-offset-2 focus:ring-offset-bg-card">
-        Сохранить
-      </button>
+      <button onclick="saveTransaction()" class="btn-primary" style="margin-top: 0.5rem">Сохранить</button>
     </div>
   </div>
 </div>
 
 <!-- ==================== ADD BUDGET MODAL ==================== -->
-<div id="budgetModal" class="modal-overlay">
-  <div class="modal w-full sm:max-w-md bg-bg-card border-t sm:border border-gray-700 rounded-t-2xl sm:rounded-2xl" onclick="event.stopPropagation()">
-    <div class="sticky top-0 bg-bg-card px-5 py-4 border-b border-gray-700/50 flex items-center justify-between rounded-t-2xl">
-      <h2 class="text-lg font-bold text-white">Добавить бюджет</h2>
-      <button onclick="closeModal('budgetModal')" class="text-gray-400 hover:text-white text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-green-accent/50 rounded">&times;</button>
+<div id="budgetModal" class="modal-overlay" onclick="closeModal('budgetModal')">
+  <div class="modal w-full sm:max-w-md" onclick="event.stopPropagation()">
+    <div class="sticky top-0" style="background: var(--paper-card); padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--paper-line); display: flex; align-items: center; justify-content: space-between; border-radius: 18px 18px 0 0">
+      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)">Новый бюджет</h2>
+      <button onclick="closeModal('budgetModal')" style="background: transparent; border: none; font-family: 'Fraunces', serif; font-size: 28px; color: var(--ink-mute); cursor: pointer; padding: 0 0.5rem; line-height: 1">&times;</button>
     </div>
-    <div class="p-5 space-y-4">
+    <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem">
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Категория</label>
-        <select id="budgetCategory" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50"></select>
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Категория</label>
+        <select id="budgetCategory" class="field"></select>
       </div>
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Лимит на месяц</label>
-        <input id="budgetLimit" type="number" min="1" step="1" placeholder="10000" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-lg text-white font-semibold focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Лимит на месяц</label>
+        <input id="budgetLimit" type="number" min="1" step="1" placeholder="10 000" class="field field-amount" autocomplete="off">
       </div>
-      <button onclick="saveBudget()" class="w-full py-3 rounded-xl bg-green-accent text-white font-semibold text-base hover:bg-emerald-500 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-green-accent/50 focus:ring-offset-2 focus:ring-offset-bg-card">
-        Сохранить
-      </button>
+      <button onclick="saveBudget()" class="btn-primary" style="margin-top: 0.5rem">Сохранить</button>
     </div>
   </div>
 </div>
 
 <!-- ==================== DELETE CONFIRMATION MODAL ==================== -->
-<div id="deleteModal" class="modal-overlay">
-  <div class="modal w-full sm:max-w-sm bg-bg-card border-t sm:border border-gray-700 rounded-t-2xl sm:rounded-2xl p-6 text-center" onclick="event.stopPropagation()">
-    <p class="text-lg font-semibold text-white mb-2">Удалить запись?</p>
-    <p class="text-sm text-gray-400 mb-6">Это действие нельзя отменить.</p>
-    <div class="flex gap-3">
-      <button onclick="closeModal('deleteModal')" class="flex-1 py-2.5 rounded-xl bg-bg-hover text-gray-300 font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-green-accent/50">Отмена</button>
-      <button id="confirmDeleteBtn" class="flex-1 py-2.5 rounded-xl bg-red-soft text-red-accent font-medium hover:bg-red-900/50 focus:outline-none focus:ring-2 focus:ring-red-accent/50">Удалить</button>
+<div id="deleteModal" class="modal-overlay" onclick="closeModal('deleteModal')">
+  <div class="modal w-full sm:max-w-sm" style="padding: 2rem 1.75rem; text-align: center" onclick="event.stopPropagation()">
+    <h2 class="head-serif" style="font-size: 24px; color: var(--ink); margin-bottom: 0.5rem">Удалить запись?</h2>
+    <p style="font-size: 14px; color: var(--ink-soft); margin-bottom: 1.75rem; font-family: 'Fraunces', serif; font-style: italic">Действие нельзя отменить.</p>
+    <div style="display: flex; gap: 0.75rem">
+      <button onclick="closeModal('deleteModal')" class="btn-secondary">Отмена</button>
+      <button id="confirmDeleteBtn" class="btn-secondary btn-danger">Удалить</button>
     </div>
   </div>
 </div>
 
 <!-- ==================== ADD CATEGORY MODAL ==================== -->
-<div id="catModal" class="modal-overlay">
-  <div class="modal w-full sm:max-w-md bg-bg-card border-t sm:border border-gray-700 rounded-t-2xl sm:rounded-2xl" onclick="event.stopPropagation()">
-    <div class="sticky top-0 bg-bg-card px-5 py-4 border-b border-gray-700/50 flex items-center justify-between rounded-t-2xl">
-      <h2 class="text-lg font-bold text-white" id="catModalTitle">Добавить категорию</h2>
-      <button onclick="closeModal('catModal')" class="text-gray-400 hover:text-white text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-green-accent/50 rounded">&times;</button>
+<div id="catModal" class="modal-overlay" onclick="closeModal('catModal')">
+  <div class="modal w-full sm:max-w-md" onclick="event.stopPropagation()">
+    <div class="sticky top-0" style="background: var(--paper-card); padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--paper-line); display: flex; align-items: center; justify-content: space-between; border-radius: 18px 18px 0 0">
+      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)" id="catModalTitle">Новая категория</h2>
+      <button onclick="closeModal('catModal')" style="background: transparent; border: none; font-family: 'Fraunces', serif; font-size: 28px; color: var(--ink-mute); cursor: pointer; padding: 0 0.5rem; line-height: 1">&times;</button>
     </div>
-    <div class="p-5 space-y-4">
+    <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem">
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Название</label>
-        <input id="catNameInput" type="text" placeholder="Например: Питомец" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off" maxlength="30">
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Название</label>
+        <input id="catNameInput" type="text" placeholder="Например: Питомец" class="field" autocomplete="off" maxlength="30">
       </div>
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Emoji</label>
-        <input id="catEmojiInput" type="text" placeholder="🐱" maxlength="4" class="w-full bg-bg border border-gray-600 rounded-xl px-4 py-3 text-2xl text-center text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50" autocomplete="off">
+        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Emoji</label>
+        <input id="catEmojiInput" type="text" placeholder="🐱" maxlength="4" class="field" style="font-size: 28px; text-align: center; padding: 0.7rem" autocomplete="off">
       </div>
-      <button onclick="saveCustomCategory()" class="w-full py-3 rounded-xl bg-green-accent text-white font-semibold text-base hover:bg-emerald-500 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-green-accent/50 focus:ring-offset-2 focus:ring-offset-bg-card">
-        Добавить
-      </button>
+      <button onclick="saveCustomCategory()" class="btn-primary" style="margin-top: 0.5rem">Добавить</button>
     </div>
   </div>
 </div>
 
 <!-- ==================== FAB ==================== -->
-<button onclick="openAddModal()" class="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full bg-green-accent text-white text-3xl shadow-lg hover:bg-emerald-500 active:scale-95 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-green-accent/50 focus:ring-offset-2 focus:ring-offset-bg" aria-label="Добавить запись">
-  +
-</button>
+<button onclick="openAddModal()" class="fab" aria-label="Добавить запись">+</button>
 
 <!-- ==================== BOTTOM NAV ==================== -->
-<nav class="fixed bottom-0 left-0 right-0 z-50 bg-bg-card border-t border-gray-800 safe-area-bottom">
+<nav class="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom" style="background: rgba(245, 241, 232, 0.85); backdrop-filter: blur(16px); border-top: 1px solid var(--paper-line)">
   <div class="max-w-5xl mx-auto flex">
-    <button data-screen="dashboard" class="tab-btn active flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">📊</span>Главная</button>
-    <button data-screen="history" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">📋</span>История</button>
-    <button data-screen="analytics" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">📈</span>Аналитика</button>
-    <button data-screen="budgets" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">🎯</span>Бюджеты</button>
-    <button data-screen="settings" class="tab-btn flex-1 flex flex-col items-center py-2 text-xs text-gray-500 border-t-2 border-transparent focus:outline-none"><span class="text-lg">⚙️</span>Настр.</button>
+    <button data-screen="dashboard" class="tab-btn active flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">⌂</span><span class="tab-label">Главная</span><span class="tab-dot"></span></button>
+    <button data-screen="history" class="tab-btn flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">≡</span><span class="tab-label">История</span><span class="tab-dot"></span></button>
+    <button data-screen="analytics" class="tab-btn flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">∿</span><span class="tab-label">Аналитика</span><span class="tab-dot"></span></button>
+    <button data-screen="budgets" class="tab-btn flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">○</span><span class="tab-label">Бюджет</span><span class="tab-dot"></span></button>
+    <button data-screen="settings" class="tab-btn flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">⚙</span><span class="tab-label">Ещё</span><span class="tab-dot"></span></button>
   </div>
 </nav>
 
@@ -751,6 +947,7 @@ function subDays(d, n) { const r = new Date(d); r.setDate(r.getDate() - n); retu
 
 // ==================== HELPERS ====================
 function formatCurrency(n) { return Math.abs(n).toLocaleString('ru-RU') + ' ₽'; }
+function formatNumber(n) { return Math.abs(n).toLocaleString('ru-RU').replace(/\s/g, ' '); }
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 }
@@ -792,12 +989,16 @@ function openAddModal() {
 
 function setType(type) {
   currentType = type;
+  const incomeBtn = document.getElementById('typeIncome');
+  const expenseBtn = document.getElementById('typeExpense');
+  const active = 'background: var(--paper-card); color: var(--ink); box-shadow: var(--shadow-sm); font-weight: 600;';
+  const inactive = 'background: transparent; color: var(--ink-mute); font-weight: 500;';
   if (type === 'income') {
-    document.getElementById('typeIncome').className = 'flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors bg-green-soft text-green-accent focus:outline-none focus:ring-2 focus:ring-green-accent/50';
-    document.getElementById('typeExpense').className = 'flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50';
+    incomeBtn.style.cssText = 'flex:1;padding:0.65rem;border:none;border-radius:999px;font-size:14px;cursor:pointer;transition:all 0.18s;' + active;
+    expenseBtn.style.cssText = 'flex:1;padding:0.65rem;border:none;border-radius:999px;font-size:14px;cursor:pointer;transition:all 0.18s;' + inactive;
   } else {
-    document.getElementById('typeExpense').className = 'flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors bg-red-soft text-red-accent focus:outline-none focus:ring-2 focus:ring-green-accent/50';
-    document.getElementById('typeIncome').className = 'flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent/50';
+    expenseBtn.style.cssText = 'flex:1;padding:0.65rem;border:none;border-radius:999px;font-size:14px;cursor:pointer;transition:all 0.18s;' + active;
+    incomeBtn.style.cssText = 'flex:1;padding:0.65rem;border:none;border-radius:999px;font-size:14px;cursor:pointer;transition:all 0.18s;' + inactive;
   }
   populateCategorySelect();
 }
@@ -894,7 +1095,7 @@ function renderDashboard() {
   const weekTx = transactions.filter(t => isThisWeek(t.createdAt) && t.type === 'expense');
   const weekSum = weekTx.reduce((s, t) => s + t.amount, 0);
 
-  document.getElementById('dashBalance').textContent = (balance >= 0 ? '' : '−') + formatCurrency(balance);
+  document.getElementById('dashBalance').textContent = (balance >= 0 ? '' : '−') + formatNumber(balance);
   document.getElementById('dashBalanceTrend').textContent = monthBalance >= 0 ? `↑ +${formatCurrency(monthBalance)} в этом месяце` : `↓ −${formatCurrency(Math.abs(monthBalance))} в этом месяце`;
   document.getElementById('dashIncome').textContent = formatCurrency(monthIncome);
   document.getElementById('dashExpense').textContent = formatCurrency(monthExpense);
@@ -942,21 +1143,23 @@ function renderDoughnutChart(allTx) {
   const entries = Object.entries(expenseByCat).sort((a, b) => b[1] - a[1]);
   const labels = entries.map(([cat]) => catName(cat));
   const data = entries.map(([, sum]) => sum);
-  const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#6b7280','#84cc16','#f43f5e','#06b6d4','#a855f7','#e11d48','#ca8a04','#2563eb'];
+  // Warm-minimal palette: terracotta family for expenses (gradient depth by share)
+  const terraFamily = ['#B85C3E','#A04B30','#8E3D26','#C97B5C','#7A331E','#D89780','#E5B3A0','#6B2C1A','#C26647','#93412C','#A85544','#B96A4E','#8C3520','#D88567','#5F2616','#A04535'];
+  const colors = terraFamily;
 
   doughnutChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels,
-      datasets: [{ data, backgroundColor: colors.slice(0, data.length), borderColor: '#1e293b', borderWidth: 3, hoverBorderColor: '#334155' }]
+      datasets: [{ data, backgroundColor: colors.slice(0, data.length), borderColor: '#F5F1E8', borderWidth: 3, hoverBorderColor: '#E8E0CE', hoverOffset: 6 }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: '60%',
+      cutout: '62%',
       plugins: {
-        legend: { display: true, position: 'bottom', labels: { color: '#9ca3af', padding: 12, font: { size: 11, family: 'Inter' }, usePointStyle: true, pointStyleWidth: 8 } },
-        tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+        legend: { display: true, position: 'bottom', labels: { color: '#6B6259', padding: 12, font: { size: 11, family: 'Inter' }, usePointStyle: true, pointStyleWidth: 8, boxWidth: 8, boxHeight: 8 } },
+        tooltip: { backgroundColor: '#2A2520', titleColor: '#F5F1E8', bodyColor: '#EFE9DB', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
       }
     }
   });
@@ -1003,13 +1206,15 @@ function renderLineChart() {
       datasets: [{
         label: 'Баланс',
         data: balances,
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16,185,129,0.08)',
+        borderColor: '#2D4A3E',
+        backgroundColor: 'rgba(45,74,62,0.08)',
         fill: true,
         tension: 0.4,
-        pointRadius: 1,
+        pointRadius: 0,
         pointHoverRadius: 5,
-        pointHoverBackgroundColor: '#10b981',
+        pointHoverBackgroundColor: '#2D4A3E',
+        pointHoverBorderColor: '#F5F1E8',
+        pointHoverBorderWidth: 2,
         borderWidth: 2,
       }]
     },
@@ -1018,11 +1223,11 @@ function renderLineChart() {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${formatCurrency(ctx.raw)}` } }
+        tooltip: { backgroundColor: '#2A2520', titleColor: '#F5F1E8', bodyColor: '#EFE9DB', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${formatCurrency(ctx.raw)}` } }
       },
       scales: {
-        x: { grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#64748b', maxTicksLimit: 7, font: { size: 10 } } },
-        y: { grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => Math.round(v/1000) + 'k' } }
+        x: { grid: { display: false }, border: { color: '#E0D7C2' }, ticks: { color: '#9C9285', maxTicksLimit: 7, font: { size: 10, family: 'Inter' } } },
+        y: { grid: { color: 'rgba(224,215,194,0.5)' }, border: { display: false }, ticks: { color: '#9C9285', font: { size: 10, family: 'Inter' }, callback: v => Math.round(v/1000) + 'k' } }
       },
       interaction: { intersect: false, mode: 'index' }
     }
@@ -1045,20 +1250,20 @@ function renderHistory() {
 
   const container = document.getElementById('historyList');
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="text-center py-12 text-gray-500">Нет записей</div>';
+    container.innerHTML = '<div style="text-align: center; padding: 3rem 1rem; color: var(--ink-mute); font-family: Fraunces, serif; font-style: italic">Нет записей</div>';
     return;
   }
   container.innerHTML = filtered.map(t => `
-    <div class="bg-bg-card rounded-xl p-4 border border-gray-700/50 flex items-center gap-3 group hover:bg-bg-hover/50 transition-colors">
-      <div class="text-2xl">${escapeHtml(catEmoji(t.category))}</div>
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-white truncate">${escapeHtml(catName(t.category))}</p>
-        <p class="text-xs text-gray-500 truncate">${escapeHtml(t.comment || '—')}</p>
-        <p class="text-xs text-gray-600">${formatDate(t.createdAt)}</p>
+    <div class="paper-card" style="padding: 0.9rem 1.1rem; display: flex; align-items: center; gap: 0.85rem; transition: transform 0.15s, box-shadow 0.15s" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='none';this.style.boxShadow='var(--shadow-sm)'">
+      <div style="font-size: 22px; width: 36px; text-align: center; flex-shrink: 0">${escapeHtml(catEmoji(t.category))}</div>
+      <div style="flex: 1; min-width: 0">
+        <p style="font-size: 14px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Fraunces', serif; font-variation-settings: 'wght' 500, 'opsz' 36">${escapeHtml(catName(t.category))}</p>
+        <p style="font-size: 12px; color: var(--ink-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(t.comment || '—')}</p>
+        <p style="font-size: 11px; color: var(--ink-mute); font-family: 'Fraunces', serif; font-style: italic; margin-top: 2px">${formatDate(t.createdAt)}</p>
       </div>
-      <div class="text-right">
-        <p class="text-base font-bold ${t.type === 'income' ? 'text-green-accent' : 'text-red-accent'}">${t.type === 'income' ? '+' : '−'}${formatCurrency(t.amount)}</p>
-        <button data-delete-transaction="${escapeHtml(t.id)}" class="text-xs text-gray-600 hover:text-red-accent mt-1 transition-colors focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">Удалить</button>
+      <div style="text-align: right; flex-shrink: 0">
+        <p class="num-medium" style="font-size: 16px; color: ${t.type === 'income' ? 'var(--forest)' : 'var(--terra)'}">${t.type === 'income' ? '+' : '−'}${formatCurrency(t.amount)}</p>
+        <button data-delete-transaction="${escapeHtml(t.id)}" style="font-size: 11px; color: var(--ink-mute); background: transparent; border: none; cursor: pointer; margin-top: 4px; padding: 2px 4px">Удалить</button>
       </div>
     </div>
   `).join('');
@@ -1190,20 +1395,20 @@ function renderBarChart(rangeTx, from, to) {
     data: {
       labels,
       datasets: [
-        { label: 'Доходы', data: incomeData, backgroundColor: '#10b981', borderRadius: 4, borderSkipped: false },
-        { label: 'Расходы', data: expenseData, backgroundColor: '#ef4444', borderRadius: 4, borderSkipped: false },
+        { label: 'Доходы', data: incomeData, backgroundColor: '#2D4A3E', borderRadius: 6, borderSkipped: false, maxBarThickness: 28 },
+        { label: 'Расходы', data: expenseData, backgroundColor: '#B85C3E', borderRadius: 6, borderSkipped: false, maxBarThickness: 28 },
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 16, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
-        tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` } }
+        legend: { position: 'bottom', labels: { color: '#6B6259', padding: 16, font: { size: 11, family: 'Inter' }, usePointStyle: true, pointStyle: 'circle' } },
+        tooltip: { backgroundColor: '#2A2520', titleColor: '#F5F1E8', bodyColor: '#EFE9DB', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` } }
       },
       scales: {
-        x: { stacked: false, grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 12 } },
-        y: { stacked: false, grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => Math.round(v/1000) + 'k' } }
+        x: { stacked: false, grid: { display: false }, border: { color: '#E0D7C2' }, ticks: { color: '#9C9285', font: { size: 10, family: 'Inter' }, maxTicksLimit: 12 } },
+        y: { stacked: false, grid: { color: 'rgba(224,215,194,0.5)' }, border: { display: false }, ticks: { color: '#9C9285', font: { size: 10, family: 'Inter' }, callback: v => Math.round(v/1000) + 'k' } }
       },
       interaction: { intersect: false, mode: 'index' }
     }
@@ -1221,18 +1426,18 @@ if (!ctx) return;
   rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
   console.log('Anal Expense doughnut:', { categories: entries.map(([id, sum]) => ({ id, sum, display: catName(id) })) });
-  const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#6b7280','#84cc16','#f43f5e','#06b6d4','#a855f7','#e11d48','#ca8a04','#2563eb'];
+  const colors = ['#B85C3E','#A04B30','#8E3D26','#C97B5C','#7A331E','#D89780','#E5B3A0','#6B2C1A','#C26647','#93412C','#A85544','#B96A4E','#8C3520','#D88567','#5F2616','#A04535'];
   analDoughnutExpenseInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: entries.map(([cat]) => catName(cat)),
-      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#1e293b', borderWidth: 2 }]
+      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#F5F1E8', borderWidth: 2, hoverOffset: 6 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      responsive: true, maintainAspectRatio: false, cutout: '64%',
       plugins: {
-        legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 8, font: { size: 10, family: 'Inter' }, usePointStyle: true } },
-        tooltip: { backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+        legend: { position: 'bottom', labels: { color: '#6B6259', padding: 8, font: { size: 10, family: 'Inter' }, usePointStyle: true } },
+        tooltip: { backgroundColor: '#2A2520', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleColor: '#F5F1E8', bodyColor: '#EFE9DB', titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
       }
     }
   });
@@ -1248,18 +1453,18 @@ if (!ctx) return;
   const byCat = {};
   rangeTx.filter(t => t.type === 'income').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const colors = ['#10b981','#22c55e','#34d399','#6ee7b7','#a7f3d0','#059669','#047857','#065f46','#047857','#14b8a6'];
+  const colors = ['#2D4A3E','#3D6B5A','#1F3A2F','#5A8870','#7DA88F','#173024','#4A7D6A','#92B8A5','#264A3D','#3F5F52'];
   analDoughnutIncomeInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: entries.map(([cat]) => catName(cat)),
-      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#1e293b', borderWidth: 2 }]
+      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#F5F1E8', borderWidth: 2, hoverOffset: 6 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      responsive: true, maintainAspectRatio: false, cutout: '64%',
       plugins: {
-        legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 8, font: { size: 10, family: 'Inter' }, usePointStyle: true } },
-        tooltip: { backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+        legend: { position: 'bottom', labels: { color: '#6B6259', padding: 8, font: { size: 10, family: 'Inter' }, usePointStyle: true } },
+        tooltip: { backgroundColor: '#2A2520', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleColor: '#F5F1E8', bodyColor: '#EFE9DB', titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
       }
     }
   });
@@ -1268,28 +1473,30 @@ if (!ctx) return;
 function renderTop5(rangeTx) {
   const byCat = {};
   rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
-  const sorted = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const max = sorted.length > 0 ? sorted[0][1] : 1;
   document.getElementById('top5List').innerHTML = sorted.map(([cat, sum]) => `
-    <div class="flex items-center gap-3">
-      <span class="text-lg w-8 text-center">${escapeHtml(catEmoji(cat))}</span>
-      <span class="flex-1 text-sm text-gray-300">${escapeHtml(catById(cat)?.name || cat)}</span>
-      <span class="text-sm font-medium text-red-accent">${formatCurrency(sum)}</span>
-      <div class="w-24 bg-bg rounded-full h-2 overflow-hidden"><div class="h-full bg-red-accent rounded-full progress-bar" style="width:${(sum/max*100).toFixed(0)}%"></div></div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0">
+      <span style="font-size: 18px; width: 28px; text-align: center">${escapeHtml(catEmoji(cat))}</span>
+      <span style="flex: 1; font-size: 14px; color: var(--ink)">${escapeHtml(catById(cat)?.name || cat)}</span>
+      <span class="num-medium" style="font-size: 14px; color: var(--terra)">${formatCurrency(sum)}</span>
+      <div style="width: 6rem; background: var(--paper-line); border-radius: 999px; height: 4px; overflow: hidden"><div style="height: 100%; background: var(--terra); border-radius: 999px; transition: width 0.5s ease; width:${(sum/max*100).toFixed(0)}%"></div></div>
     </div>
-  `).join('') || '<p class="text-gray-500 text-sm">Нет данных</p>';
+  `).join('') || '<p style="color: var(--ink-mute); font-size: 14px; font-style: italic">Нет данных</p>';
 }
 
 document.querySelectorAll('.period-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('bg-green-soft', 'text-green-accent', 'border-green-accent/30'));
-    btn.classList.add('bg-green-soft', 'text-green-accent', 'border-green-accent/30');
+    document.querySelectorAll('.period-btn').forEach(b => {
+      b.style.background = 'var(--paper-card)';
+      b.style.color = 'var(--ink-soft)';
+      b.style.borderColor = 'var(--paper-line)';
+    });
+    btn.style.background = 'var(--forest)';
+    btn.style.color = 'var(--paper)';
+    btn.style.borderColor = 'var(--forest)';
     currentPeriod = btn.dataset.period;
     renderAnalytics();
   });
 });
-document.getElementById('analDateFrom').addEventListener('change', renderAnalytics);
-document.getElementById('analDateTo').addEventListener('change', renderAnalytics);
 
 // ==================== BUDGETS ====================
 function renderBudgets() {
@@ -1303,7 +1510,7 @@ function renderBudgets() {
 
   const container = document.getElementById('budgetList');
   if (budgets.length === 0) {
-    container.innerHTML = '<div class="text-center py-12 text-gray-500">Бюджеты не установлены</div>';
+    container.innerHTML = '<div style="text-align: center; padding: 3rem 1rem; color: var(--ink-mute); font-family: Fraunces, serif; font-style: italic">Бюджеты не установлены</div>';
     return;
   }
   container.innerHTML = budgets.map(b => {
@@ -1311,19 +1518,19 @@ function renderBudgets() {
     const pct = Math.min(100, Math.round(spent / b.limit * 100));
     const over = spent > b.limit;
     return `
-      <div class="bg-bg-card rounded-xl p-4 border ${over ? 'border-red-500/50' : 'border-gray-700/50'}">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-white">${escapeHtml(catName(b.category))}</span>
-          <button data-delete-budget="${escapeHtml(b.category)}" class="text-xs text-gray-600 hover:text-red-accent focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>
+      <div class="paper-card" style="padding: 1.1rem 1.25rem; border-color: ${over ? 'rgba(184,92,62,0.45)' : 'var(--paper-line)'}">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem">
+          <span style="font-size: 14px; font-weight: 600; color: var(--ink); font-family: 'Fraunces', serif; font-variation-settings: 'wght' 500, 'opsz' 36">${escapeHtml(catName(b.category))}</span>
+          <button data-delete-budget="${escapeHtml(b.category)}" style="background: transparent; border: none; color: var(--ink-mute); font-size: 16px; cursor: pointer; padding: 0 4px">✕</button>
         </div>
-        <div class="flex justify-between text-xs text-gray-500 mb-1.5">
-          <span>${formatCurrency(spent)}</span>
-          <span>${formatCurrency(b.limit)}</span>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-soft); margin-bottom: 0.5rem; font-family: 'Fraunces', serif">
+          <span style="font-variation-settings: 'wght' 500, 'opsz' 36">${formatCurrency(spent)}</span>
+          <span style="font-style: italic">из ${formatCurrency(b.limit)}</span>
         </div>
-        <div class="w-full bg-bg rounded-full h-2.5 overflow-hidden">
-          <div class="h-full rounded-full progress-bar ${over ? 'bg-red-accent' : pct > 80 ? 'bg-yellow-500' : 'bg-green-accent'}" style="width:${pct}%"></div>
+        <div style="width: 100%; background: var(--paper-line); border-radius: 999px; height: 5px; overflow: hidden">
+          <div style="height: 100%; border-radius: 999px; transition: width 0.5s ease; background: ${over ? 'var(--terra)' : pct > 80 ? '#C8A951' : 'var(--forest)'}; width:${pct}%"></div>
         </div>
-        <p class="text-xs mt-1.5 ${over ? 'text-red-accent font-medium' : 'text-gray-500'}">${over ? '⚠️ Превышен!' : pct + '% использовано'}</p>
+        <p style="font-size: 12px; margin-top: 0.5rem; color: ${over ? 'var(--terra)' : 'var(--ink-mute)'}; ${over ? 'font-weight: 600' : ''}">${over ? '⚠ Превышен на ' + formatCurrency(spent - b.limit) : pct + '% использовано'}</p>
       </div>
     `;
   }).join('');
@@ -1372,29 +1579,23 @@ document.getElementById('budgetList').addEventListener('click', event => {
 function renderSettings() {
   const incList = document.getElementById('settingsIncomeList');
   const expList = document.getElementById('settingsExpenseList');
-  incList.innerHTML = CATEGORIES.income.map(c => `
-    <div class="flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-gray-700/50">
-      <span class="text-xl">${escapeHtml(c.emoji)}</span>
-      <span class="flex-1 text-sm text-gray-200">${escapeHtml(c.name)}</span>
-      <span class="text-[10px] text-gray-600">${c.id.startsWith('custom_') ? 'свой' : 'систем.'}</span>
-      ${c.id.startsWith('custom_') ? `<button data-delete-category="${escapeHtml(c.id)}" class="text-gray-600 hover:text-red-accent text-lg leading-none focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>` : ''}
+  const row = (c) => `
+    <div style="display: flex; align-items: center; gap: 0.85rem; padding: 0.7rem 0.9rem; background: var(--paper-card); border: 1px solid var(--paper-line); border-radius: 12px; transition: border-color 0.18s" onmouseover="this.style.borderColor='var(--ink-mute)'" onmouseout="this.style.borderColor='var(--paper-line)'">
+      <span style="font-size: 18px; width: 26px; text-align: center; flex-shrink: 0">${escapeHtml(c.emoji)}</span>
+      <span style="flex: 1; font-size: 14px; color: var(--ink); font-family: 'Fraunces', serif; font-variation-settings: 'wght' 500, 'opsz' 36">${escapeHtml(c.name)}</span>
+      <span style="font-size: 10px; color: var(--ink-mute); letter-spacing: 0.04em; text-transform: uppercase">${c.id.startsWith('custom_') ? 'своя' : 'сист.'}</span>
+      ${c.id.startsWith('custom_') ? `<button data-delete-category="${escapeHtml(c.id)}" style="background: transparent; border: none; color: var(--ink-mute); font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1">✕</button>` : ''}
     </div>
-  `).join('');
-  expList.innerHTML = CATEGORIES.expense.map(c => `
-    <div class="flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-gray-700/50">
-      <span class="text-xl">${escapeHtml(c.emoji)}</span>
-      <span class="flex-1 text-sm text-gray-200">${escapeHtml(c.name)}</span>
-      <span class="text-[10px] text-gray-600">${c.id.startsWith('custom_') ? 'свой' : 'систем.'}</span>
-      ${c.id.startsWith('custom_') ? `<button data-delete-category="${escapeHtml(c.id)}" class="text-gray-600 hover:text-red-accent text-lg leading-none focus:outline-none focus:ring-2 focus:ring-red-accent/50 rounded">✕</button>` : ''}
-    </div>
-  `).join('');
+  `;
+  incList.innerHTML = CATEGORIES.income.map(row).join('');
+  expList.innerHTML = CATEGORIES.expense.map(row).join('');
   renderDiagnostics();
 }
 
 let pendingCatType = 'income';
 function showAddCatModal(type) {
   pendingCatType = type;
-  document.getElementById('catModalTitle').textContent = type === 'income' ? 'Добавить доход' : 'Добавить расход';
+  document.getElementById('catModalTitle').textContent = type === 'income' ? 'Новая категория дохода' : 'Новая категория расхода';
   document.getElementById('catNameInput').value = '';
   document.getElementById('catEmojiInput').value = '';
   openModal('catModal');
@@ -1633,7 +1834,7 @@ function autoPushGist() {
       }
     });
 }
-const BUILD_VERSION = '2026-08-17-r5';
+const BUILD_VERSION = '2026-08-17-r6';
 function diagSnapshot() {
   const localCats = readStoredJson(STORAGE_KEYS.categories);
   const incCount = Array.isArray(localCats && localCats.income) ? localCats.income.length : 0;
@@ -1836,8 +2037,8 @@ diagLog('beforeinstallprompt: ' + ('BeforeInstallPromptEvent' in window ? 'suppo
 // ==================== PWA Install Button ====================
 let deferredPrompt = null;
 const installBtn = document.createElement('button');
-installBtn.textContent = '📱 Установить';
-installBtn.style.cssText = 'position:fixed;top:12px;right:12px;z-index:800;background:#10b981;color:white;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;font-family:Inter,sans-serif;cursor:pointer;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.3)';
+installBtn.textContent = 'Установить';
+installBtn.style.cssText = 'position:fixed;top:14px;right:14px;z-index:800;background:var(--forest);color:var(--paper);border:1px solid var(--forest);border-radius:999px;padding:8px 16px;font-size:12px;font-weight:600;font-family:Inter,sans-serif;letter-spacing:0.02em;cursor:pointer;display:none;box-shadow:0 4px 14px rgba(45,74,62,0.25)';
 installBtn.onclick = function() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
@@ -1897,8 +2098,8 @@ restoreCustomCategoriesFromCloud().then(restored => {
 });
 
 var periodBtn = document.querySelector('[data-period="all"]');
-if (periodBtn) periodBtn.classList.add('bg-green-soft', 'text-green-accent', 'border-green-accent/30');
-console.log('%c[Finance Tracker] build: ' + BUILD_VERSION, 'color:#10b981;font-weight:bold');
+if (periodBtn) { periodBtn.style.background = 'var(--forest)'; periodBtn.style.color = 'var(--paper)'; periodBtn.style.borderColor = 'var(--forest)'; }
+console.log('%c[Finance Tracker] build: ' + BUILD_VERSION, 'color:#2D4A3E;font-weight:bold;font-family:Georgia,serif');
 renderDiagnostics();
 </script>
 </body>
