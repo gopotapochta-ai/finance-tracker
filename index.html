@@ -3,157 +3,151 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#F5F1E8">
+<meta name="theme-color" content="#0A0A0A">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Финансы">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
-<title>Финансы — Трекер</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📟</text></svg>">
+<title>FINANCE_TRACKER // 1987</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Major+Mono+Display&family=VT323&display=swap" rel="stylesheet">
 <script>
 if (typeof tailwind !== 'undefined') tailwind.config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        serif: ['Fraunces', 'Georgia', 'serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'Menlo', 'monospace'],
+        display: ['"Major Mono Display"', '"JetBrains Mono"', 'monospace'],
+        crt: ['VT323', '"JetBrains Mono"', 'monospace'],
       },
       colors: {
-        paper: { DEFAULT: '#F5F1E8', card: '#EFE9DB', elev: '#E8E0CE', line: '#E0D7C2' },
-        ink: { DEFAULT: '#2A2520', soft: '#6B6259', mute: '#9C9285' },
-        forest: { DEFAULT: '#2D4A3E', soft: '#3D6B5A', pale: '#7DA88F' },
-        terra: { DEFAULT: '#B85C3E', soft: '#C97B5C', pale: '#E5B3A0' },
-        income: '#2D4A3E',
-        expense: '#B85C3E',
+        term: { DEFAULT: '#0A0A0A', grid: '#1A1A1A', line: '#2A2A2A' },
+        amber: { DEFAULT: '#FFB000', dim: '#B37700', bright: '#FFD24D' },
+        mint: { DEFAULT: '#00FFD1' },
+        crimson: { DEFAULT: '#FF3030' },
+        income: '#00FFD1',
+        expense: '#FF3030',
       }
     }
   }
 };
 </script>
 <style>
-  /* ========== DESIGN TOKENS ========== */
+  /* ========== TERMINAL 1987 DESIGN TOKENS ========== */
   :root {
-    --paper: #F5F1E8;
-    --paper-card: #EFE9DB;
-    --paper-elev: #E8E0CE;
-    --paper-line: #E0D7C2;
-    --ink: #2A2520;
-    --ink-soft: #6B6259;
-    --ink-mute: #9C9285;
-    --forest: #2D4A3E;
-    --forest-soft: #3D6B5A;
-    --terra: #B85C3E;
-    --terra-soft: #C97B5C;
-    --shadow-sm: 0 1px 2px rgba(42, 37, 32, 0.05);
-    --shadow-md: 0 2px 12px rgba(42, 37, 32, 0.06);
-    --shadow-lg: 0 12px 32px rgba(42, 37, 32, 0.10);
+    --term: #0A0A0A;
+    --term-2: #141414;
+    --term-3: #1F1F1F;
+    --term-4: #2A2A2A;
+    --amber: #FFB000;
+    --amber-dim: #B37700;
+    --amber-bright: #FFD24D;
+    --mint: #00FFD1;
+    --crimson: #FF3030;
+    --line: #FFB000;
   }
   /* ========== BASE ========== */
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-size: 15px;
-    line-height: 1.55;
-    color: var(--ink);
-    background: var(--paper);
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--amber);
+    background: var(--term);
     min-height: 100vh;
     margin: 0;
     -webkit-tap-highlight-color: transparent;
-    /* Subtle paper grain via tiny SVG noise — keeps the design tactile without an image */
-    background-image:
-      radial-gradient(at 20% 10%, rgba(184, 92, 62, 0.04), transparent 50%),
-      radial-gradient(at 80% 90%, rgba(45, 74, 62, 0.04), transparent 50%),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.14  0 0 0 0 0.12  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-    background-attachment: fixed;
+    font-feature-settings: "calt" 0, "liga" 0;
+    overflow-x: hidden;
   }
-  .font-serif { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; }
-  /* ========== TYPOGRAPHY UTILITIES ========== */
-  .num-display {
-    font-family: 'Fraunces', Georgia, serif;
-    font-optical-sizing: auto;
-    font-variation-settings: "wght" 500, "opsz" 144, "SOFT" 30;
-    font-feature-settings: "tnum" 1, "lnum" 1;
-    letter-spacing: -0.02em;
+  /* CRT scanlines + vignette */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 2px,
+      rgba(0, 0, 0, 0.22) 2px,
+      rgba(0, 0, 0, 0.22) 3px
+    );
+    pointer-events: none;
+    z-index: 9998;
+    mix-blend-mode: multiply;
   }
-  .num-medium {
-    font-family: 'Fraunces', Georgia, serif;
-    font-optical-sizing: auto;
-    font-variation-settings: "wght" 600, "opsz" 36, "SOFT" 20;
-    font-feature-settings: "tnum" 1, "lnum" 1;
-    letter-spacing: -0.01em;
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+    z-index: 9997;
   }
-  .head-serif {
-    font-family: 'Fraunces', Georgia, serif;
-    font-optical-sizing: auto;
-    font-variation-settings: "wght" 600, "opsz" 36, "SOFT" 20;
-    letter-spacing: -0.01em;
+  ::selection { background: var(--amber); color: var(--term); }
+  /* ========== TYPOGRAPHY ========== */
+  .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum" 1, "zero" 1; }
+  .display-num {
+    font-family: 'Major Mono Display', 'JetBrains Mono', monospace;
+    font-feature-settings: "tnum" 1, "zero" 1;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 4px rgba(255, 176, 0, 0.45), 0 0 12px rgba(255, 176, 0, 0.18);
   }
-  .label-caps {
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-  }
-  .num-tabular { font-feature-settings: "tnum" 1, "lnum" 1; }
-  /* ========== TAILWIND TOKEN ALIASES (so existing markup keeps working) ========== */
-  .bg-bg { background-color: var(--paper); }
-  .bg-bg-card { background-color: var(--paper-card); }
-  .bg-bg-hover { background-color: var(--paper-elev); }
-  .text-white { color: var(--ink); }
-  .text-gray-200 { color: var(--ink); }
-  .text-gray-300 { color: var(--ink-soft); }
-  .text-gray-400 { color: var(--ink-soft); }
-  .text-gray-500 { color: var(--ink-mute); }
-  .text-gray-600 { color: var(--ink-mute); }
-  .text-green-accent { color: var(--forest); }
-  .text-red-accent { color: var(--terra); }
-  .bg-green-accent { background-color: var(--forest); }
-  .bg-green-soft { background-color: rgba(45, 74, 62, 0.08); }
-  .bg-red-soft { background-color: rgba(184, 92, 62, 0.08); }
-  .bg-red-accent { background-color: var(--terra); }
-  .border-gray-600 { border-color: var(--paper-line); }
-  .border-gray-700 { border-color: var(--paper-line); }
-  .border-gray-700\/50 { border-color: rgba(224, 215, 194, 0.5); }
-  .border-gray-800 { border-color: var(--paper-line); }
-  .border-green-accent\/30 { border-color: rgba(45, 74, 62, 0.30); }
-  .border-red-500\/50 { border-color: rgba(184, 92, 62, 0.30); }
-  .hover\:bg-bg-hover:hover { background-color: var(--paper-elev); }
-  .hover\:bg-bg-hover\/50:hover { background-color: rgba(232, 224, 206, 0.5); }
-  .hover\:bg-emerald-500:hover { background-color: var(--forest-soft); }
-  .hover\:bg-green-900\/30:hover { background-color: rgba(45, 74, 62, 0.16); }
-  .hover\:bg-red-900\/50:hover { background-color: rgba(184, 92, 62, 0.16); }
-  .hover\:bg-gray-600:hover { background-color: var(--paper-elev); }
-  .hover\:text-gray-200:hover { color: var(--ink); }
-  .hover\:text-gray-300:hover { color: var(--ink); }
-  .hover\:text-white:hover { color: var(--ink); }
-  .hover\:text-red-accent:hover { color: var(--terra); }
-  .hover\:border-gray-400:hover { border-color: var(--ink-soft); }
-  .bg-bg\/95 { background-color: rgba(245, 241, 232, 0.92); }
-  .border-green-accent\/50 { border-color: rgba(45, 74, 62, 0.5); }
-  .border-red-accent\/50 { border-color: rgba(184, 92, 62, 0.5); }
-  .focus\:ring-green-accent\/50:focus { box-shadow: 0 0 0 2px rgba(45, 74, 62, 0.4); }
-  .focus\:ring-red-accent\/50:focus { box-shadow: 0 0 0 2px rgba(184, 92, 62, 0.4); }
-  .focus\:ring-offset-bg-card:focus { outline-color: var(--paper-card); }
-  .focus\:ring-offset-bg:focus { outline-color: var(--paper); }
-  /* ========== LAYOUT PRIMITIVES ========== */
-  .rounded-lg { border-radius: 0.5rem; }
-  .rounded-xl { border-radius: 0.75rem; }
-  .rounded-2xl { border-radius: 1rem; }
-  .rounded-full { border-radius: 9999px; }
-  .border-t-2 { border-top-width: 2px; }
-  .border-b { border-bottom-width: 1px; }
+  .crt { font-family: 'VT323', 'JetBrains Mono', monospace; }
+  .glow { text-shadow: 0 0 4px currentColor, 0 0 10px rgba(255, 176, 0, 0.25); }
+  .blink { animation: blink 1.05s steps(1) infinite; }
+  @keyframes blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+  /* ========== TAILWIND ALIASES ========== */
+  .bg-bg, .bg-bg-card, .bg-bg-hover, .bg-bg\/95, .bg-bg\/80 { background-color: var(--term); }
+  .bg-bg-card { background-color: var(--term-2); }
+  .bg-bg-hover { background-color: var(--term-3); }
+  .bg-bg\/95 { background-color: rgba(10, 10, 10, 0.95); }
+  .bg-bg\/80 { background-color: rgba(10, 10, 10, 0.80); }
+  .text-white { color: var(--amber-bright); }
+  .text-gray-200 { color: var(--amber); }
+  .text-gray-300 { color: var(--amber); }
+  .text-gray-400 { color: var(--amber-dim); }
+  .text-gray-500 { color: var(--amber-dim); }
+  .text-gray-600 { color: #6B5200; }
+  .text-green-accent { color: var(--mint); }
+  .text-red-accent { color: var(--crimson); }
+  .bg-green-accent { background-color: var(--mint); color: var(--term); }
+  .bg-green-soft { background-color: rgba(0, 255, 209, 0.08); }
+  .bg-red-soft { background-color: rgba(255, 48, 48, 0.08); }
+  .bg-red-accent { background-color: var(--crimson); color: var(--term); }
+  .border-gray-600, .border-gray-700, .border-gray-800 { border-color: var(--term-4); }
+  .border-gray-700\/50 { border-color: rgba(255, 176, 0, 0.10); }
+  .border-green-accent\/30 { border-color: rgba(0, 255, 209, 0.30); }
+  .border-red-500\/50 { border-color: rgba(255, 48, 48, 0.40); }
+  .border-t-2 { border-top-width: 2px; border-top-style: solid; }
+  .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
   .border { border-width: 1px; border-style: solid; }
   .border-dashed { border-style: dashed; }
   .border-transparent { border-color: transparent; }
+  .hover\:bg-bg-hover:hover { background-color: var(--term-3); }
+  .hover\:bg-bg-hover\/50:hover { background-color: rgba(31, 31, 31, 0.5); }
+  .hover\:bg-emerald-500:hover { background-color: var(--amber-bright); color: var(--term); }
+  .hover\:bg-green-900\/30:hover { background-color: rgba(0, 255, 209, 0.16); color: var(--mint); }
+  .hover\:bg-red-900\/50:hover { background-color: rgba(255, 48, 48, 0.16); color: var(--crimson); }
+  .hover\:bg-gray-600:hover { background-color: var(--term-4); }
+  .hover\:text-gray-200:hover { color: var(--amber-bright); }
+  .hover\:text-gray-300:hover { color: var(--amber-bright); }
+  .hover\:text-white:hover { color: var(--amber-bright); }
+  .hover\:text-red-accent:hover { color: var(--crimson); text-shadow: 0 0 6px currentColor; }
+  .hover\:border-gray-400:hover { border-color: var(--amber); }
+  .focus\:outline-none:focus { outline: none; }
+  .focus\:ring-2:focus { box-shadow: 0 0 0 2px var(--amber); }
+  .focus\:ring-green-accent\/50:focus { box-shadow: 0 0 0 2px rgba(0, 255, 209, 0.5); }
+  .focus\:ring-red-accent\/50:focus { box-shadow: 0 0 0 2px rgba(255, 48, 48, 0.5); }
+  .focus\:ring-offset-2:focus { outline-offset: 2px; }
+  .focus\:ring-offset-bg-card:focus { outline-color: var(--term-2); }
+  .focus\:ring-offset-bg:focus { outline-color: var(--term); }
+  /* ========== LAYOUT ========== */
   .flex { display: flex; }
   .block { display: block; }
   .grid { display: grid; }
@@ -161,70 +155,74 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   .flex-col { flex-direction: column; }
   .flex-wrap { flex-wrap: wrap; }
   .items-center { align-items: center; }
+  .items-baseline { align-items: baseline; }
   .justify-center { justify-content: center; }
   .justify-between { justify-content: space-between; }
   .gap-2 { gap: 0.5rem; }
   .gap-3 { gap: 0.75rem; }
   .gap-4 { gap: 1rem; }
+  .gap-2\.5 { gap: 0.625rem; }
   .space-y-2 > * + * { margin-top: 0.5rem; }
   .space-y-3 > * + * { margin-top: 0.75rem; }
-  .space-y-4 > * + * { margin-top: 1.25rem; }
+  .space-y-4 > * + * { margin-top: 1rem; }
+  .space-y-5 > * + * { margin-top: 1.25rem; }
   .space-y-1\.5 > * + * { margin-top: 0.375rem; }
   .flex-1 { flex: 1 1 0%; }
   .min-w-0 { min-width: 0; }
   .text-center { text-align: center; }
   .text-right { text-align: right; }
-  .text-lg { font-size: 1.125rem; }
-  .text-xl { font-size: 1.25rem; }
-  .text-2xl { font-size: 1.5rem; }
-  .text-3xl { font-size: 1.875rem; }
-  .text-4xl { font-size: 2.5rem; }
-  .text-5xl { font-size: 3.25rem; }
-  .text-sm { font-size: 0.875rem; }
-  .text-xs { font-size: 0.75rem; }
-  .text-base { font-size: 1rem; }
+  .text-lg { font-size: 1.0rem; }
+  .text-xl { font-size: 1.15rem; }
+  .text-2xl { font-size: 1.4rem; }
+  .text-3xl { font-size: 1.85rem; }
+  .text-4xl { font-size: 2.4rem; }
+  .text-5xl { font-size: 3.2rem; }
+  .text-sm { font-size: 12px; }
+  .text-xs { font-size: 11px; }
+  .text-base { font-size: 13px; }
   .text-\[10px\] { font-size: 10px; }
   .font-bold { font-weight: 700; }
   .font-extrabold { font-weight: 800; }
   .font-semibold { font-weight: 600; }
   .font-medium { font-weight: 500; }
   .leading-none { line-height: 1; }
-  .leading-tight { line-height: 1.2; }
+  .leading-tight { line-height: 1.15; }
   .p-1 { padding: 0.25rem; }
-  .p-4 { padding: 1.25rem; }
-  .p-5 { padding: 1.5rem; }
-  .p-6 { padding: 2rem; }
+  .p-4 { padding: 1rem; }
+  .p-5 { padding: 1.25rem; }
+  .p-6 { padding: 1.5rem; }
   .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
-  .px-4 { padding-left: 1.25rem; padding-right: 1.25rem; }
-  .px-5 { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .px-4 { padding-left: 1rem; padding-right: 1rem; }
+  .px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
   .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-  .py-1\.5 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-  .py-2 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
-  .py-2\.5 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-  .py-3 { padding-top: 1rem; padding-bottom: 1rem; }
-  .py-4 { padding-top: 1.25rem; padding-bottom: 1.25rem; }
-  .pt-4 { padding-top: 1.25rem; }
-  .pb-24 { padding-bottom: 6rem; }
+  .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+  .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+  .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+  .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+  .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+  .pt-4 { padding-top: 1rem; }
+  .pb-24 { padding-bottom: 5.5rem; }
+  .pb-28 { padding-bottom: 6.5rem; }
   .mt-1 { margin-top: 0.25rem; }
   .mt-1\.5 { margin-top: 0.375rem; }
   .mb-1 { margin-bottom: 0.25rem; }
   .mb-1\.5 { margin-bottom: 0.5rem; }
   .mb-2 { margin-bottom: 0.625rem; }
-  .mb-3 { margin-bottom: 1rem; }
-  .mb-6 { margin-bottom: 1.75rem; }
+  .mb-3 { margin-bottom: 0.875rem; }
+  .mb-6 { margin-bottom: 1.5rem; }
   .w-full { width: 100%; }
   .w-2 { width: 0.5rem; }
   .w-8 { width: 2rem; }
-  .w-14 { width: 3.5rem; }
-  .w-24 { width: 6rem; }
+  .w-14 { width: 3rem; }
+  .w-24 { width: 5.5rem; }
   .w-36 { width: 9rem; }
   .h-2 { height: 0.5rem; }
   .h-2\.5 { height: 0.625rem; }
-  .h-14 { height: 3.5rem; }
-  .h-48 { height: 13rem; }
-  .h-56 { height: 15rem; }
+  .h-14 { height: 3rem; }
+  .h-48 { height: 12rem; }
+  .h-56 { height: 14rem; }
   .h-full { height: 100%; }
-  .bg-yellow-500 { background-color: #C8A951; }
+  .bg-yellow-500 { background-color: var(--amber-bright); color: var(--term); }
   .max-h-\[90vh\] { max-height: 90vh; }
   .min-h-screen { min-height: 100vh; }
   .max-w-5xl { max-width: 64rem; }
@@ -237,20 +235,20 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   .inset-0 { inset: 0; }
   .top-0 { top: 0; }
   .bottom-0 { bottom: 0; }
-  .bottom-24 { bottom: 6rem; }
+  .bottom-24 { bottom: 5.5rem; }
   .left-0 { left: 0; }
   .right-0 { right: 0; }
-  .right-4 { right: 1.25rem; }
-  .right-6 { right: 1.5rem; }
+  .right-4 { right: 1rem; }
+  .right-6 { right: 1.25rem; }
   .z-50 { z-index: 50; }
   .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
   .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .shadow-lg { box-shadow: var(--shadow-lg); }
-  .backdrop-blur { backdrop-filter: blur(12px); }
-  .transition-colors { transition: color 0.18s, background-color 0.18s, border-color 0.18s; }
-  .transition-all { transition: all 0.18s ease; }
-  .active\:scale-95:active { transform: scale(0.95); }
+  .shadow-lg { box-shadow: 0 0 0 1px var(--amber), 0 0 20px rgba(255, 176, 0, 0.20); }
+  .backdrop-blur { backdrop-filter: blur(2px); }
+  .transition-colors { transition: color 0.12s steps(2), background-color 0.12s steps(2), border-color 0.12s steps(2); }
+  .transition-all { transition: all 0.12s steps(2); }
+  .active\:scale-95:active { transform: scale(0.97); }
   .active\:scale-\[0\.98\]:active { transform: scale(0.98); }
   .opacity-50 { opacity: 0.5; }
   .cursor-not-allowed { cursor: not-allowed; }
@@ -259,357 +257,435 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
     .sm\:max-w-md { max-width: 32rem; }
     .sm\:max-w-sm { max-width: 26rem; }
     .sm\:border { border-width: 1px; border-style: solid; }
-    .sm\:rounded-2xl { border-radius: 1.25rem; }
+    .sm\:rounded-2xl { border-radius: 0; }
   }
-  /* ========== COMPONENT PRIMITIVES ========== */
-  .paper-card {
-    background: var(--paper-card);
-    border: 1px solid var(--paper-line);
-    border-radius: 14px;
-    box-shadow: var(--shadow-sm);
+  /* ========== TERMINAL PRIMITIVES ========== */
+  .term-panel {
+    border: 1px solid var(--term-4);
+    background: var(--term-2);
+    padding: 0.875rem 1rem;
+    position: relative;
   }
-  .divider {
-    height: 1px;
-    background: var(--paper-line);
-    border: 0;
-    margin: 1.25rem 0;
+  .term-panel-amber {
+    border: 1px solid var(--amber-dim);
+    background: var(--term-2);
   }
-  .screen { display: none; }
-  .screen.active { display: block; animation: fadeIn 0.35s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(42, 37, 32, 0.42);
-    backdrop-filter: blur(4px);
-    z-index: 100;
-    align-items: flex-end;
-    justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal-overlay.open .modal { animation: slideUp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  input[type="number"] { -moz-appearance: textfield; }
-  /* ========== INPUTS / SELECTS ========== */
+  .ascii-rule { color: var(--amber-dim); letter-spacing: -0.05em; user-select: none; }
   .field {
     width: 100%;
-    background: var(--paper);
-    border: 1px solid var(--paper-line);
-    border-radius: 12px;
-    padding: 0.875rem 1.1rem;
+    background: var(--term);
+    color: var(--amber);
+    border: 1px solid var(--term-4);
+    padding: 0.55rem 0.75rem;
     font: inherit;
-    color: var(--ink);
-    transition: border-color 0.18s, box-shadow 0.18s;
+    caret-color: var(--amber);
+    transition: border-color 0.1s steps(2), box-shadow 0.1s steps(2);
+    border-radius: 0;
   }
   .field:focus {
     outline: none;
-    border-color: var(--forest);
-    box-shadow: 0 0 0 3px rgba(45, 74, 62, 0.12);
+    border-color: var(--amber);
+    box-shadow: inset 0 0 0 1px var(--amber), 0 0 8px rgba(255,176,0,0.20);
   }
-  .field::placeholder { color: var(--ink-mute); }
+  .field::placeholder { color: var(--amber-dim); opacity: 0.7; }
   .field-amount {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: "wght" 500, "opsz" 72, "SOFT" 30;
-    font-feature-settings: "tnum" 1, "lnum" 1;
-    font-size: 1.5rem;
+    font-family: 'Major Mono Display', 'JetBrains Mono', monospace;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
   }
   /* ========== BUTTONS ========== */
   .btn-primary {
     width: 100%;
-    padding: 0.95rem 1rem;
-    background: var(--forest);
-    color: var(--paper);
-    font-weight: 600;
-    font-size: 15px;
-    border: none;
-    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    background: var(--amber);
+    color: var(--term);
+    font: 600 13px 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 1px solid var(--amber);
+    border-radius: 0;
     cursor: pointer;
-    transition: background-color 0.18s, transform 0.1s;
+    transition: all 0.1s steps(2);
   }
-  .btn-primary:hover { background: var(--forest-soft); }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-primary:focus { outline: none; box-shadow: 0 0 0 3px rgba(45, 74, 62, 0.30); }
+  .btn-primary:hover { background: var(--amber-bright); box-shadow: 0 0 0 1px var(--amber-bright), 0 0 14px rgba(255,210,77,0.4); }
+  .btn-primary:active { background: var(--amber-dim); }
+  .btn-primary:focus { outline: none; box-shadow: inset 0 0 0 2px var(--term); }
   .btn-secondary {
     flex: 1;
-    padding: 0.85rem 1rem;
-    background: var(--paper-elev);
-    color: var(--ink);
-    font-weight: 500;
-    font-size: 14px;
-    border: 1px solid var(--paper-line);
-    border-radius: 12px;
+    padding: 0.55rem 0.85rem;
+    background: transparent;
+    color: var(--amber);
+    font: 500 12px 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: 1px solid var(--amber-dim);
+    border-radius: 0;
     cursor: pointer;
-    transition: background-color 0.18s;
+    transition: all 0.1s steps(2);
   }
-  .btn-secondary:hover { background: var(--paper-line); }
+  .btn-secondary:hover { background: var(--amber); color: var(--term); }
+  .btn-secondary:focus { outline: none; }
   .btn-danger {
-    background: rgba(184, 92, 62, 0.10);
-    color: var(--terra);
-    border: 1px solid rgba(184, 92, 62, 0.25);
+    color: var(--crimson);
+    border-color: var(--crimson);
   }
-  .btn-danger:hover { background: rgba(184, 92, 62, 0.18); }
-  /* ========== TAB / NAV ========== */
-  .tab-btn { transition: color 0.18s, transform 0.18s; color: var(--ink-mute); position: relative; }
-  .tab-btn .tab-label { font-size: 10px; letter-spacing: 0.05em; }
-  .tab-btn .tab-dot {
-    width: 4px; height: 4px; border-radius: 50%; background: transparent; margin-top: 4px;
-    transition: background-color 0.18s, transform 0.18s;
+  .btn-danger:hover { background: var(--crimson); color: var(--term); }
+  /* ========== NAV / TABS ========== */
+  .tab-btn {
+    transition: all 0.1s steps(2);
+    color: var(--amber-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    text-transform: uppercase;
+    font: 500 11px 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+    cursor: pointer;
   }
-  .tab-btn.active { color: var(--forest); }
-  .tab-btn.active .tab-dot { background: var(--forest); transform: scale(1.5); }
+  .tab-btn:hover { color: var(--amber); }
+  .tab-btn.active { color: var(--amber-bright); background: var(--term-3); border-color: var(--amber); }
   .tab-btn:focus { outline: none; }
   /* ========== PROGRESS / MISC ========== */
-  .progress-bar { transition: width 0.5s ease; border-radius: 999px; }
+  .progress-bar { transition: width 0.4s steps(8); }
+  /* ========== SCREENS / MODAL ========== */
+  .screen { display: none; }
+  .screen.active { display: block; animation: termFade 0.18s steps(2); }
+  @keyframes termFade { from { opacity: 0; } to { opacity: 1; } }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.78);
+    z-index: 100;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--term);
+    border: 1px solid var(--amber);
+    border-radius: 0;
+    box-shadow: 0 0 0 1px var(--amber-dim), 0 0 30px rgba(255,176,0,0.20);
+    width: 100%;
+    max-width: 36rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    margin-top: 2rem;
+  }
+  .modal-overlay.open .modal { animation: termIn 0.16s steps(3); }
+  @keyframes termIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-header {
+    background: var(--amber);
+    color: var(--term);
+    padding: 0.6rem 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font: 700 12px 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .modal-close { background: transparent; border: none; color: var(--term); font: 700 16px 'JetBrains Mono', monospace; cursor: pointer; padding: 0 0.5rem; line-height: 1; }
+  .modal-body { padding: 1rem; display: flex; flex-direction: column; gap: 0.9rem; }
   /* ========== TOAST ========== */
   .toast {
     position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 12px;
+    right: 12px;
     z-index: 200;
-    padding: 12px 22px;
-    border-radius: 999px;
-    font-size: 14px;
-    font-weight: 500;
-    animation: toastIn 0.3s ease;
+    padding: 8px 14px;
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    background: var(--term);
+    font: 600 11px 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     pointer-events: none;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 0 14px rgba(255,176,0,0.25);
   }
-  .toast.success { background: var(--forest); color: var(--paper); }
-  .toast.error { background: var(--terra); color: var(--paper); }
-  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
-  /* ========== MODAL (desktop center, mobile bottom-sheet) ========== */
-  .modal {
-    background: var(--paper-card);
-    border-radius: 18px 18px 0 0;
-    border-top: 1px solid var(--paper-line);
-    box-shadow: var(--shadow-lg);
-  }
-  @media (min-width: 640px) {
-    .modal-overlay { align-items: center; }
-    .modal { border-radius: 18px; border: 1px solid var(--paper-line); max-width: 32rem; }
-  }
-  /* ========== FAB ========== */
-  .fab {
+  .toast.success { color: var(--mint); border-color: var(--mint); box-shadow: 0 0 14px rgba(0,255,209,0.30); }
+  .toast.error { color: var(--crimson); border-color: var(--crimson); box-shadow: 0 0 14px rgba(255,48,48,0.30); }
+  /* ========== FAB → TEXT BUTTON ========== */
+  .term-fab {
     position: fixed;
-    bottom: 5.5rem;
-    right: 1.5rem;
+    bottom: 4.5rem;
+    right: 1rem;
     z-index: 50;
-    width: 3.75rem;
-    height: 3.75rem;
-    border-radius: 50%;
-    background: var(--forest);
-    color: var(--paper);
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 1.75rem;
-    font-weight: 400;
-    line-height: 1;
-    border: none;
+    background: var(--amber);
+    color: var(--term);
+    font: 700 11px 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border: 1px solid var(--amber);
+    padding: 0.75rem 1rem;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 24px rgba(45, 74, 62, 0.30);
-    transition: transform 0.18s, background-color 0.18s, box-shadow 0.18s;
+    box-shadow: 0 0 14px rgba(255,176,0,0.30);
+    transition: all 0.1s steps(2);
   }
-  .fab:hover { background: var(--forest-soft); transform: translateY(-1px); box-shadow: 0 12px 28px rgba(45, 74, 62, 0.36); }
-  .fab:active { transform: scale(0.94); }
-  .fab:focus { outline: none; box-shadow: 0 0 0 4px rgba(45, 74, 62, 0.20); }
+  .term-fab:hover { background: var(--amber-bright); box-shadow: 0 0 18px rgba(255,210,77,0.45); }
+  .term-fab:active { background: var(--amber-dim); }
+  .term-fab:focus { outline: none; box-shadow: 0 0 0 2px var(--term), 0 0 0 3px var(--amber-bright); }
+  /* ========== STATUS BAR (HEADER) ========== */
+  .status-bar {
+    background: var(--term);
+    border-bottom: 1px solid var(--amber-dim);
+    padding: 0.5rem 1rem;
+    color: var(--amber);
+    font: 500 11px 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
   /* ========== SAFE AREA ========== */
   .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  /* ========== TYPE TOGGLE ========== */
+  .type-toggle { display: flex; border: 1px solid var(--amber-dim); }
+  .type-toggle button {
+    flex: 1;
+    padding: 0.6rem;
+    background: transparent;
+    border: none;
+    color: var(--amber-dim);
+    font: 600 12px 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.1s steps(2);
+  }
+  .type-toggle button.active { background: var(--amber); color: var(--term); }
+  .type-toggle button:focus { outline: none; }
+  /* ========== NUMBER / DATA PRIMITIVES ========== */
+  .label-bar { color: var(--amber-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; }
+  .ascii-bar {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--amber);
+    letter-spacing: -0.1em;
+    line-height: 1;
+  }
+  /* ========== INSTALL BUTTON (terminal style) ========== */
+  .term-install {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 800;
+    background: var(--amber);
+    color: var(--term);
+    border: 1px solid var(--amber);
+    font: 700 10px 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: none;
+  }
+  .term-install:focus { outline: none; }
 </style>
 </head>
-<body class="bg-bg text-gray-200 min-h-screen" data-build="2026-08-17-r6">
-<!-- Always-visible build stamp so the user can SEE which code is loaded (even on the old SW). -->
-<div id="buildBadge" style="position:fixed;left:8px;bottom:8px;z-index:9999;font:600 10px/1 ui-monospace,monospace;color:#6B6259;background:#EFE9DBcc;border:1px solid #E0D7C2;border-radius:6px;padding:4px 6px;pointer-events:none;backdrop-filter:blur(6px)">build: 2026-08-17-r6</div>
-<script>document.body.setAttribute('data-build', '2026-08-17-r6'); document.getElementById('buildBadge').textContent = 'build: ' + '2026-08-17-r6';</script>
+<body class="bg-bg text-gray-200 min-h-screen" data-build="2026-08-17-r7" style="cursor: text">
+<!-- Always-visible build stamp -->
+<div id="buildBadge" style="position:fixed;left:8px;bottom:8px;z-index:9999;font:600 9px/1 ui-monospace,monospace;color:#FFB000;background:rgba(10,10,10,0.85);border:1px solid #FFB000;padding:4px 6px;pointer-events:none;letter-spacing:0.08em">[BUILD r7]</div>
+<script>document.body.setAttribute('data-build', '2026-08-17-r7'); document.getElementById('buildBadge').textContent = '[BUILD r7]';</script>
 
 <!-- ==================== TOAST ==================== -->
 <div id="toast" class="toast hidden"></div>
 
-<!-- ==================== HEADER ==================== -->
-<header class="sticky top-0 z-50 bg-bg/95 backdrop-blur px-5 py-4" style="border-bottom: 1px solid var(--paper-line)">
-  <div class="max-w-5xl mx-auto flex items-baseline justify-between gap-4">
-    <div class="flex items-baseline gap-2.5">
-      <span style="font-family:'Fraunces',serif;font-variation-settings:'wght' 600, 'opsz' 144, 'SOFT' 30; font-size: 22px; color: var(--forest); letter-spacing:-0.02em">₽</span>
-      <h1 class="head-serif" style="font-size: 19px; font-variation-settings: 'wght' 600, 'opsz' 36; color: var(--ink); letter-spacing: -0.01em">Финансы</h1>
+<!-- ==================== STATUS BAR (HEADER) ==================== -->
+<header class="sticky top-0 z-50 status-bar" style="background: var(--term); border-bottom: 1px solid var(--amber-dim)">
+  <div class="max-w-5xl mx-auto" style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap">
+    <div style="display: flex; align-items: center; gap: 0.6rem">
+      <span style="color: var(--amber-bright)">●</span>
+      <span style="color: var(--amber-bright)">FINANCE_TRACKER</span>
+      <span style="color: var(--amber-dim)">v1.0</span>
+      <span style="color: var(--amber-dim)">// 1987</span>
     </div>
-    <span id="headerDate" class="num-tabular" style="font-family:'Fraunces',serif;font-variation-settings:'wght' 400, 'opsz' 36, 'SOFT' 50, 'wght' 400; font-style: italic; font-size: 13px; color: var(--ink-soft)"></span>
+    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap">
+      <span style="color: var(--amber-dim)">USER: <span style="color: var(--amber)">bakugan</span></span>
+      <span style="color: var(--amber-dim)">RATE: <span style="color: var(--mint)">1RUB=1RUB</span></span>
+      <span id="headerDate" style="color: var(--amber-bright); font-variant-numeric: tabular-nums"></span>
+      <span class="blink" style="color: var(--amber-bright)">█</span>
+    </div>
   </div>
 </header>
-<main class="max-w-5xl mx-auto px-5 pb-28 pt-6">
+<main class="max-w-5xl mx-auto px-3 pb-28 pt-3" style="font-family: 'JetBrains Mono', monospace">
 
   <!-- DASHBOARD -->
-  <section id="dashboard" class="screen active space-y-5">
-    <!-- Balance — editorial hero -->
-    <div class="paper-card" style="padding: 2rem 1.5rem 1.75rem; text-align: left; position: relative; overflow: hidden">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem">
-        <span class="label-caps">Баланс</span>
-        <span style="font-family:'Fraunces',serif; font-style: italic; font-size: 12px; color: var(--ink-mute)" id="dashBalanceTrend"></span>
+  <section id="dashboard" class="screen active" style="display: flex; flex-direction: column; gap: 0.75rem">
+    <!-- Balance — terminal readout -->
+    <div class="term-panel-amber" style="padding: 1.25rem 1rem; position: relative">
+      <div class="ascii-rule" style="position: absolute; top: 4px; left: 8px; right: 8px; font-size: 9px; pointer-events: none">═══════════════════════════════════════════════</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.5rem; margin-bottom: 0.75rem">
+        <span class="label-bar">[ BALANCE ]</span>
+        <span style="color: var(--amber-dim); font-size: 10px" id="dashBalanceTrend"></span>
       </div>
-      <div style="display: flex; align-items: baseline; gap: 0.6rem">
-        <span class="num-display" style="font-size: clamp(40px, 13vw, 64px); line-height: 1; color: var(--ink)" id="dashBalance">0</span>
-        <span class="num-medium" style="font-size: clamp(20px, 5vw, 28px); color: var(--ink-soft)">₽</span>
+      <div style="display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap">
+        <span style="color: var(--amber-dim)">&gt;</span>
+        <span class="display-num" style="font-size: clamp(28px, 9vw, 48px); line-height: 1; color: var(--amber-bright)" id="dashBalance">0</span>
+        <span style="font-size: 14px; color: var(--amber-dim)">.00 RUB</span>
       </div>
-      <hr class="divider" style="margin-top: 1.5rem; margin-bottom: 1.25rem">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem">
+      <div class="ascii-rule" style="margin-top: 1rem; margin-bottom: 0.75rem; font-size: 9px">───────────────────────────────────────────────</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem">
         <div>
-          <div class="label-caps" style="color: var(--forest); margin-bottom: 0.4rem">Доход</div>
-          <div class="num-medium" style="font-size: 20px; color: var(--forest)" id="dashIncome">0 ₽</div>
+          <div class="label-bar" style="color: var(--mint)">[+] INCOME_MTD</div>
+          <div class="mono" style="font-size: 16px; color: var(--mint); margin-top: 0.25rem" id="dashIncome">0.00</div>
         </div>
         <div>
-          <div class="label-caps" style="color: var(--terra); margin-bottom: 0.4rem">Расход</div>
-          <div class="num-medium" style="font-size: 20px; color: var(--terra)" id="dashExpense">0 ₽</div>
+          <div class="label-bar" style="color: var(--crimson)">[-] EXPENSE_MTD</div>
+          <div class="mono" style="font-size: 16px; color: var(--crimson); margin-top: 0.25rem" id="dashExpense">0.00</div>
         </div>
       </div>
+      <div class="ascii-rule" style="position: absolute; bottom: 4px; left: 8px; right: 8px; font-size: 9px; pointer-events: none">═══════════════════════════════════════════════</div>
     </div>
     <!-- Today / Week — paired stats -->
-    <div class="grid grid-cols-2 gap-3">
-      <div class="paper-card" style="padding: 1.1rem 1.25rem">
-        <div class="label-caps" style="margin-bottom: 0.4rem">Сегодня</div>
-        <div class="num-medium" style="font-size: 18px; color: var(--ink)" id="dashToday">0 ₽</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem">
+      <div class="term-panel">
+        <div class="label-bar">TODAY &gt;</div>
+        <div class="mono" style="font-size: 15px; color: var(--crimson); margin-top: 0.3rem" id="dashToday">0.00</div>
       </div>
-      <div class="paper-card" style="padding: 1.1rem 1.25rem">
-        <div class="label-caps" style="margin-bottom: 0.4rem">Неделя</div>
-        <div class="num-medium" style="font-size: 18px; color: var(--ink)" id="dashWeek">0 ₽</div>
+      <div class="term-panel">
+        <div class="label-bar">7D_WINDOW &gt;</div>
+        <div class="mono" style="font-size: 15px; color: var(--crimson); margin-top: 0.3rem" id="dashWeek">0.00</div>
       </div>
     </div>
     <!-- Charts row -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="paper-card" style="padding: 1.25rem">
-        <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem; color: var(--ink)">Категории расходов</p>
+    <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem">
+      <div class="term-panel-amber">
+        <div class="label-bar" style="margin-bottom: 0.5rem">// EXPENSE_BY_CATEGORY</div>
         <div class="h-48 flex items-center justify-center"><canvas id="doughnutChart"></canvas></div>
       </div>
-      <div class="paper-card" style="padding: 1.25rem">
-        <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem; color: var(--ink)">Динамика · 30 дней</p>
+      <div class="term-panel-amber">
+        <div class="label-bar" style="margin-bottom: 0.5rem">// BALANCE_TIMELINE · 30D</div>
         <div class="h-48 flex items-center justify-center"><canvas id="lineChart"></canvas></div>
       </div>
     </div>
   </section>
 
   <!-- SETTINGS / CATEGORIES -->
-  <section id="settings" class="screen space-y-5">
-    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.75rem">
-      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)">Категории доходов</h2>
-      <button onclick="showAddCatModal('income')" style="font-size: 12px; padding: 0.4rem 0.85rem; border-radius: 999px; background: rgba(45,74,62,0.08); color: var(--forest); border: 1px solid rgba(45,74,62,0.15); font-weight: 500; cursor: pointer">+ Добавить</button>
-    </div>
-    <div id="settingsIncomeList" class="space-y-1.5" style="margin-bottom: 1.5rem"></div>
-    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.75rem">
-      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)">Категории расходов</h2>
-      <button onclick="showAddCatModal('expense')" style="font-size: 12px; padding: 0.4rem 0.85rem; border-radius: 999px; background: rgba(184,92,62,0.08); color: var(--terra); border: 1px solid rgba(184,92,62,0.15); font-weight: 500; cursor: pointer">+ Добавить</button>
-    </div>
-    <div id="settingsExpenseList" class="space-y-1.5" style="margin-bottom: 1.5rem"></div>
-    <hr class="divider">
-    <h2 class="head-serif" style="font-size: 22px; color: var(--ink); margin-bottom: 1rem">Данные</h2>
-    <div class="flex gap-3" style="margin-bottom: 0.75rem">
-      <button onclick="exportData()" class="btn-secondary">📤 Экспорт</button>
-      <button onclick="document.getElementById('importFile').click()" class="btn-secondary">📥 Импорт</button>
-    </div>
-    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
-    <button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) resetAllData();" class="btn-secondary btn-danger" style="width: 100%">🗑 Сбросить все данные</button>
-    <hr class="divider">
-    <h2 class="head-serif" style="font-size: 22px; color: var(--ink); margin-bottom: 1rem">☁️ Синхронизация · GitHub Gist</h2>
-    <div class="space-y-3">
-      <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">GitHub токен</label>
-        <input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="field" style="font-size: 14px" autocomplete="off">
+  <section id="settings" class="screen" style="display: flex; flex-direction: column; gap: 1rem">
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem">
+        <span class="label-bar">// INCOME_CATEGORIES</span>
+        <button onclick="showAddCatModal('income')" style="font: 600 11px 'JetBrains Mono', monospace; color: var(--amber); background: transparent; border: 1px solid var(--amber-dim); padding: 4px 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em">[+ ADD]</button>
       </div>
-      <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Gist ID</label>
-        <input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="field" style="font-size: 14px" autocomplete="off">
-      </div>
-      <div class="flex gap-3">
-        <button onclick="saveSyncSettings()" class="btn-primary" style="flex: 1; padding: 0.75rem 1rem; font-size: 14px">💾 Сохранить</button>
-        <button onclick="createGist()" class="btn-secondary">🆕 Создать Gist</button>
-      </div>
-      <div class="flex gap-3">
-        <button onclick="pullFromGist()" class="btn-secondary">⬇️ Из облака</button>
-        <button onclick="pushToGist()" class="btn-secondary">⬆️ В облако</button>
-      </div>
-      <p id="syncStatus" style="font-size: 12px; color: var(--ink-mute); font-style: italic; font-family: 'Fraunces', serif"></p>
+      <div id="settingsIncomeList" style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 1rem"></div>
     </div>
-    <hr class="divider">
-    <h2 class="head-serif" style="font-size: 22px; color: var(--ink); margin-bottom: 1rem">🐛 Диагностика</h2>
-    <div class="paper-card" style="padding: 1rem 1.1rem; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 0.85rem" id="diagInfo">
-      <div>Загрузка...</div>
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem">
+        <span class="label-bar">// EXPENSE_CATEGORIES</span>
+        <button onclick="showAddCatModal('expense')" style="font: 600 11px 'JetBrains Mono', monospace; color: var(--amber); background: transparent; border: 1px solid var(--amber-dim); padding: 4px 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em">[+ ADD]</button>
+      </div>
+      <div id="settingsExpenseList" style="display: flex; flex-direction: column; gap: 4px"></div>
     </div>
-    <div class="flex flex-wrap gap-2">
-      <button onclick="manualRestoreFromCloud()" class="btn-secondary" style="font-size: 12px; min-width: 140px; padding: 0.6rem 0.8rem">☁️ Из облака</button>
-      <button onclick="forcePullAndMerge()" class="btn-secondary" style="font-size: 12px; min-width: 140px; padding: 0.6rem 0.8rem">⬇️ Слить</button>
-      <button onclick="checkForUpdate()" class="btn-secondary" style="font-size: 12px; min-width: 140px; padding: 0.6rem 0.8rem">🔄 Обновления</button>
-      <button onclick="hardResetApp()" class="btn-secondary btn-danger" style="font-size: 12px; min-width: 140px; padding: 0.6rem 0.8rem">🧨 Снести SW</button>
+    <div class="term-panel-amber">
+      <div class="label-bar" style="margin-bottom: 0.6rem">// DATA_PORT</div>
+      <div style="display: flex; gap: 0.4rem; margin-bottom: 0.5rem">
+        <button onclick="exportData()" class="btn-secondary" style="font-size: 11px; padding: 6px 10px">[ EXPORT_JSON ]</button>
+        <button onclick="document.getElementById('importFile').click()" class="btn-secondary" style="font-size: 11px; padding: 6px 10px">[ IMPORT_JSON ]</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
+      <button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) resetAllData();" class="btn-secondary btn-danger" style="width: 100%; font-size: 11px; padding: 6px 10px">[ ! WIPE_STORAGE ]</button>
+    </div>
+    <div class="term-panel-amber">
+      <div class="label-bar" style="margin-bottom: 0.6rem">// CLOUD_SYNC · GITHUB_GIST</div>
+      <div style="display: flex; flex-direction: column; gap: 0.5rem">
+        <div>
+          <div class="label-bar" style="margin-bottom: 0.25rem">&gt; GITHUB_TOKEN</div>
+          <input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="field" style="font-size: 12px" autocomplete="off">
+        </div>
+        <div>
+          <div class="label-bar" style="margin-bottom: 0.25rem">&gt; GIST_ID</div>
+          <input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="field" style="font-size: 12px" autocomplete="off">
+        </div>
+        <div style="display: flex; gap: 0.4rem">
+          <button onclick="saveSyncSettings()" class="btn-primary" style="flex: 1; padding: 8px 10px; font-size: 11px">[ SAVE ]</button>
+          <button onclick="createGist()" class="btn-secondary" style="font-size: 11px; padding: 6px 10px">[ NEW ]</button>
+        </div>
+        <div style="display: flex; gap: 0.4rem">
+          <button onclick="pullFromGist()" class="btn-secondary" style="font-size: 11px; padding: 6px 10px">[ &lt; PULL ]</button>
+          <button onclick="pushToGist()" class="btn-secondary" style="font-size: 11px; padding: 6px 10px">[ PUSH &gt; ]</button>
+        </div>
+        <p id="syncStatus" style="font-size: 11px; color: var(--amber-dim); min-height: 14px"></p>
+      </div>
+    </div>
+    <div class="term-panel-amber">
+      <div class="label-bar" style="margin-bottom: 0.6rem">// DIAGNOSTICS</div>
+      <div class="term-panel" style="padding: 0.7rem 0.85rem; font-size: 11px; color: var(--amber-dim); line-height: 1.6; margin-bottom: 0.6rem" id="diagInfo">
+        <div>LOADING...</div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 0.4rem">
+        <button onclick="manualRestoreFromCloud()" class="btn-secondary" style="font-size: 10px; padding: 5px 8px">[ PULL_CATS ]</button>
+        <button onclick="forcePullAndMerge()" class="btn-secondary" style="font-size: 10px; padding: 5px 8px">[ SYNC_MERGE ]</button>
+        <button onclick="checkForUpdate()" class="btn-secondary" style="font-size: 10px; padding: 5px 8px">[ CHK_UPD ]</button>
+        <button onclick="hardResetApp()" class="btn-secondary btn-danger" style="font-size: 10px; padding: 5px 8px">[ NUKE ]</button>
+      </div>
     </div>
   </section>
 
   <!-- HISTORY -->
-  <section id="history" class="screen space-y-4">
-    <div class="paper-card" style="padding: 1.1rem 1.25rem">
-      <div class="flex flex-wrap gap-2" style="margin-bottom: 0.75rem">
-        <select id="histType" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; flex: 0 0 auto; width: auto">
-          <option value="all">Все типы</option><option value="income">Доход</option><option value="expense">Расход</option>
+  <section id="history" class="screen" style="display: flex; flex-direction: column; gap: 0.6rem">
+    <div class="term-panel-amber">
+      <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem">
+        <select id="histType" class="field" style="font-size: 12px; padding: 5px 8px; width: auto; flex: 0 0 auto">
+          <option value="all">[ ALL ]</option><option value="income">[ + ]</option><option value="expense">[ - ]</option>
         </select>
-        <select id="histCategory" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; flex: 1 1 140px">
-          <option value="all">Все категории</option>
+        <select id="histCategory" class="field" style="font-size: 12px; padding: 5px 8px; flex: 1 1 140px">
+          <option value="all">ALL_CATS</option>
         </select>
-        <input id="histDateFrom" type="date" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; width: auto; flex: 0 0 auto">
-        <input id="histDateTo" type="date" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; width: auto; flex: 0 0 auto">
+        <input id="histDateFrom" type="date" class="field" style="font-size: 12px; padding: 5px 8px; width: auto; flex: 0 0 auto">
+        <input id="histDateTo" type="date" class="field" style="font-size: 12px; padding: 5px 8px; width: auto; flex: 0 0 auto">
       </div>
-      <input id="histSearch" type="text" placeholder="Поиск по комментарию..." class="field" style="font-size: 13px; padding: 0.55rem 0.85rem" autocomplete="off">
+      <input id="histSearch" type="text" placeholder="&gt; grep ..." class="field" style="font-size: 12px; padding: 6px 10px" autocomplete="off">
     </div>
-    <div id="historyList" class="space-y-2"></div>
+    <div id="historyList" style="display: flex; flex-direction: column; gap: 4px"></div>
   </section>
 
   <!-- ANALYTICS -->
-  <section id="analytics" class="screen space-y-5">
-    <div class="flex flex-wrap gap-2">
-      <button data-period="all" class="period-btn" style="padding: 0.5rem 1rem; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--paper-card); border: 1px solid var(--paper-line); color: var(--ink-soft); cursor: pointer">Всё</button>
-      <button data-period="week" class="period-btn" style="padding: 0.5rem 1rem; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--paper-card); border: 1px solid var(--paper-line); color: var(--ink-soft); cursor: pointer">Неделя</button>
-      <button data-period="month" class="period-btn" style="padding: 0.5rem 1rem; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--paper-card); border: 1px solid var(--paper-line); color: var(--ink-soft); cursor: pointer">Месяц</button>
-      <button data-period="year" class="period-btn" style="padding: 0.5rem 1rem; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--paper-card); border: 1px solid var(--paper-line); color: var(--ink-soft); cursor: pointer">Год</button>
-      <input id="analDateFrom" type="date" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; width: auto; flex: 0 0 auto">
-      <input id="analDateTo" type="date" class="field" style="font-size: 13px; padding: 0.5rem 0.85rem; width: auto; flex: 0 0 auto">
+  <section id="analytics" class="screen" style="display: flex; flex-direction: column; gap: 0.75rem">
+    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem">
+      <button data-period="all" class="period-btn" style="padding: 5px 12px; font: 600 11px 'JetBrains Mono', monospace; background: var(--term-2); border: 1px solid var(--amber-dim); color: var(--amber-dim); cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em">[ ALL ]</button>
+      <button data-period="week" class="period-btn" style="padding: 5px 12px; font: 600 11px 'JetBrains Mono', monospace; background: var(--term-2); border: 1px solid var(--amber-dim); color: var(--amber-dim); cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em">[ 7D ]</button>
+      <button data-period="month" class="period-btn" style="padding: 5px 12px; font: 600 11px 'JetBrains Mono', monospace; background: var(--term-2); border: 1px solid var(--amber-dim); color: var(--amber-dim); cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em">[ 30D ]</button>
+      <button data-period="year" class="period-btn" style="padding: 5px 12px; font: 600 11px 'JetBrains Mono', monospace; background: var(--term-2); border: 1px solid var(--amber-dim); color: var(--amber-dim); cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em">[ 1Y ]</button>
+      <input id="analDateFrom" type="date" class="field" style="font-size: 12px; padding: 5px 8px; width: auto; flex: 0 0 auto">
+      <input id="analDateTo" type="date" class="field" style="font-size: 12px; padding: 5px 8px; width: auto; flex: 0 0 auto">
     </div>
-    <div class="grid grid-cols-3 gap-3">
-      <div class="paper-card" style="padding: 1rem 0.75rem; text-align: center">
-        <div class="label-caps" style="font-size: 10px; margin-bottom: 0.3rem">Сумма</div>
-        <div class="num-medium" style="font-size: 17px" id="analSum">0 ₽</div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem">
+      <div class="term-panel" style="text-align: center; padding: 0.6rem 0.4rem">
+        <div class="label-bar" style="font-size: 9px">SUM</div>
+        <div class="mono" style="font-size: 14px; margin-top: 0.2rem" id="analSum">0.00</div>
       </div>
-      <div class="paper-card" style="padding: 1rem 0.75rem; text-align: center">
-        <div class="label-caps" style="font-size: 10px; margin-bottom: 0.3rem">Средний</div>
-        <div class="num-medium" style="font-size: 17px" id="analAvg">0 ₽</div>
+      <div class="term-panel" style="text-align: center; padding: 0.6rem 0.4rem">
+        <div class="label-bar" style="font-size: 9px">AVG</div>
+        <div class="mono" style="font-size: 14px; margin-top: 0.2rem" id="analAvg">0.00</div>
       </div>
-      <div class="paper-card" style="padding: 1rem 0.75rem; text-align: center">
-        <div class="label-caps" style="font-size: 10px; margin-bottom: 0.3rem">Записей</div>
-        <div class="num-medium" style="font-size: 17px" id="analCount">0</div>
+      <div class="term-panel" style="text-align: center; padding: 0.6rem 0.4rem">
+        <div class="label-bar" style="font-size: 9px">N</div>
+        <div class="mono" style="font-size: 14px; margin-top: 0.2rem" id="analCount">0</div>
       </div>
     </div>
-    <div class="paper-card" style="padding: 1.25rem">
-      <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem">Доходы vs Расходы</p>
+    <div class="term-panel-amber">
+      <div class="label-bar" style="margin-bottom: 0.5rem">// INCOME_VS_EXPENSE</div>
       <div class="h-56"><canvas id="barChart"></canvas></div>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="paper-card" style="padding: 1.25rem">
-        <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem">Расходы</p>
+    <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem">
+      <div class="term-panel-amber">
+        <div class="label-bar" style="margin-bottom: 0.5rem">// EXPENSE_STRUCTURE</div>
         <div class="h-48"><canvas id="analDoughnutExpense"></canvas></div>
       </div>
-      <div class="paper-card" style="padding: 1.25rem">
-        <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem">Доходы</p>
+      <div class="term-panel-amber">
+        <div class="label-bar" style="margin-bottom: 0.5rem">// INCOME_STRUCTURE</div>
         <div class="h-48"><canvas id="analDoughnutIncome"></canvas></div>
       </div>
     </div>
-    <div class="paper-card" style="padding: 1.25rem">
-      <p class="head-serif" style="font-size: 16px; margin-bottom: 1rem">Топ-5 расходов</p>
-      <div id="top5List" class="space-y-2"></div>
+    <div class="term-panel-amber">
+      <div class="label-bar" style="margin-bottom: 0.5rem">// TOP5_EXPENSE</div>
+      <div id="top5List" style="display: flex; flex-direction: column; gap: 6px"></div>
     </div>
   </section>
 
   <!-- BUDGETS -->
-  <section id="budgets" class="screen space-y-4">
-    <div id="budgetList" class="space-y-3"></div>
-    <button onclick="showAddBudget()" style="width: 100%; padding: 0.95rem 1rem; border-radius: 12px; border: 1px dashed rgba(45,74,62,0.30); color: var(--forest); font-size: 14px; font-weight: 500; background: transparent; cursor: pointer">
-      + Добавить бюджет
+  <section id="budgets" class="screen" style="display: flex; flex-direction: column; gap: 0.5rem">
+    <div id="budgetList" style="display: flex; flex-direction: column; gap: 0.5rem"></div>
+    <button onclick="showAddBudget()" style="width: 100%; padding: 0.7rem 1rem; border: 1px dashed var(--amber-dim); color: var(--amber); font: 600 12px 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; background: transparent; cursor: pointer">
+      [ + ADD_BUDGET ]
     </button>
   </section>
 
@@ -617,102 +693,93 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
 
 <!-- ==================== ADD TRANSACTION MODAL ==================== -->
 <div id="addModal" class="modal-overlay" onclick="closeModal('addModal')">
-  <div class="modal w-full sm:max-w-md max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-    <div class="sticky top-0" style="background: var(--paper-card); padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--paper-line); display: flex; align-items: center; justify-content: space-between; border-radius: 18px 18px 0 0">
-      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)">Новая запись</h2>
-      <button onclick="closeModal('addModal')" style="background: transparent; border: none; font-family: 'Fraunces', serif; font-size: 28px; color: var(--ink-mute); cursor: pointer; padding: 0 0.5rem; line-height: 1">&times;</button>
-    </div>
-    <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem">
-      <div style="display: flex; gap: 6px; background: var(--paper); padding: 4px; border-radius: 999px; border: 1px solid var(--paper-line)">
-        <button id="typeIncome" onclick="setType('income')" style="flex: 1; padding: 0.65rem; border: none; border-radius: 999px; font-size: 14px; font-weight: 500; background: transparent; color: var(--ink-soft); cursor: pointer; transition: all 0.18s">Доход</button>
-        <button id="typeExpense" onclick="setType('expense')" style="flex: 1; padding: 0.65rem; border: none; border-radius: 999px; font-size: 14px; font-weight: 500; background: transparent; color: var(--ink-soft); cursor: pointer; transition: all 0.18s">Расход</button>
+  <div class="modal max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="modal-header"><span>&gt; NEW_TRANSACTION</span><button class="modal-close" onclick="closeModal('addModal')">[X]</button></div>
+    <div class="modal-body">
+      <div class="type-toggle" id="typeToggle">
+        <button id="typeIncome" onclick="setType('income')">[+ INCOME]</button>
+        <button id="typeExpense" onclick="setType('expense')">[- EXPENSE]</button>
       </div>
       <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Сумма</label>
-        <input id="addAmount" type="number" min="0.01" step="0.01" placeholder="0,00" class="field field-amount" autocomplete="off">
+        <div class="label-bar">&gt; AMOUNT</div>
+        <input id="addAmount" type="number" min="0.01" step="0.01" placeholder="0.00" class="field field-amount" autocomplete="off">
       </div>
       <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Дата</label>
+        <div class="label-bar">&gt; DATE</div>
         <input id="addDate" type="date" class="field">
       </div>
       <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Категория</label>
+        <div class="label-bar">&gt; CATEGORY</div>
         <select id="addCategory" class="field"></select>
       </div>
       <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Комментарий</label>
-        <input id="addComment" type="text" placeholder="Необязательно" class="field" autocomplete="off" maxlength="200">
+        <div class="label-bar">&gt; COMMENT</div>
+        <input id="addComment" type="text" placeholder="optional" class="field" autocomplete="off" maxlength="200">
       </div>
-      <button onclick="saveTransaction()" class="btn-primary" style="margin-top: 0.5rem">Сохранить</button>
+      <button onclick="saveTransaction()" class="btn-primary">[ COMMIT_TX ]</button>
     </div>
   </div>
 </div>
 
 <!-- ==================== ADD BUDGET MODAL ==================== -->
 <div id="budgetModal" class="modal-overlay" onclick="closeModal('budgetModal')">
-  <div class="modal w-full sm:max-w-md" onclick="event.stopPropagation()">
-    <div class="sticky top-0" style="background: var(--paper-card); padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--paper-line); display: flex; align-items: center; justify-content: space-between; border-radius: 18px 18px 0 0">
-      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)">Новый бюджет</h2>
-      <button onclick="closeModal('budgetModal')" style="background: transparent; border: none; font-family: 'Fraunces', serif; font-size: 28px; color: var(--ink-mute); cursor: pointer; padding: 0 0.5rem; line-height: 1">&times;</button>
-    </div>
-    <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span>&gt; NEW_BUDGET</span><button class="modal-close" onclick="closeModal('budgetModal')">[X]</button></div>
+    <div class="modal-body">
       <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Категория</label>
+        <div class="label-bar">&gt; CATEGORY</div>
         <select id="budgetCategory" class="field"></select>
       </div>
       <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Лимит на месяц</label>
-        <input id="budgetLimit" type="number" min="1" step="1" placeholder="10 000" class="field field-amount" autocomplete="off">
+        <div class="label-bar">&gt; MONTHLY_LIMIT</div>
+        <input id="budgetLimit" type="number" min="1" step="1" placeholder="10000" class="field field-amount" autocomplete="off">
       </div>
-      <button onclick="saveBudget()" class="btn-primary" style="margin-top: 0.5rem">Сохранить</button>
+      <button onclick="saveBudget()" class="btn-primary">[ COMMIT_BUDGET ]</button>
     </div>
   </div>
 </div>
 
 <!-- ==================== DELETE CONFIRMATION MODAL ==================== -->
 <div id="deleteModal" class="modal-overlay" onclick="closeModal('deleteModal')">
-  <div class="modal w-full sm:max-w-sm" style="padding: 2rem 1.75rem; text-align: center" onclick="event.stopPropagation()">
-    <h2 class="head-serif" style="font-size: 24px; color: var(--ink); margin-bottom: 0.5rem">Удалить запись?</h2>
-    <p style="font-size: 14px; color: var(--ink-soft); margin-bottom: 1.75rem; font-family: 'Fraunces', serif; font-style: italic">Действие нельзя отменить.</p>
-    <div style="display: flex; gap: 0.75rem">
-      <button onclick="closeModal('deleteModal')" class="btn-secondary">Отмена</button>
-      <button id="confirmDeleteBtn" class="btn-secondary btn-danger">Удалить</button>
+  <div class="modal" style="padding: 1.5rem; text-align: center" onclick="event.stopPropagation()">
+    <div class="label-bar" style="margin-bottom: 0.4rem">// CONFIRM_DELETE</div>
+    <p style="color: var(--crimson); font-size: 14px; margin: 0.5rem 0 1rem">[ IRREVERSIBLE_OPERATION ]</p>
+    <div style="display: flex; gap: 0.4rem">
+      <button onclick="closeModal('deleteModal')" class="btn-secondary">[ ABORT ]</button>
+      <button id="confirmDeleteBtn" class="btn-secondary btn-danger">[ ! EXECUTE ]</button>
     </div>
   </div>
 </div>
 
 <!-- ==================== ADD CATEGORY MODAL ==================== -->
 <div id="catModal" class="modal-overlay" onclick="closeModal('catModal')">
-  <div class="modal w-full sm:max-w-md" onclick="event.stopPropagation()">
-    <div class="sticky top-0" style="background: var(--paper-card); padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--paper-line); display: flex; align-items: center; justify-content: space-between; border-radius: 18px 18px 0 0">
-      <h2 class="head-serif" style="font-size: 22px; color: var(--ink)" id="catModalTitle">Новая категория</h2>
-      <button onclick="closeModal('catModal')" style="background: transparent; border: none; font-family: 'Fraunces', serif; font-size: 28px; color: var(--ink-mute); cursor: pointer; padding: 0 0.5rem; line-height: 1">&times;</button>
-    </div>
-    <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span id="catModalTitle">&gt; NEW_CATEGORY</span><button class="modal-close" onclick="closeModal('catModal')">[X]</button></div>
+    <div class="modal-body">
       <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Название</label>
-        <input id="catNameInput" type="text" placeholder="Например: Питомец" class="field" autocomplete="off" maxlength="30">
+        <div class="label-bar">&gt; LABEL</div>
+        <input id="catNameInput" type="text" placeholder="например: PET" class="field" autocomplete="off" maxlength="30">
       </div>
       <div>
-        <label class="label-caps" style="display: block; margin-bottom: 0.5rem">Emoji</label>
-        <input id="catEmojiInput" type="text" placeholder="🐱" maxlength="4" class="field" style="font-size: 28px; text-align: center; padding: 0.7rem" autocomplete="off">
+        <div class="label-bar">&gt; ICON (1-4 chars)</div>
+        <input id="catEmojiInput" type="text" placeholder="🐱" maxlength="4" class="field" style="font-size: 24px; text-align: center; padding: 0.5rem" autocomplete="off">
       </div>
-      <button onclick="saveCustomCategory()" class="btn-primary" style="margin-top: 0.5rem">Добавить</button>
+      <button onclick="saveCustomCategory()" class="btn-primary">[ COMMIT_CAT ]</button>
     </div>
   </div>
 </div>
 
-<!-- ==================== FAB ==================== -->
-<button onclick="openAddModal()" class="fab" aria-label="Добавить запись">+</button>
+<!-- ==================== FAB → TERMINAL BUTTON ==================== -->
+<button onclick="openAddModal()" class="term-fab" aria-label="ADD">[ + TX ]</button>
 
-<!-- ==================== BOTTOM NAV ==================== -->
-<nav class="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom" style="background: rgba(245, 241, 232, 0.85); backdrop-filter: blur(16px); border-top: 1px solid var(--paper-line)">
-  <div class="max-w-5xl mx-auto flex">
-    <button data-screen="dashboard" class="tab-btn active flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">⌂</span><span class="tab-label">Главная</span><span class="tab-dot"></span></button>
-    <button data-screen="history" class="tab-btn flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">≡</span><span class="tab-label">История</span><span class="tab-dot"></span></button>
-    <button data-screen="analytics" class="tab-btn flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">∿</span><span class="tab-label">Аналитика</span><span class="tab-dot"></span></button>
-    <button data-screen="budgets" class="tab-btn flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">○</span><span class="tab-label">Бюджет</span><span class="tab-dot"></span></button>
-    <button data-screen="settings" class="tab-btn flex-1 flex flex-col items-center py-3 focus:outline-none"><span style="font-size: 18px">⚙</span><span class="tab-label">Ещё</span><span class="tab-dot"></span></button>
+<!-- ==================== BOTTOM NAV → F-KEY BAR ==================== -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom" style="background: var(--term); border-top: 1px solid var(--amber-dim); padding: 0.4rem 0; font-family: 'JetBrains Mono', monospace">
+  <div class="max-w-5xl mx-auto" style="display: flex; padding: 0 0.4rem">
+    <button data-screen="dashboard" class="tab-btn active flex-1" style="padding: 0.45rem 0.2rem; font-size: 10px"><span style="color: var(--amber-dim)">F1</span> · HOME</button>
+    <button data-screen="history" class="tab-btn flex-1" style="padding: 0.45rem 0.2rem; font-size: 10px"><span style="color: var(--amber-dim)">F2</span> · LOG</button>
+    <button data-screen="analytics" class="tab-btn flex-1" style="padding: 0.45rem 0.2rem; font-size: 10px"><span style="color: var(--amber-dim)">F3</span> · STATS</button>
+    <button data-screen="budgets" class="tab-btn flex-1" style="padding: 0.45rem 0.2rem; font-size: 10px"><span style="color: var(--amber-dim)">F4</span> · LIMIT</button>
+    <button data-screen="settings" class="tab-btn flex-1" style="padding: 0.45rem 0.2rem; font-size: 10px"><span style="color: var(--amber-dim)">F5</span> · CFG</button>
   </div>
 </nav>
 
@@ -945,9 +1012,8 @@ function generateDemoData() {
 }
 function subDays(d, n) { const r = new Date(d); r.setDate(r.getDate() - n); return r; }
 
-// ==================== HELPERS ====================
-function formatCurrency(n) { return Math.abs(n).toLocaleString('ru-RU') + ' ₽'; }
-function formatNumber(n) { return Math.abs(n).toLocaleString('ru-RU').replace(/\s/g, ' '); }
+function formatCurrency(n) { return Math.abs(n).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function formatNumber(n) { return formatCurrency(n); }
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 }
@@ -991,14 +1057,13 @@ function setType(type) {
   currentType = type;
   const incomeBtn = document.getElementById('typeIncome');
   const expenseBtn = document.getElementById('typeExpense');
-  const active = 'background: var(--paper-card); color: var(--ink); box-shadow: var(--shadow-sm); font-weight: 600;';
-  const inactive = 'background: transparent; color: var(--ink-mute); font-weight: 500;';
+  const base = 'flex:1;padding:0.6rem 0.4rem;border:none;font:600 12px "JetBrains Mono",monospace;cursor:pointer;transition:all 0.1s steps(2);text-transform:uppercase;letter-spacing:0.08em;';
   if (type === 'income') {
-    incomeBtn.style.cssText = 'flex:1;padding:0.65rem;border:none;border-radius:999px;font-size:14px;cursor:pointer;transition:all 0.18s;' + active;
-    expenseBtn.style.cssText = 'flex:1;padding:0.65rem;border:none;border-radius:999px;font-size:14px;cursor:pointer;transition:all 0.18s;' + inactive;
+    incomeBtn.style.cssText = base + 'background:var(--amber);color:var(--term);';
+    expenseBtn.style.cssText = base + 'background:transparent;color:var(--amber-dim);';
   } else {
-    expenseBtn.style.cssText = 'flex:1;padding:0.65rem;border:none;border-radius:999px;font-size:14px;cursor:pointer;transition:all 0.18s;' + active;
-    incomeBtn.style.cssText = 'flex:1;padding:0.65rem;border:none;border-radius:999px;font-size:14px;cursor:pointer;transition:all 0.18s;' + inactive;
+    expenseBtn.style.cssText = base + 'background:var(--crimson);color:var(--term);';
+    incomeBtn.style.cssText = base + 'background:transparent;color:var(--amber-dim);';
   }
   populateCategorySelect();
 }
@@ -1010,7 +1075,7 @@ function populateCategorySelect() {
   cats.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c.id;
-    opt.textContent = c.emoji + ' ' + c.name;
+    opt.textContent = c.name.toUpperCase();
     sel.appendChild(opt);
   });
 }
@@ -1095,12 +1160,12 @@ function renderDashboard() {
   const weekTx = transactions.filter(t => isThisWeek(t.createdAt) && t.type === 'expense');
   const weekSum = weekTx.reduce((s, t) => s + t.amount, 0);
 
-  document.getElementById('dashBalance').textContent = (balance >= 0 ? '' : '−') + formatNumber(balance);
-  document.getElementById('dashBalanceTrend').textContent = monthBalance >= 0 ? `↑ +${formatCurrency(monthBalance)} в этом месяце` : `↓ −${formatCurrency(Math.abs(monthBalance))} в этом месяце`;
-  document.getElementById('dashIncome').textContent = formatCurrency(monthIncome);
-  document.getElementById('dashExpense').textContent = formatCurrency(monthExpense);
-  document.getElementById('dashToday').textContent = formatCurrency(todaySum);
-  document.getElementById('dashWeek').textContent = formatCurrency(weekSum);
+  document.getElementById('dashBalance').textContent = (balance >= 0 ? ' ' : '−') + formatNumber(balance);
+  document.getElementById('dashBalanceTrend').textContent = monthBalance >= 0 ? `[+] +${formatCurrency(monthBalance)} MTD` : `[-] -${formatCurrency(Math.abs(monthBalance))} MTD`;
+  document.getElementById('dashIncome').textContent = '+' + formatCurrency(monthIncome);
+  document.getElementById('dashExpense').textContent = '-' + formatCurrency(monthExpense);
+  document.getElementById('dashToday').textContent = '-' + formatCurrency(todaySum);
+  document.getElementById('dashWeek').textContent = '-' + formatCurrency(weekSum);
 
   renderDoughnutChart(transactions);
   renderLineChart();
@@ -1143,23 +1208,22 @@ function renderDoughnutChart(allTx) {
   const entries = Object.entries(expenseByCat).sort((a, b) => b[1] - a[1]);
   const labels = entries.map(([cat]) => catName(cat));
   const data = entries.map(([, sum]) => sum);
-  // Warm-minimal palette: terracotta family for expenses (gradient depth by share)
-  const terraFamily = ['#B85C3E','#A04B30','#8E3D26','#C97B5C','#7A331E','#D89780','#E5B3A0','#6B2C1A','#C26647','#93412C','#A85544','#B96A4E','#8C3520','#D88567','#5F2616','#A04535'];
-  const colors = terraFamily;
+  // Terminal palette: shades of amber, only 8 levels (no rainbow)
+  const colors = ['#FFB000','#FFD24D','#B37700','#CC8800','#7A5200','#FFA000','#E09900','#3D2900'];
 
   doughnutChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels,
-      datasets: [{ data, backgroundColor: colors.slice(0, data.length), borderColor: '#F5F1E8', borderWidth: 3, hoverBorderColor: '#E8E0CE', hoverOffset: 6 }]
+      datasets: [{ data, backgroundColor: colors.slice(0, data.length), borderColor: '#0A0A0A', borderWidth: 2, hoverOffset: 6 }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: '62%',
+      cutout: '60%',
       plugins: {
-        legend: { display: true, position: 'bottom', labels: { color: '#6B6259', padding: 12, font: { size: 11, family: 'Inter' }, usePointStyle: true, pointStyleWidth: 8, boxWidth: 8, boxHeight: 8 } },
-        tooltip: { backgroundColor: '#2A2520', titleColor: '#F5F1E8', bodyColor: '#EFE9DB', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+        legend: { display: true, position: 'bottom', labels: { color: '#FFB000', padding: 10, font: { size: 10, family: 'JetBrains Mono' }, usePointStyle: true, pointStyle: 'rect', pointStyleWidth: 10, boxWidth: 10, boxHeight: 10 } },
+        tooltip: { backgroundColor: '#0A0A0A', titleColor: '#FFB000', bodyColor: '#FFD24D', borderColor: '#FFB000', borderWidth: 1, padding: 8, cornerRadius: 0, titleFont: { family: 'JetBrains Mono', weight: '700' }, bodyFont: { family: 'JetBrains Mono' }, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
       }
     }
   });
@@ -1204,18 +1268,19 @@ function renderLineChart() {
     data: {
       labels: days,
       datasets: [{
-        label: 'Баланс',
+        label: 'BAL',
         data: balances,
-        borderColor: '#2D4A3E',
-        backgroundColor: 'rgba(45,74,62,0.08)',
+        borderColor: '#FFB000',
+        backgroundColor: 'rgba(255,176,0,0.10)',
         fill: true,
-        tension: 0.4,
+        tension: 0,
+        stepped: 'before',
         pointRadius: 0,
-        pointHoverRadius: 5,
-        pointHoverBackgroundColor: '#2D4A3E',
-        pointHoverBorderColor: '#F5F1E8',
-        pointHoverBorderWidth: 2,
-        borderWidth: 2,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: '#FFD24D',
+        pointHoverBorderColor: '#FFB000',
+        pointHoverBorderWidth: 1,
+        borderWidth: 1.5,
       }]
     },
     options: {
@@ -1223,11 +1288,11 @@ function renderLineChart() {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { backgroundColor: '#2A2520', titleColor: '#F5F1E8', bodyColor: '#EFE9DB', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${formatCurrency(ctx.raw)}` } }
+        tooltip: { backgroundColor: '#0A0A0A', titleColor: '#FFB000', bodyColor: '#FFD24D', borderColor: '#FFB000', borderWidth: 1, padding: 8, cornerRadius: 0, titleFont: { family: 'JetBrains Mono', weight: '700' }, bodyFont: { family: 'JetBrains Mono' }, callbacks: { label: ctx => ` BAL: ${formatCurrency(ctx.raw)}` } }
       },
       scales: {
-        x: { grid: { display: false }, border: { color: '#E0D7C2' }, ticks: { color: '#9C9285', maxTicksLimit: 7, font: { size: 10, family: 'Inter' } } },
-        y: { grid: { color: 'rgba(224,215,194,0.5)' }, border: { display: false }, ticks: { color: '#9C9285', font: { size: 10, family: 'Inter' }, callback: v => Math.round(v/1000) + 'k' } }
+        x: { grid: { color: 'rgba(255,176,0,0.08)' }, border: { color: '#FFB000' }, ticks: { color: '#B37700', maxTicksLimit: 7, font: { size: 9, family: 'JetBrains Mono' } } },
+        y: { grid: { color: 'rgba(255,176,0,0.08)' }, border: { color: '#FFB000' }, ticks: { color: '#B37700', font: { size: 9, family: 'JetBrains Mono' }, callback: v => Math.round(v/1000) + 'k' } }
       },
       interaction: { intersect: false, mode: 'index' }
     }
@@ -1247,35 +1312,39 @@ function renderHistory() {
   if (dateFrom) filtered = filtered.filter(t => new Date(t.createdAt) >= new Date(dateFrom + 'T00:00:00'));
   if (dateTo) filtered = filtered.filter(t => new Date(t.createdAt) <= new Date(dateTo + 'T23:59:59'));
   if (search) filtered = filtered.filter(t => String(t.comment || '').toLowerCase().includes(search));
-
   const container = document.getElementById('historyList');
   if (filtered.length === 0) {
-    container.innerHTML = '<div style="text-align: center; padding: 3rem 1rem; color: var(--ink-mute); font-family: Fraunces, serif; font-style: italic">Нет записей</div>';
+    container.innerHTML = '<div style="text-align: center; padding: 2.5rem 1rem; color: var(--amber-dim); font-family: JetBrains Mono, monospace; font-size: 11px">&gt; NO_RECORDS_FOUND</div>';
     return;
   }
-  container.innerHTML = filtered.map(t => `
-    <div class="paper-card" style="padding: 0.9rem 1.1rem; display: flex; align-items: center; gap: 0.85rem; transition: transform 0.15s, box-shadow 0.15s" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='none';this.style.boxShadow='var(--shadow-sm)'">
-      <div style="font-size: 22px; width: 36px; text-align: center; flex-shrink: 0">${escapeHtml(catEmoji(t.category))}</div>
-      <div style="flex: 1; min-width: 0">
-        <p style="font-size: 14px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Fraunces', serif; font-variation-settings: 'wght' 500, 'opsz' 36">${escapeHtml(catName(t.category))}</p>
-        <p style="font-size: 12px; color: var(--ink-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(t.comment || '—')}</p>
-        <p style="font-size: 11px; color: var(--ink-mute); font-family: 'Fraunces', serif; font-style: italic; margin-top: 2px">${formatDate(t.createdAt)}</p>
+  container.innerHTML = filtered.map(t => {
+    const sign = t.type === 'income' ? '+' : '-';
+    const color = t.type === 'income' ? 'var(--mint)' : 'var(--crimson)';
+    const prefix = t.type === 'income' ? '[+]' : '[-]';
+    return `
+    <div class="term-panel" style="padding: 0.6rem 0.75rem; display: flex; align-items: center; gap: 0.6rem; transition: border-color 0.1s" onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='var(--term-4)'">
+      <span style="color: ${color}; font-weight: 700; font-size: 12px; min-width: 26px">${prefix}</span>
+      <div style="flex: 1; min-width: 0; overflow: hidden">
+        <p style="font-size: 12px; color: var(--amber); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500">${escapeHtml(catName(t.category))}</p>
+        <p style="font-size: 11px; color: var(--amber-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px">${escapeHtml(t.comment || '—') || '—'}</p>
+        <p style="font-size: 10px; color: var(--amber-dim); margin-top: 2px; opacity: 0.8">&gt; ${formatDate(t.createdAt)}</p>
       </div>
       <div style="text-align: right; flex-shrink: 0">
-        <p class="num-medium" style="font-size: 16px; color: ${t.type === 'income' ? 'var(--forest)' : 'var(--terra)'}">${t.type === 'income' ? '+' : '−'}${formatCurrency(t.amount)}</p>
-        <button data-delete-transaction="${escapeHtml(t.id)}" style="font-size: 11px; color: var(--ink-mute); background: transparent; border: none; cursor: pointer; margin-top: 4px; padding: 2px 4px">Удалить</button>
+        <p class="mono" style="font-size: 14px; color: ${color}; font-weight: 600">${sign}${formatCurrency(t.amount)}</p>
+        <button data-delete-transaction="${escapeHtml(t.id)}" style="font: 500 9px 'JetBrains Mono', monospace; color: var(--amber-dim); background: transparent; border: none; cursor: pointer; margin-top: 2px; padding: 0 2px; text-transform: uppercase; letter-spacing: 0.05em">[ DEL ]</button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function populateHistoryCategoryFilter() {
   const sel = document.getElementById('histCategory');
-  sel.innerHTML = '<option value="all">Все категории</option>';
+  sel.innerHTML = '<option value="all">[ ALL_CATS ]</option>';
   getAllCats().forEach(c => {
     const opt = document.createElement('option');
     opt.value = c.id;
-    opt.textContent = c.emoji + ' ' + c.name;
+    opt.textContent = c.name.toUpperCase();
     sel.appendChild(opt);
   });
 }
@@ -1395,20 +1464,20 @@ function renderBarChart(rangeTx, from, to) {
     data: {
       labels,
       datasets: [
-        { label: 'Доходы', data: incomeData, backgroundColor: '#2D4A3E', borderRadius: 6, borderSkipped: false, maxBarThickness: 28 },
-        { label: 'Расходы', data: expenseData, backgroundColor: '#B85C3E', borderRadius: 6, borderSkipped: false, maxBarThickness: 28 },
+        { label: '[+]', data: incomeData, backgroundColor: '#00FFD1', borderRadius: 0, borderSkipped: false, maxBarThickness: 30, borderColor: '#00FFD1', borderWidth: { top: 1, right: 1, left: 1, bottom: 0 } },
+        { label: '[-]', data: expenseData, backgroundColor: '#FF3030', borderRadius: 0, borderSkipped: false, maxBarThickness: 30, borderColor: '#FF3030', borderWidth: { top: 1, right: 1, left: 1, bottom: 0 } },
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'bottom', labels: { color: '#6B6259', padding: 16, font: { size: 11, family: 'Inter' }, usePointStyle: true, pointStyle: 'circle' } },
-        tooltip: { backgroundColor: '#2A2520', titleColor: '#F5F1E8', bodyColor: '#EFE9DB', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` } }
+        legend: { position: 'bottom', labels: { color: '#FFB000', padding: 14, font: { size: 11, family: 'JetBrains Mono' }, usePointStyle: true, pointStyle: 'rect' } },
+        tooltip: { backgroundColor: '#0A0A0A', titleColor: '#FFB000', bodyColor: '#FFD24D', borderColor: '#FFB000', borderWidth: 1, padding: 8, cornerRadius: 0, titleFont: { family: 'JetBrains Mono', weight: '700' }, bodyFont: { family: 'JetBrains Mono' }, callbacks: { label: ctx => ` ${ctx.dataset.label} ${formatCurrency(ctx.raw)}` } }
       },
       scales: {
-        x: { stacked: false, grid: { display: false }, border: { color: '#E0D7C2' }, ticks: { color: '#9C9285', font: { size: 10, family: 'Inter' }, maxTicksLimit: 12 } },
-        y: { stacked: false, grid: { color: 'rgba(224,215,194,0.5)' }, border: { display: false }, ticks: { color: '#9C9285', font: { size: 10, family: 'Inter' }, callback: v => Math.round(v/1000) + 'k' } }
+        x: { stacked: false, grid: { display: false }, border: { color: '#FFB000' }, ticks: { color: '#B37700', font: { size: 9, family: 'JetBrains Mono' }, maxTicksLimit: 12 } },
+        y: { stacked: false, grid: { color: 'rgba(255,176,0,0.08)' }, border: { color: '#FFB000' }, ticks: { color: '#B37700', font: { size: 9, family: 'JetBrains Mono' }, callback: v => Math.round(v/1000) + 'k' } }
       },
       interaction: { intersect: false, mode: 'index' }
     }
@@ -1425,19 +1494,18 @@ if (!ctx) return;
   const byCat = {};
   rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  console.log('Anal Expense doughnut:', { categories: entries.map(([id, sum]) => ({ id, sum, display: catName(id) })) });
-  const colors = ['#B85C3E','#A04B30','#8E3D26','#C97B5C','#7A331E','#D89780','#E5B3A0','#6B2C1A','#C26647','#93412C','#A85544','#B96A4E','#8C3520','#D88567','#5F2616','#A04535'];
+  const colors = ['#FFB000','#FFD24D','#B37700','#CC8800','#7A5200','#FFA000','#E09900','#3D2900'];
   analDoughnutExpenseInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: entries.map(([cat]) => catName(cat)),
-      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#F5F1E8', borderWidth: 2, hoverOffset: 6 }]
+      labels: entries.map(([cat]) => catName(cat).toUpperCase()),
+      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#0A0A0A', borderWidth: 2, hoverOffset: 6 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '64%',
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
       plugins: {
-        legend: { position: 'bottom', labels: { color: '#6B6259', padding: 8, font: { size: 10, family: 'Inter' }, usePointStyle: true } },
-        tooltip: { backgroundColor: '#2A2520', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleColor: '#F5F1E8', bodyColor: '#EFE9DB', titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+        legend: { position: 'bottom', labels: { color: '#FFB000', padding: 8, font: { size: 10, family: 'JetBrains Mono' }, usePointStyle: true, pointStyle: 'rect' } },
+        tooltip: { backgroundColor: '#0A0A0A', borderColor: '#FFB000', borderWidth: 1, padding: 8, cornerRadius: 0, titleColor: '#FFB000', bodyColor: '#FFD24D', titleFont: { family: 'JetBrains Mono', weight: '700' }, bodyFont: { family: 'JetBrains Mono' }, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
       }
     }
   });
@@ -1453,18 +1521,18 @@ if (!ctx) return;
   const byCat = {};
   rangeTx.filter(t => t.type === 'income').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const colors = ['#2D4A3E','#3D6B5A','#1F3A2F','#5A8870','#7DA88F','#173024','#4A7D6A','#92B8A5','#264A3D','#3F5F52'];
+  const colors = ['#00FFD1','#00C8A8','#008F7E','#1AE5C5','#3DEAD0','#00A88F','#7AFFE3','#006B5C'];
   analDoughnutIncomeInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: entries.map(([cat]) => catName(cat)),
-      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#F5F1E8', borderWidth: 2, hoverOffset: 6 }]
+      labels: entries.map(([cat]) => catName(cat).toUpperCase()),
+      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#0A0A0A', borderWidth: 2, hoverOffset: 6 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '64%',
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
       plugins: {
-        legend: { position: 'bottom', labels: { color: '#6B6259', padding: 8, font: { size: 10, family: 'Inter' }, usePointStyle: true } },
-        tooltip: { backgroundColor: '#2A2520', borderColor: '#6B6259', borderWidth: 1, padding: 10, cornerRadius: 8, titleColor: '#F5F1E8', bodyColor: '#EFE9DB', titleFont: { family: 'Fraunces', weight: '600' }, bodyFont: { family: 'Inter' }, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+        legend: { position: 'bottom', labels: { color: '#FFB000', padding: 8, font: { size: 10, family: 'JetBrains Mono' }, usePointStyle: true, pointStyle: 'rect' } },
+        tooltip: { backgroundColor: '#0A0A0A', borderColor: '#00FFD1', borderWidth: 1, padding: 8, cornerRadius: 0, titleColor: '#00FFD1', bodyColor: '#FFD24D', titleFont: { family: 'JetBrains Mono', weight: '700' }, bodyFont: { family: 'JetBrains Mono' }, callbacks: { label: ctx => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
       }
     }
   });
@@ -1473,26 +1541,29 @@ if (!ctx) return;
 function renderTop5(rangeTx) {
   const byCat = {};
   rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
-  document.getElementById('top5List').innerHTML = sorted.map(([cat, sum]) => `
-    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0">
-      <span style="font-size: 18px; width: 28px; text-align: center">${escapeHtml(catEmoji(cat))}</span>
-      <span style="flex: 1; font-size: 14px; color: var(--ink)">${escapeHtml(catById(cat)?.name || cat)}</span>
-      <span class="num-medium" style="font-size: 14px; color: var(--terra)">${formatCurrency(sum)}</span>
-      <div style="width: 6rem; background: var(--paper-line); border-radius: 999px; height: 4px; overflow: hidden"><div style="height: 100%; background: var(--terra); border-radius: 999px; transition: width 0.5s ease; width:${(sum/max*100).toFixed(0)}%"></div></div>
-    </div>
-  `).join('') || '<p style="color: var(--ink-mute); font-size: 14px; font-style: italic">Нет данных</p>';
+  const sorted = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const max = sorted.length > 0 ? sorted[0][1] : 1;
+  const bar = (pct) => '█'.repeat(Math.round(pct / 5)) + '░'.repeat(20 - Math.round(pct / 5));
+  document.getElementById('top5List').innerHTML = sorted.map(([cat, sum]) => {
+    const pct = sum / max * 100;
+    const name = (catById(cat)?.name || cat).toUpperCase();
+    return `<div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--amber); line-height: 1.5; padding: 4px 0">
+      <div style="display: flex; justify-content: space-between; gap: 0.5rem; margin-bottom: 2px"><span style="color: var(--amber-bright)">${escapeHtml(name)}</span><span style="color: var(--crimson)">-${formatCurrency(sum)}</span></div>
+      <div class="ascii-bar">[${bar(pct)}] ${pct.toFixed(0).padStart(3, ' ')}%</div>
+    </div>`;
+  }).join('') || '<div style="color: var(--amber-dim); font-size: 11px">&gt; NO_DATA</div>';
 }
 
 document.querySelectorAll('.period-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.period-btn').forEach(b => {
-      b.style.background = 'var(--paper-card)';
-      b.style.color = 'var(--ink-soft)';
-      b.style.borderColor = 'var(--paper-line)';
+      b.style.background = 'var(--term-2)';
+      b.style.color = 'var(--amber-dim)';
+      b.style.borderColor = 'var(--amber-dim)';
     });
-    btn.style.background = 'var(--forest)';
-    btn.style.color = 'var(--paper)';
-    btn.style.borderColor = 'var(--forest)';
+    btn.style.background = 'var(--amber)';
+    btn.style.color = 'var(--term)';
+    btn.style.borderColor = 'var(--amber)';
     currentPeriod = btn.dataset.period;
     renderAnalytics();
   });
@@ -1510,29 +1581,28 @@ function renderBudgets() {
 
   const container = document.getElementById('budgetList');
   if (budgets.length === 0) {
-    container.innerHTML = '<div style="text-align: center; padding: 3rem 1rem; color: var(--ink-mute); font-family: Fraunces, serif; font-style: italic">Бюджеты не установлены</div>';
+    container.innerHTML = '<div style="text-align: center; padding: 2.5rem 1rem; color: var(--amber-dim); font-family: JetBrains Mono, monospace; font-size: 11px">&gt; NO_BUDGETS_DEFINED</div>';
     return;
   }
+  const bar = (pct, w) => '█'.repeat(Math.round(pct / 100 * w)) + '░'.repeat(w - Math.round(pct / 100 * w));
   container.innerHTML = budgets.map(b => {
     const spent = spentByCat[b.category] || 0;
     const pct = Math.min(100, Math.round(spent / b.limit * 100));
     const over = spent > b.limit;
-    return `
-      <div class="paper-card" style="padding: 1.1rem 1.25rem; border-color: ${over ? 'rgba(184,92,62,0.45)' : 'var(--paper-line)'}">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem">
-          <span style="font-size: 14px; font-weight: 600; color: var(--ink); font-family: 'Fraunces', serif; font-variation-settings: 'wght' 500, 'opsz' 36">${escapeHtml(catName(b.category))}</span>
-          <button data-delete-budget="${escapeHtml(b.category)}" style="background: transparent; border: none; color: var(--ink-mute); font-size: 16px; cursor: pointer; padding: 0 4px">✕</button>
+    const fillColor = over ? 'var(--crimson)' : pct > 80 ? 'var(--amber-bright)' : 'var(--mint)';
+    const name = (catById(b.category)?.name || b.category).toUpperCase();
+    return `<div class="term-panel" style="padding: 0.75rem 0.85rem; border-color: ${over ? 'var(--crimson)' : 'var(--term-4)'}">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem">
+          <span style="font: 600 12px 'JetBrains Mono', monospace; color: var(--amber); letter-spacing: 0.04em">&gt; ${escapeHtml(name)}</span>
+          <button data-delete-budget="${escapeHtml(b.category)}" style="font: 600 9px 'JetBrains Mono', monospace; color: var(--amber-dim); background: transparent; border: 1px solid var(--amber-dim); padding: 1px 5px; cursor: pointer; text-transform: uppercase">[ DEL ]</button>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-soft); margin-bottom: 0.5rem; font-family: 'Fraunces', serif">
-          <span style="font-variation-settings: 'wght' 500, 'opsz' 36">${formatCurrency(spent)}</span>
-          <span style="font-style: italic">из ${formatCurrency(b.limit)}</span>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--amber-dim); margin-bottom: 0.3rem; font-family: 'JetBrains Mono', monospace">
+          <span style="color: ${fillColor}">SPENT: ${formatCurrency(spent)}</span>
+          <span>LIMIT: ${formatCurrency(b.limit)}</span>
         </div>
-        <div style="width: 100%; background: var(--paper-line); border-radius: 999px; height: 5px; overflow: hidden">
-          <div style="height: 100%; border-radius: 999px; transition: width 0.5s ease; background: ${over ? 'var(--terra)' : pct > 80 ? '#C8A951' : 'var(--forest)'}; width:${pct}%"></div>
-        </div>
-        <p style="font-size: 12px; margin-top: 0.5rem; color: ${over ? 'var(--terra)' : 'var(--ink-mute)'}; ${over ? 'font-weight: 600' : ''}">${over ? '⚠ Превышен на ' + formatCurrency(spent - b.limit) : pct + '% использовано'}</p>
-      </div>
-    `;
+        <div class="ascii-bar" style="color: ${fillColor}">[${bar(pct, 30)}] ${String(pct).padStart(3, ' ')}%</div>
+        ${over ? `<div style="font: 600 10px 'JetBrains Mono', monospace; color: var(--crimson); margin-top: 0.4rem; letter-spacing: 0.05em">! OVERRUN BY ${formatCurrency(spent - b.limit)}</div>` : ''}
+      </div>`;
   }).join('');
 }
 
@@ -1544,7 +1614,7 @@ function showAddBudget() {
     if (!exists) {
       const opt = document.createElement('option');
       opt.value = c.id;
-      opt.textContent = c.emoji + ' ' + c.name;
+      opt.textContent = c.name.toUpperCase();
       sel.appendChild(opt);
     }
   });
@@ -1579,14 +1649,16 @@ document.getElementById('budgetList').addEventListener('click', event => {
 function renderSettings() {
   const incList = document.getElementById('settingsIncomeList');
   const expList = document.getElementById('settingsExpenseList');
-  const row = (c) => `
-    <div style="display: flex; align-items: center; gap: 0.85rem; padding: 0.7rem 0.9rem; background: var(--paper-card); border: 1px solid var(--paper-line); border-radius: 12px; transition: border-color 0.18s" onmouseover="this.style.borderColor='var(--ink-mute)'" onmouseout="this.style.borderColor='var(--paper-line)'">
-      <span style="font-size: 18px; width: 26px; text-align: center; flex-shrink: 0">${escapeHtml(c.emoji)}</span>
-      <span style="flex: 1; font-size: 14px; color: var(--ink); font-family: 'Fraunces', serif; font-variation-settings: 'wght' 500, 'opsz' 36">${escapeHtml(c.name)}</span>
-      <span style="font-size: 10px; color: var(--ink-mute); letter-spacing: 0.04em; text-transform: uppercase">${c.id.startsWith('custom_') ? 'своя' : 'сист.'}</span>
-      ${c.id.startsWith('custom_') ? `<button data-delete-category="${escapeHtml(c.id)}" style="background: transparent; border: none; color: var(--ink-mute); font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1">✕</button>` : ''}
-    </div>
-  `;
+  const row = (c) => {
+    const isCustom = c.id.startsWith('custom_');
+    const tag = isCustom ? '[USER]' : '[SYS]';
+    return `<div style="display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem; background: var(--term-2); border: 1px solid var(--term-4); transition: border-color 0.1s" onmouseover="this.style.borderColor='var(--amber-dim)'" onmouseout="this.style.borderColor='var(--term-4)'">
+      <span style="color: var(--amber-dim); font: 600 10px 'JetBrains Mono', monospace; letter-spacing: 0.05em">${tag}</span>
+      <span style="font-size: 16px; width: 22px; text-align: center; flex-shrink: 0">${escapeHtml(c.emoji)}</span>
+      <span style="flex: 1; font: 500 13px 'JetBrains Mono', monospace; color: var(--amber-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(c.name)}</span>
+      ${isCustom ? `<button data-delete-category="${escapeHtml(c.id)}" style="font: 600 10px 'JetBrains Mono', monospace; color: var(--crimson); background: transparent; border: 1px solid var(--crimson); padding: 1px 5px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em">[ X ]</button>` : '<span style="color: var(--amber-dim); font-size: 10px">·</span>'}
+    </div>`;
+  };
   incList.innerHTML = CATEGORIES.income.map(row).join('');
   expList.innerHTML = CATEGORIES.expense.map(row).join('');
   renderDiagnostics();
@@ -1595,7 +1667,7 @@ function renderSettings() {
 let pendingCatType = 'income';
 function showAddCatModal(type) {
   pendingCatType = type;
-  document.getElementById('catModalTitle').textContent = type === 'income' ? 'Новая категория дохода' : 'Новая категория расхода';
+  document.getElementById('catModalTitle').textContent = type === 'income' ? '&gt; NEW_INCOME_CAT' : '&gt; NEW_EXPENSE_CAT';
   document.getElementById('catNameInput').value = '';
   document.getElementById('catEmojiInput').value = '';
   openModal('catModal');
@@ -1834,7 +1906,7 @@ function autoPushGist() {
       }
     });
 }
-const BUILD_VERSION = '2026-08-17-r6';
+const BUILD_VERSION = '2026-08-17-r7';
 function diagSnapshot() {
   const localCats = readStoredJson(STORAGE_KEYS.categories);
   const incCount = Array.isArray(localCats && localCats.income) ? localCats.income.length : 0;
@@ -2037,8 +2109,8 @@ diagLog('beforeinstallprompt: ' + ('BeforeInstallPromptEvent' in window ? 'suppo
 // ==================== PWA Install Button ====================
 let deferredPrompt = null;
 const installBtn = document.createElement('button');
-installBtn.textContent = 'Установить';
-installBtn.style.cssText = 'position:fixed;top:14px;right:14px;z-index:800;background:var(--forest);color:var(--paper);border:1px solid var(--forest);border-radius:999px;padding:8px 16px;font-size:12px;font-weight:600;font-family:Inter,sans-serif;letter-spacing:0.02em;cursor:pointer;display:none;box-shadow:0 4px 14px rgba(45,74,62,0.25)';
+installBtn.textContent = '[ INSTALL_PWA ]';
+installBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:800;background:var(--amber);color:var(--term);border:1px solid var(--amber);font:700 10px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:0.1em;padding:6px 10px;cursor:pointer;display:none';
 installBtn.onclick = function() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
@@ -2098,8 +2170,8 @@ restoreCustomCategoriesFromCloud().then(restored => {
 });
 
 var periodBtn = document.querySelector('[data-period="all"]');
-if (periodBtn) { periodBtn.style.background = 'var(--forest)'; periodBtn.style.color = 'var(--paper)'; periodBtn.style.borderColor = 'var(--forest)'; }
-console.log('%c[Finance Tracker] build: ' + BUILD_VERSION, 'color:#2D4A3E;font-weight:bold;font-family:Georgia,serif');
+if (periodBtn) { periodBtn.style.background = 'var(--amber)'; periodBtn.style.color = 'var(--term)'; periodBtn.style.borderColor = 'var(--amber)'; }
+console.log('%c[Finance Tracker] build: ' + BUILD_VERSION + ' // 1987', 'color:#FFB000;font-weight:bold;font-family:JetBrains Mono,monospace');
 renderDiagnostics();
 </script>
 </body>
