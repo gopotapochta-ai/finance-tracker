@@ -259,16 +259,101 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
     .sm\:border { border-width: 1px; border-style: solid; }
     .sm\:rounded-2xl { border-radius: 0; }
   }
+  /* ========== CRT 1987 EXTRAS ========== */
+  /* Chromatic aberration on big display numbers — RGB split. */
+  .display-num {
+    font-family: 'Major Mono Display', 'JetBrains Mono', monospace;
+    font-feature-settings: "tnum" 1, "zero" 1;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 4px rgba(255,176,0,0.45), 0 0 12px rgba(255,176,0,0.18),
+                 -1.5px 0 0 rgba(0,255,209,0.55),
+                 1.5px 0 0 rgba(255,48,48,0.55);
+  }
+  /* CRT flicker — barely visible, emulates phosphor refresh jitter. */
+  @keyframes crtFlicker {
+    0%, 100% { opacity: 1; }
+    4% { opacity: 0.93; }
+    6% { opacity: 1; }
+    47% { opacity: 0.97; }
+    49% { opacity: 1; }
+    72% { opacity: 0.95; }
+    74% { opacity: 1; }
+  }
+  body { animation: crtFlicker 9.3s steps(1) infinite; }
+  /* ASCII frame corners on amber panels. */
+  .term-panel-amber {
+    border: 1px solid var(--amber-dim);
+    background: var(--term-2);
+    position: relative;
+  }
+  .term-panel-amber::before,
+  .term-panel-amber::after {
+    content: '+';
+    position: absolute;
+    color: var(--amber);
+    font: 700 11px 'JetBrains Mono', monospace;
+    line-height: 1;
+  }
+  .term-panel-amber::before { top: -1px; left: -1px; padding: 1px 3px 0 3px; }
+  .term-panel-amber::after  { bottom: -1px; right: -1px; padding: 0 3px 1px 3px; }
+  /* Directory-tree row markers. */
+  .tree-row {
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.7rem;
+    background: var(--term-2);
+    border: 1px solid var(--term-4);
+    transition: border-color 0.1s steps(2);
+  }
+  .tree-row:hover { border-color: var(--amber-dim); }
+  .tree-row .tree-mark { color: var(--amber-dim); font-weight: 600; flex-shrink: 0; width: 1.2em; text-align: center; }
+  .tree-row .tree-tag  { color: var(--amber-dim); font: 600 10px 'JetBrains Mono', monospace; letter-spacing: 0.05em; flex-shrink: 0; }
+  .tree-row .tree-emo  { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+  .tree-row .tree-name { flex: 1; font: 500 13px 'JetBrains Mono', monospace; color: var(--amber-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tree-row .tree-act  { font: 600 10px 'JetBrains Mono', monospace; color: var(--crimson); background: transparent; border: 1px solid var(--crimson); padding: 1px 5px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; }
+  .tree-row .tree-dim   { color: var(--amber-dim); font-size: 10px; flex-shrink: 0; }
+  /* Boot sequence overlay. */
+  #bootOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--term);
+    color: var(--amber);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    transition: opacity 0.35s steps(4);
+  }
+  #bootOverlay.boot-out { opacity: 0; pointer-events: none; }
+  #bootOverlay .boot-pre {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--amber);
+    text-align: left;
+    white-space: pre;
+    padding: 16px;
+  }
+  #bootOverlay .boot-line { display: block; }
+  #bootOverlay .boot-ok   { color: var(--mint); }
+  #bootOverlay .boot-title { color: var(--amber-bright); font-weight: 700; letter-spacing: 0.15em; }
+  #bootOverlay .boot-dim  { color: var(--amber-dim); }
+  #bootOverlay .boot-cursor {
+    display: inline-block;
+    width: 0.5em;
+    background: var(--amber-bright);
+    animation: blink 1.05s steps(1) infinite;
+    margin-left: 2px;
+    color: transparent;
+  }
   /* ========== TERMINAL PRIMITIVES ========== */
   .term-panel {
     border: 1px solid var(--term-4);
     background: var(--term-2);
     padding: 0.875rem 1rem;
     position: relative;
-  }
-  .term-panel-amber {
-    border: 1px solid var(--amber-dim);
-    background: var(--term-2);
   }
   .ascii-rule { color: var(--amber-dim); letter-spacing: -0.05em; user-select: none; }
   .field {
@@ -480,27 +565,39 @@ if (typeof tailwind !== 'undefined') tailwind.config = {
   .term-install:focus { outline: none; }
 </style>
 </head>
-<body class="bg-bg text-gray-200 min-h-screen" data-build="2026-08-17-r7" style="cursor: text">
+<body class="bg-bg text-gray-200 min-h-screen" data-build="2026-08-17-r8" style="cursor: text">
 <!-- Always-visible build stamp -->
-<div id="buildBadge" style="position:fixed;left:8px;bottom:8px;z-index:9999;font:600 9px/1 ui-monospace,monospace;color:#FFB000;background:rgba(10,10,10,0.85);border:1px solid #FFB000;padding:4px 6px;pointer-events:none;letter-spacing:0.08em">[BUILD r7]</div>
-<script>document.body.setAttribute('data-build', '2026-08-17-r7'); document.getElementById('buildBadge').textContent = '[BUILD r7]';</script>
+<div id="buildBadge" style="position:fixed;left:8px;bottom:8px;z-index:9999;font:600 9px/1 ui-monospace,monospace;color:#FFB000;background:rgba(10,10,10,0.85);border:1px solid #FFB000;padding:4px 6px;pointer-events:none;letter-spacing:0.08em">[BUILD r8]</div>
+<script>document.body.setAttribute('data-build', '2026-08-17-r8'); document.getElementById('buildBadge').textContent = '[BUILD r8]'</script>
 
-<!-- ==================== TOAST ==================== -->
 <div id="toast" class="toast hidden"></div>
 
-<!-- ==================== STATUS BAR (HEADER) ==================== -->
+<div id="bootOverlay" aria-hidden="true"><pre class="boot-pre" id="bootPre"><span class="boot-line boot-title">FINANCE_TRACKER v1.0 // 1987</span>
+    <span class="boot-line boot-dim">COPYRIGHT (C) 1987 BAKUGAN SYSTEMS</span>
+    <span class="boot-line"></span>
+    <span class="boot-line">> INITIALIZING ROM............... <span class="boot-ok">[OK]</span></span>
+    <span class="boot-line">> LOADING FINANCE MODULES......... <span class="boot-ok">[OK]</span></span>
+    <span class="boot-line">> CONNECTING TO LEDGER........... <span class="boot-ok">[OK]</span></span>
+    <span class="boot-line">> VERIFYING CHECKSUM r8.......... <span class="boot-ok">[OK]</span></span>
+    <span class="boot-line"></span>
+    <span class="boot-line boot-title">READY<span class="boot-cursor">&nbsp;</span></span></pre></div>
+
+
+<!-- ===== STATUS BAR (HEADER) ===== -->
 <header class="sticky top-0 z-50 status-bar" style="background: var(--term); border-bottom: 1px solid var(--amber-dim)">
   <div class="max-w-5xl mx-auto" style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap">
-    <div style="display: flex; align-items: center; gap: 0.6rem">
-      <span style="color: var(--amber-bright)">●</span>
-      <span style="color: var(--amber-bright)">FINANCE_TRACKER</span>
-      <span style="color: var(--amber-dim)">v1.0</span>
-      <span style="color: var(--amber-dim)">// 1987</span>
+    <div style="display: flex; align-items: center; gap: 0.75rem">
+      <pre style="font: 700 11px/1.05 'JetBrains Mono', monospace; color: var(--amber-bright); margin: 0; letter-spacing: 0.02em">
+███▀▀▀▀ ▀█▀ ▄▀█ █▀▀
+█▀▀  █▄█ █▀█ █▄▄
+</pre>
+      <span style="color: var(--amber-dim); font-size: 10px; letter-spacing: 0.05em">v1.0 // 1987</span>
     </div>
-    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap">
+    <div style="display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap">
       <span style="color: var(--amber-dim)">USER: <span style="color: var(--amber)">bakugan</span></span>
       <span style="color: var(--amber-dim)">RATE: <span style="color: var(--mint)">1RUB=1RUB</span></span>
       <span id="headerDate" style="color: var(--amber-bright); font-variant-numeric: tabular-nums"></span>
+      <span id="headerTime" style="color: var(--amber); font-variant-numeric: tabular-nums; letter-spacing: 0.04em"></span>
       <span class="blink" style="color: var(--amber-bright)">█</span>
     </div>
   </div>
@@ -1126,7 +1223,7 @@ function switchScreen(name) {
   document.getElementById(name).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`[data-screen="${name}"]`).classList.add('active');
-  document.getElementById('screenTitle').textContent = titles[name];
+  const st = document.getElementById('screenTitle'); if (st) st.textContent = titles[name];
   if (name === 'history') renderHistory();
   if (name === 'analytics') renderAnalytics();
   if (name === 'budgets') renderBudgets();
@@ -1647,23 +1744,30 @@ document.getElementById('budgetList').addEventListener('click', event => {
 
 // ==================== SETTINGS / CATEGORIES ====================
 function renderSettings() {
-  const incList = document.getElementById('settingsIncomeList');
-  const expList = document.getElementById('settingsExpenseList');
-  const row = (c) => {
-    const isCustom = c.id.startsWith('custom_');
-    const tag = isCustom ? '[USER]' : '[SYS]';
-    return `<div style="display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem; background: var(--term-2); border: 1px solid var(--term-4); transition: border-color 0.1s" onmouseover="this.style.borderColor='var(--amber-dim)'" onmouseout="this.style.borderColor='var(--term-4)'">
-      <span style="color: var(--amber-dim); font: 600 10px 'JetBrains Mono', monospace; letter-spacing: 0.05em">${tag}</span>
-      <span style="font-size: 16px; width: 22px; text-align: center; flex-shrink: 0">${escapeHtml(c.emoji)}</span>
-      <span style="flex: 1; font: 500 13px 'JetBrains Mono', monospace; color: var(--amber-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(c.name)}</span>
-      ${isCustom ? `<button data-delete-category="${escapeHtml(c.id)}" style="font: 600 10px 'JetBrains Mono', monospace; color: var(--crimson); background: transparent; border: 1px solid var(--crimson); padding: 1px 5px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em">[ X ]</button>` : '<span style="color: var(--amber-dim); font-size: 10px">·</span>'}
-    </div>`;
+  var incList = document.getElementById("settingsIncomeList");
+  var expList = document.getElementById("settingsExpenseList");
+  var row = function(c, isLast) {
+    var isCustom = c.id.indexOf("custom_") === 0;
+    var branch = isLast ? "└─" : "├─";
+    var tag = isCustom ? "[USER]" : "[SYS]";
+    var actHtml = isCustom
+      ? '<button class="tree-act" data-delete-category="__ID__">[ X ]</button>'
+      : '<span class="tree-dim">·</span>';
+    actHtml = actHtml.replace("__ID__", escapeHtml(c.id));
+    return '<div class="tree-row"><span class="tree-mark">__B__</span><span class="tree-tag">__T__</span><span class="tree-emo">__E__</span><span class="tree-name">__N__</span>__A__</div>'
+      .replace("__B__", branch)
+      .replace("__T__", tag)
+      .replace("__E__", escapeHtml(c.emoji))
+      .replace("__N__", escapeHtml(c.name))
+      .replace("__A__", actHtml);
   };
-  incList.innerHTML = CATEGORIES.income.map(row).join('');
-  expList.innerHTML = CATEGORIES.expense.map(row).join('');
+  function renderList(arr) {
+    return arr.map(function(c, i) { return row(c, i === arr.length - 1); }).join("");
+  }
+  incList.innerHTML = renderList(CATEGORIES.income);
+  expList.innerHTML = renderList(CATEGORIES.expense);
   renderDiagnostics();
 }
-
 let pendingCatType = 'income';
 function showAddCatModal(type) {
   pendingCatType = type;
@@ -1906,8 +2010,9 @@ function autoPushGist() {
       }
     });
 }
-const BUILD_VERSION = '2026-08-17-r7';
+const BUILD_VERSION = '2026-08-17-r8';
 function diagSnapshot() {
+  const cfg = (typeof getSyncConfig === 'function') ? getSyncConfig() : { token: '', gistId: '' };
   const localCats = readStoredJson(STORAGE_KEYS.categories);
   const incCount = Array.isArray(localCats && localCats.income) ? localCats.income.length : 0;
   const expCount = Array.isArray(localCats && localCats.expense) ? localCats.expense.length : 0;
@@ -2036,6 +2141,33 @@ async function hardResetApp() {
 }
 
 // ==================== INIT ====================
+// ==================== BOOT SEQUENCE ====================
+(function bootSequence() {
+  var KEY = "boot_seen_2026-08-17-r8";
+  var overlay = document.getElementById("bootOverlay");
+  if (!overlay) return;
+  if (sessionStorage.getItem(KEY)) { overlay.remove(); return; }
+  document.body.style.overflow = "hidden";
+  var lines = overlay.querySelectorAll(".boot-line");
+  lines.forEach(function(l) { l.style.opacity = "0"; });
+  var i = 0;
+  function tick() {
+    if (i >= lines.length) {
+      setTimeout(function() {
+        overlay.classList.add("boot-out");
+        document.body.style.overflow = "";
+        sessionStorage.setItem(KEY, "1");
+        setTimeout(function() { overlay.remove(); }, 400);
+      }, 350);
+      return;
+    }
+    var line = lines[i++];
+    line.style.transition = "opacity 0.05s steps(2)";
+    line.style.opacity = "1";
+    setTimeout(tick, 110);
+  }
+  setTimeout(tick, 250);
+})();
 function refreshAll() {
   renderDashboard();
   if (document.getElementById('history').classList.contains('active')) renderHistory();
@@ -2046,8 +2178,17 @@ function refreshAll() {
 }
 
 function updateHeaderDate() {
-  document.getElementById('headerDate').textContent = new Date().toLocaleDateString('ru-RU', { weekday: 'short', day: '2-digit', month: 'long' });
+  document.getElementById("headerDate").textContent = new Date().toLocaleDateString("ru-RU", { weekday: "short", day: "2-digit", month: "long" });
 }
+function updateHeaderTime() {
+  var d = new Date();
+  var hh = String(d.getHours()).padStart(2, "0");
+  var mm = String(d.getMinutes()).padStart(2, "0");
+  var ss = String(d.getSeconds()).padStart(2, "0");
+  var sep = (d.getSeconds() % 2) ? " " : ":";
+  document.getElementById("headerTime").innerHTML = hh + sep + mm + sep + ss;
+}
+setInterval(updateHeaderTime, 1000);
 
 // ==================== PWA Service Worker ====================
 const diag = [];
