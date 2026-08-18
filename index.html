@@ -12,8 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
-<script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 /* =========================================================
      FINANCE — NOTEBOOK
@@ -1312,150 +1311,160 @@
   .nav-dot {{ display: none; }}
   .progress-bar {{ transition: width 0.4s ease; }}
 
-/* ===== LIVING MOLESKINE — animation layer ===== */
-
-/* Balance ink-write: SVG overlay sits absolutely over text */
-.balance-ink-wrap { position: relative; display: inline-block; }
-.balance-ink-wrap > svg {
-  position: absolute; inset: 0; pointer-events: none;
-  width: 100%; height: 100%; overflow: visible;
+/* ===== RECEIPT TAPE — static prototype ===== */
+body.receipt-tape {
+  --rt-stage: #151718;
+  --rt-stage-2: #1D2021;
+  --rt-paper: #ECEAE2;
+  --rt-paper-2: #E3E1D8;
+  --rt-ink: #17191A;
+  --rt-muted: #777A76;
+  --rt-rule: #B9BAB3;
+  --rt-cobalt: #255CFF;
+  --rt-vermilion: #D94F3D;
+  --rt-signal: #E6AE3D;
+  background: var(--rt-stage);
+  color: var(--rt-paper);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
 }
-.balance-ink-wrap > svg text {
-  fill: none; stroke: var(--terracotta); stroke-width: 1.4;
-  stroke-linecap: round; stroke-linejoin: round;
+body.receipt-tape::before,
+body.receipt-tape::after { display: none !important; }
+body.receipt-tape .app-header {
+  position: static;
+  padding: 22px 0 12px;
+  background: transparent;
+  border: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
+body.receipt-tape .container { max-width: 560px; padding-left: 16px; padding-right: 16px; }
+.rt-header-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.rt-wordmark { color: var(--rt-paper); font: 600 15px/1 "IBM Plex Sans Condensed", sans-serif; letter-spacing: 0.16em; }
+.rt-path { color: #777D7B; font: 400 10px/1 "IBM Plex Mono", monospace; letter-spacing: 0.04em; margin-left: 8px; }
+.rt-status { display: flex; align-items: baseline; gap: 8px; color: #777D7B; font-size: 10px; white-space: nowrap; }
+.rt-status-date { color: var(--rt-paper); }
+.rt-live { color: var(--rt-cobalt); letter-spacing: 0.04em; }
+body.receipt-tape .rt-main { padding-top: 18px; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+body.receipt-tape .screen.active { display: block !important; animation: none !important; }
+body.receipt-tape .rt-dashboard { display: block !important; }
+.rt-receipt { position: relative; max-width: 560px; margin: 0 auto; padding: 0 20px 20px; color: var(--rt-ink); background: var(--rt-paper); box-shadow: 0 22px 48px rgba(0,0,0,0.28); }
+.rt-receipt::before, .rt-receipt::after { content: ""; position: absolute; left: 0; right: 0; height: 8px; background: radial-gradient(circle at 5px 0, transparent 3px, var(--rt-paper) 3.5px) repeat-x; background-size: 10px 8px; pointer-events: none; }
+.rt-receipt::before { top: -7px; transform: rotate(180deg); }
+.rt-receipt::after { bottom: -7px; }
+.rt-receipt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-height: 46px; padding: 18px 0 12px; border-bottom: 1px dashed var(--rt-rule); font-size: 10px; letter-spacing: 0.05em; }
+.rt-receipt-code { color: var(--rt-muted); }
+.rt-receipt-status { color: var(--rt-cobalt); }
+.rt-hero { padding: 28px 0 24px; border-bottom: 1px solid var(--rt-ink); }
+.rt-label { color: var(--rt-muted); font: 600 10px/1.2 "IBM Plex Sans Condensed", sans-serif; letter-spacing: 0.16em; text-transform: uppercase; }
+.rt-balance-line { display: flex; align-items: baseline; gap: 8px; margin-top: 12px; white-space: nowrap; }
+.rt-balance-amount { font: 500 clamp(42px, 12vw, 72px)/0.94 "IBM Plex Mono", monospace; letter-spacing: -0.09em; font-feature-settings: "tnum" 1; }
+.rt-currency { color: var(--rt-vermilion); font: 600 24px/1 "IBM Plex Sans Condensed", sans-serif; }
+.rt-balance-trend { margin-top: 12px; color: var(--rt-cobalt); font-size: 12px; letter-spacing: 0.02em; }
+.rt-ledger-grid { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--rt-ink); }
+.rt-ledger-cell { padding: 16px 0 15px; }
+.rt-ledger-cell + .rt-ledger-cell { padding-left: 16px; border-left: 1px dashed var(--rt-rule); }
+.rt-ledger-value { margin-top: 8px; font: 500 18px/1 "IBM Plex Mono", monospace; letter-spacing: -0.04em; }
+.rt-income { color: var(--rt-cobalt); }
+.rt-expense { color: var(--rt-vermilion); }
+.rt-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 0 8px; }
+.rt-section-meta { color: var(--rt-muted); font-size: 9px; letter-spacing: 0.08em; }
+.rt-signal-chart { height: 132px; border-bottom: 1px dashed var(--rt-rule); }
+.rt-chart { position: relative; width: 100%; }
+.rt-chart canvas { display: block; width: 100% !important; height: 100% !important; }
+.rt-metrics { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--rt-ink); }
+.rt-metric { padding: 14px 0 15px; }
+.rt-metric + .rt-metric { padding-left: 16px; border-left: 1px dashed var(--rt-rule); }
+.rt-metric-value { display: block; margin-top: 7px; font-size: 14px; }
+.rt-activity-list { border-top: 1px solid var(--rt-ink); }
+.rt-activity-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: baseline; gap: 10px; padding: 11px 0; border-bottom: 1px dashed var(--rt-rule); font-size: 11px; }
+.rt-row-date { color: var(--rt-muted); font-size: 10px; }
+.rt-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rt-row-amount { font-size: 11px; white-space: nowrap; }
+.rt-empty { padding: 18px 0; color: var(--rt-muted); font-size: 11px; }
+.rt-spend { padding-bottom: 4px; }
+.rt-spend-chart { height: 168px; }
+.rt-add-entry { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 20px; padding: 13px 0; color: var(--rt-paper); background: var(--rt-ink); border: 0; border-radius: 0; font: 600 11px/1 "IBM Plex Mono", monospace; letter-spacing: 0.1em; text-align: left; cursor: pointer; }
+.rt-add-entry span { color: var(--rt-signal); font-size: 18px; line-height: 0.5; }
+.rt-add-entry:focus-visible { outline: 2px solid var(--rt-cobalt); outline-offset: 3px; }
+.rt-add-entry:active { background: #2A2E30; }
+.rt-finish { display: block; padding-top: 16px; color: var(--rt-muted); font-size: 9px; letter-spacing: 0.12em; text-align: center; }
+body.receipt-tape .bottom-nav { position: fixed; z-index: 50; right: 0; bottom: 0; left: 0; padding: 8px 16px calc(8px + env(safe-area-inset-bottom)); background: rgba(21,23,24,0.97); border-top: 1px solid #303435; box-shadow: none; }
+body.receipt-tape .bottom-nav-inner { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; max-width: 560px; margin: 0 auto; }
+body.receipt-tape .nav-pill { min-height: 32px; padding: 4px 2px; color: #777D7B; background: transparent !important; border: 0 !important; border-radius: 0; box-shadow: none !important; font: 500 9px/1.1 "IBM Plex Sans Condensed", sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+body.receipt-tape .nav-pill svg, body.receipt-tape .nav-pill .nav-dot { display: none; }
+body.receipt-tape .nav-pill.active { color: var(--rt-paper); }
+body.receipt-tape .nav-pill.active::before { content: "▰"; display: block; margin-bottom: 4px; color: var(--rt-cobalt); font-size: 8px; }
+body.receipt-tape .chart-fallback { padding: 24px 0; color: var(--rt-muted); font: 11px/1.5 "IBM Plex Mono", monospace; text-align: center; }
+@media (min-width: 720px) { body.receipt-tape .container { max-width: 600px; } body.receipt-tape .rt-receipt { padding-right: 28px; padding-left: 28px; } }
+@media (max-width: 420px) { .rt-path { display: none; } .rt-receipt { padding-right: 16px; padding-left: 16px; } .rt-balance-amount { font-size: clamp(38px, 11.5vw, 58px); } }
 
-/* FAB idle breath + tap spring baseline */
-.fab { will-change: transform; transform-origin: 50% 50%; }
-.fab.is-rotated { transform: rotate(45deg); }
-
-/* Modal 3D paper slide setup */
-.modal-overlay { perspective: 1200px; }
-.modal {
-  transform-style: preserve-3d;
-  will-change: transform, opacity;
-}
-
-/* Page-turn: out + in screens need 3D context.
-   When GSAP boots, it sets body.lm-ready which suppresses the CSS screenIn keyframe
-   so it doesn't fight with the JS-controlled rotateY. */
-.screen {
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-}
-body.lm-ready .screen.active { animation: none !important; }
-.screen.turning-out {
-  position: absolute; inset: 0;
-  transform-origin: left center;
-  will-change: transform, opacity;
-}
-.screen.turning-in {
-  transform-origin: left center;
-  will-change: transform, opacity;
-}
-
-/* Nav indicator — sliding pill */
-.bottom-nav-inner { position: relative; }
-.nav-indicator {
-  position: absolute;
-  top: 2px; bottom: 2px;
-  left: 2px;
-  width: calc((100% - 4px) / 5);
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  z-index: 0;
-  pointer-events: none;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
-}
-.nav-pill { position: relative; z-index: 1; }
-
-/* New transaction slide-from-right target */
-.tx-row-enter { opacity: 0; transform: translateX(20px); }
-
-/* Progress bar fill baseline — GSAP overrides duration/ease */
-.progress-bar { transition: none; }
-
-/* Reduced-motion fallback: snap all motion to instant */
+/* ===== RECEIPT TAPE — motion language ===== */
+.rt-print-item { opacity: 0; transform: translateY(-8px); }
+.rt-print-item.rt-print-in { animation: rt-print-in 360ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+@keyframes rt-print-in { to { opacity: 1; transform: translateY(0); } }
+.rt-entry-in { animation: rt-entry-in 260ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+@keyframes rt-entry-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
-  .screen.turning-out, .screen.turning-in { transform: none !important; transition: opacity 0.15s linear; }
-  .balance-ink-wrap > svg { display: none; }
-  .fab { transition: none !important; animation: none !important; }
-  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  .rt-print-item, .rt-print-item.rt-print-in, .rt-entry-in { opacity: 1; transform: none; animation: none; }
 }
 </style>
 </head>
-<body data-build="2026-08-18-r1">
+<body class="receipt-tape" data-build="2026-08-18-r2">
 
 <div id="toast" class="toast"></div>
 
-<!-- ===== HEADER ===== -->
+<!-- ===== RECEIPT TAPE HEADER ===== -->
 <header class="app-header">
-  <div class="container row between">
-    <div class="row" style="gap:10px">
-      <span class="brand">Финансы<em></em><span class="brand-sub">ledger</span></span>
-   </div>
-    <div class="row" style="gap:14px">
-      <span class="header-meta" id="headerDate">
-      <span class="header-meta"><b id="headerTime"></b></span>
-   </div>
- </div>
+  <div class="container rt-header-row">
+    <div><span class="rt-wordmark">FINANCE</span><span class="rt-path">/ PERSONAL LEDGER</span></div>
+    <div class="rt-status"><span class="rt-status-date" id="headerDate"></span><span class="rt-live">● LIVE</span><span id="headerTime"></span></div>
+  </div>
 </header>
 
-<main class="container" style="padding-top:24px;padding-bottom:calc(96px + env(safe-area-inset-bottom))">
+<main class="container rt-main">
 
-  <!-- ========== DASHBOARD ========== -->
-  <section id="dashboard" class="screen active" style="display:flex;flex-direction:column;gap:18px">
-    <div class="balance anim-fadeup">
-      <div class="balance-row">
-        <div>
-          <div class="label">Текущий баланс</div>
-          <div class="row" style="gap:8px;align-items:baseline;margin-top:8px">
-            <span class="balance-amount" id="dashBalance">0</span>
-            <span class="balance-unit">₽</span>
-         </div>
-          <div class="balance-meta" id="dashBalanceTrend"></div>
-       </div>
-     </div>
-      <div class="balance-grid">
-        <div class="stat">
-          <div class="label" style="color:var(--income)">Доход · месяц</div>
-          <div class="stat-val income" id="dashIncome">0.00</div>
-       </div>
-        <div class="stat">
-          <div class="label" style="color:var(--expense)">Расход · месяц</div>
-          <div class="stat-val expense" id="dashExpense">0.00</div>
-       </div>
-     </div>
-   </div>
-
-    <div class="mini-stats">
-      <div class="mini-stat anim-fadeup anim-delay-1">
-        <div class="label">Сегодня</div>
-        <div class="mini-stat-val" id="dashToday">0.00</div>
-     </div>
-      <div class="mini-stat anim-fadeup anim-delay-2">
-        <div class="label">7 дней</div>
-        <div class="mini-stat-val" id="dashWeek">0.00</div>
-     </div>
-   </div>
-
-    <div class="chart-card anim-fadeup anim-delay-2">
-      <div class="chart-card-head">
-        <div class="chart-card-title">Структура расходов</div>
-        <div class="chart-card-sub">всего</div>
-     </div>
-      <div class="chart-wrap"><canvas id="doughnutChart"></canvas></div>
-   </div>
-
-    <div class="chart-card anim-fadeup anim-delay-3">
-      <div class="chart-card-head">
-        <div class="chart-card-title">Динамика баланса</div>
-        <div class="chart-card-sub">30 дней</div>
-     </div>
-      <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
-   </div>
- </section>
+  <!-- ========== RECEIPT TAPE DASHBOARD ========== -->
+  <section id="dashboard" class="screen active rt-dashboard">
+    <div class="rt-receipt">
+      <div class="rt-receipt-head">
+        <span class="rt-receipt-code">ACCOUNT / AUG 2026</span>
+        <span class="rt-receipt-status">[ ONLINE ]</span>
+      </div>
+      <section class="rt-hero">
+        <div class="rt-label">Available balance</div>
+        <div class="rt-balance-line"><span class="rt-balance-amount" id="dashBalance">0</span><span class="rt-currency">₽</span></div>
+        <div class="rt-balance-trend" id="dashBalanceTrend"></div>
+      </section>
+      <section class="rt-ledger-grid" aria-label="Monthly totals">
+        <div class="rt-ledger-cell">
+          <div class="rt-label">Income / month</div>
+          <div class="rt-ledger-value rt-income" id="dashIncome">0.00</div>
+        </div>
+        <div class="rt-ledger-cell">
+          <div class="rt-label">Expense / month</div>
+          <div class="rt-ledger-value rt-expense" id="dashExpense">0.00</div>
+        </div>
+      </section>
+      <section class="rt-signal">
+        <div class="rt-section-head"><span class="rt-label">Balance signal</span><span class="rt-section-meta">30 DAYS</span></div>
+        <div class="rt-chart rt-signal-chart"><canvas id="lineChart"></canvas></div>
+      </section>
+      <section class="rt-metrics" aria-label="Recent expense totals">
+        <div class="rt-metric"><span class="rt-label">Last 24 hours</span><strong class="rt-metric-value rt-expense" id="dashToday">0.00</strong></div>
+        <div class="rt-metric"><span class="rt-label">Last 7 days</span><strong class="rt-metric-value rt-expense" id="dashWeek">0.00</strong></div>
+      </section>
+      <section class="rt-activity">
+        <div class="rt-section-head"><span class="rt-label">Recent activity</span><span class="rt-section-meta">LATEST 5</span></div>
+        <div id="dashActivity" class="rt-activity-list"></div>
+      </section>
+      <section class="rt-spend">
+        <div class="rt-section-head"><span class="rt-label">Spend mix</span><span class="rt-section-meta">ALL TIME</span></div>
+        <div class="rt-chart rt-spend-chart"><canvas id="doughnutChart"></canvas></div>
+      </section>
+      <button class="rt-add-entry" onclick="openAddModal()" aria-label="Add transaction"><span>＋</span><b>ADD ENTRY</b><span>↵</span></button>
+      <span class="rt-finish">END OF STATEMENT</span>
+    </div>
+  </section>
 
   <!-- ========== HISTORY ========== -->
   <section id="history" class="screen" style="display:flex;flex-direction:column;gap:14px">
@@ -1617,40 +1626,15 @@ body.lm-ready .screen.active { animation: none !important; }
 
 </main>
 
-<!-- ========== FAB ========== -->
-<button onclick="if(window.__lm){__lm.tapFab();}openAddModal()" class="fab" aria-label="Добавить операцию">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></svg>
-</button>
-
-<!-- ========== BOTTOM NAV ========== -->
-<nav class="bottom-nav">
+<!-- ========== RECEIPT TAPE NAV ========== -->
+<nav class="bottom-nav" aria-label="Primary navigation">
   <div class="bottom-nav-inner">
-    <button data-screen="dashboard" class="nav-pill active">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L12 4l9 7.5V20a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1v-8.5z"></svg>
-      <span>Главная</span>
-      <span class="nav-dot"></span>
-   </button>
-    <button data-screen="history" class="nav-pill">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"></svg>
-      <span>История</span>
-      <span class="nav-dot"></span>
-   </button>
-    <button data-screen="analytics" class="nav-pill">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></svg>
-      <span>Аналитика</span>
-      <span class="nav-dot"></span>
-   </button>
-    <button data-screen="budgets" class="nav-pill">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"></svg>
-      <span>Лимиты</span>
-      <span class="nav-dot"></span>
-   </button>
-    <button data-screen="settings" class="nav-pill">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><pathd="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3h.1a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5h.1a1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8v.1a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"></svg>>
-      <span>Категории</span>
-      <span class="nav-dot"></span>
-   </button>
- </div>
+    <button data-screen="dashboard" class="nav-pill active"><span>Home</span></button>
+    <button data-screen="history" class="nav-pill"><span>History</span></button>
+    <button data-screen="analytics" class="nav-pill"><span>Analytics</span></button>
+    <button data-screen="budgets" class="nav-pill"><span>Limits</span></button>
+    <button data-screen="settings" class="nav-pill"><span>Settings</span></button>
+  </div>
 </nav>
 
 <!-- ========== ADD TRANSACTION MODAL ========== -->
@@ -2006,8 +1990,8 @@ function showToast(msg, type) {
 }
 
 // ==================== MODALS ====================
-function openModal(id) { if (window.__lm && window.__lm.openModalAnim) window.__lm.openModalAnim(id); else document.getElementById(id).classList.add('open'); }
-function closeModal(id) { if (window.__lm && window.__lm.closeModalAnim) window.__lm.closeModalAnim(id); else document.getElementById(id).classList.remove('open'); }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 function openAddModal() {
   currentType = 'expense';
@@ -2017,7 +2001,6 @@ function openAddModal() {
   document.getElementById('addComment').value = '';
   populateCategorySelect();
   openModal('addModal');
-  if (window.__lm) { window.__lm.tapFab(); window.__lm.rotateFab(true); }
 }
 
 function setType(type) {
@@ -2060,7 +2043,6 @@ function saveTransaction() {
   transactions.unshift({ id: uuid(), type: currentType, amount, category, comment, createdAt });
   saveData();
   closeModal('addModal');
-  if (window.__lm) window.__lm.rotateFab(false);
   refreshAll();
   showToast('Запись добавлена', 'success');
 }
@@ -2089,18 +2071,11 @@ document.getElementById('catModal').addEventListener('click', function(e) { if (
 const screens = ['dashboard', 'history', 'analytics', 'budgets', 'settings'];
 const titles = { dashboard: 'Финансы', history: 'История', analytics: 'Аналитика', budgets: 'Бюджеты', settings: 'Категории' };
 function switchScreen(name) {
-  const fromActive = document.querySelector('.screen.active');
-  const fromId = fromActive ? fromActive.id : null;
-  if (window.__lm && window.__lm.turnPage && fromId && fromId !== name) {
-    __lm.turnPage(fromId, name);
-  } else {
-    screens.forEach(s => document.getElementById(s).classList.remove('active'));
-    document.getElementById(name).classList.add('active');
-  }
+  screens.forEach(s => document.getElementById(s).classList.remove('active'));
+  document.getElementById(name).classList.add('active');
   document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
   const targetPill = document.querySelector('[data-screen="' + name + '"]');
   if (targetPill) targetPill.classList.add('active');
-  if (window.__lm && window.__lm.slideNavIndicator) __lm.slideNavIndicator(targetPill);
   const st = document.getElementById('screenTitle'); if (st) st.textContent = titles[name];
   if (name === 'history') renderHistory();
   if (name === 'analytics') renderAnalytics();
@@ -2144,7 +2119,27 @@ function renderDashboard() {
 
   renderDoughnutChart(transactions);
   renderLineChart();
-  if (window.__lm) window.__lm.mountDashboard();
+  renderDashboardActivity();
+}
+
+function renderDashboardActivity() {
+  const container = document.getElementById('dashActivity');
+  if (!container) return;
+  const recent = [...transactions]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+  if (!recent.length) {
+    container.innerHTML = '<div class="rt-empty">NO ACTIVITY</div>';
+    return;
+  }
+  container.innerHTML = recent.map(t => {
+    const income = t.type === 'income';
+    const sign = income ? '+' : '−';
+    const amountClass = income ? 'rt-income' : 'rt-expense';
+    const date = escapeHtml(formatDateShort(t.createdAt).replace('.', '').toUpperCase());
+    const name = escapeHtml(catName(t.category));
+    return `<div class="rt-activity-row"><span class="rt-row-date">${date}</span><span class="rt-row-name">${name}</span><span class="rt-row-amount ${amountClass}">${sign}${formatCurrency(t.amount)}</span></div>`;
+  }).join('');
 }
 
 function getChartContext(id) {
@@ -2184,14 +2179,14 @@ function renderDoughnutChart(allTx) {
   const entries = Object.entries(expenseByCat).sort((a, b) => b[1] - a[1]);
   const labels = entries.map(([cat]) => catName(cat));
   const data = entries.map(([, sum]) => sum);
-  // Terminal palette: shades of amber, only 8 levels (no rainbow)
-  const colors = ['#4A4339','#2B2520','#7A6F5F','#B47B2C','#8A6E2A','#B47B2C','#A47325','#5C4422'];
+  // Receipt Tape palette: cobalt signal, vermilion expense, graphite neutrals.
+  const colors = ['#255CFF','#D94F3D','#17191A','#777A76','#E6AE3D','#4C80FF','#B84738','#A9AAA3'];
 
   doughnutChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels,
-      datasets: [{ data, backgroundColor: colors.slice(0, data.length), borderColor: '#F4EFE6', borderWidth: 2, hoverOffset: 6 }]
+      datasets: [{ data, backgroundColor: colors.slice(0, data.length), borderColor: '#ECEAE2', borderWidth: 2, hoverOffset: 6 }]
     },
     options: {
       responsive: true,
@@ -2246,15 +2241,15 @@ function renderLineChart() {
       datasets: [{
         label: 'BAL',
         data: balances,
-        borderColor: '#4A4339',
-        backgroundColor: 'rgba(255,176,0,0.10)',
+        borderColor: '#255CFF',
+        backgroundColor: 'rgba(37,92,255,0.10)',
         fill: true,
         tension: 0,
         stepped: 'before',
         pointRadius: 0,
         pointHoverRadius: 4,
-        pointHoverBackgroundColor: '#2B2520',
-        pointHoverBorderColor: '#4A4339',
+        pointHoverBackgroundColor: '#17191A',
+        pointHoverBorderColor: '#255CFF',
         pointHoverBorderWidth: 1,
         borderWidth: 1.5,
       }]
@@ -2267,8 +2262,8 @@ function renderLineChart() {
         tooltip: { backgroundColor: '#F4EFE6', titleColor: '#4A4339', bodyColor: '#2B2520', borderColor: '#4A4339', borderWidth: 1, padding: 8, cornerRadius: 0, titleFont: { family: 'JetBrains Mono', weight: '700' }, bodyFont: { family: 'JetBrains Mono' }, callbacks: { label: ctx => ` BAL: ${formatCurrency(ctx.raw)}` } }
       },
       scales: {
-        x: { grid: { color: 'rgba(43,37,32,0.08)' }, border: { color: '#4A4339' }, ticks: { color: '#7A6F5F', maxTicksLimit: 7, font: { size: 9, family: 'JetBrains Mono' } } },
-        y: { grid: { color: 'rgba(43,37,32,0.08)' }, border: { color: '#4A4339' }, ticks: { color: '#7A6F5F', font: { size: 9, family: 'JetBrains Mono' }, callback: v => Math.round(v/1000) + 'k' } }
+        x: { grid: { color: 'rgba(23,25,26,0.08)' }, border: { color: '#17191A' }, ticks: { color: '#777A76', maxTicksLimit: 7, font: { size: 9, family: 'IBM Plex Mono' } } },
+        y: { grid: { color: 'rgba(23,25,26,0.08)' }, border: { color: '#17191A' }, ticks: { color: '#777A76', font: { size: 9, family: 'IBM Plex Mono' }, callback: v => Math.round(v/1000) + 'k' } }
       },
       interaction: { intersect: false, mode: 'index' }
     }
@@ -2885,7 +2880,7 @@ function autoPushGist() {
       }
     });
 }
-const BUILD_VERSION = '2026-08-18-r1';
+const BUILD_VERSION = '2026-08-18-r2';
 function diagSnapshot() {
   const cfg = (typeof getSyncConfig === 'function') ? getSyncConfig() : { token: '', gistId: '' };
   const localCats = readStoredJson(STORAGE_KEYS.categories);
@@ -3006,6 +3001,7 @@ async function hardResetApp() {
     }
     if ('caches' in window) {
       const keys = await caches.keys();
+
       await Promise.all(keys.map(k => caches.delete(k)));
     }
     showToast('Кэш снесён. Перезагружаю…', 'info');
@@ -3015,10 +3011,66 @@ async function hardResetApp() {
   }
 }
 
+// ==================== RECEIPT TAPE MOTION ====================
+function receiptMotionReduced() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function parseReceiptAmount(value) {
+  const text = String(value ?? '').replace(/\s|\u00a0/g, '').replace('−', '-').replace(',', '.');
+  const number = parseFloat(text.replace(/[^0-9.+-]/g, ''));
+  return Number.isFinite(number) ? number : null;
+}
+
+function receiptBalanceText(value) {
+  return (value < 0 ? '−' : ' ') + formatNumber(Math.abs(value));
+}
+
+function initReceiptTapeMotion() {
+  const receipt = document.querySelector('.rt-receipt');
+  if (!receipt || receiptMotionReduced()) return;
+  const sequence = receipt.querySelectorAll('.rt-receipt-head, .rt-hero, .rt-ledger-grid, .rt-signal, .rt-metrics, .rt-activity, .rt-spend, .rt-add-entry, .rt-finish');
+  sequence.forEach((element, index) => {
+    element.classList.add('rt-print-item');
+    setTimeout(() => element.classList.add('rt-print-in'), index * 55);
+  });
+}
+
+function animateReceiptBalance(previousText) {
+  const element = document.getElementById('dashBalance');
+  if (!element || receiptMotionReduced()) return;
+  const start = parseReceiptAmount(previousText);
+  const target = parseReceiptAmount(element.textContent);
+  if (start === null || target === null || Math.abs(start - target) < 0.01) return;
+  const startedAt = performance.now();
+  const duration = 320;
+  if (typeof element.animate === 'function') {
+    element.animate([
+      { transform: 'translateY(3px)', opacity: 0.55 },
+      { transform: 'translateY(0)', opacity: 1 }
+    ], { duration, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' });
+  }
+  function tick(now) {
+    const progress = Math.min(1, (now - startedAt) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    element.textContent = receiptBalanceText(start + (target - start) * eased);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function animateReceiptEntry() {
+  if (receiptMotionReduced()) return;
+  const row = document.querySelector('#dashActivity .rt-activity-row');
+  if (row) {
+    row.classList.remove('rt-entry-in');
+    requestAnimationFrame(() => row.classList.add('rt-entry-in'));
+  }
+}
 // ==================== INIT ====================
 // ==================== BOOT SEQUENCE ====================
 (function bootSequence() {
-  var KEY = "boot_seen_2026-08-18-r1";
+  var KEY = "boot_seen_2026-08-18-r2";
   var overlay = document.getElementById("bootOverlay");
   if (!overlay) return;
   if (sessionStorage.getItem(KEY)) { overlay.remove(); return; }
@@ -3040,7 +3092,10 @@ async function hardResetApp() {
 // Diagnostics panel — отключена
 
 function refreshAll() {
+  const previousBalance = document.getElementById('dashBalance')?.textContent || '';
   renderDashboard();
+  animateReceiptBalance(previousBalance);
+  animateReceiptEntry();
   if (document.getElementById('history').classList.contains('active')) renderHistory();
   if (document.getElementById('analytics').classList.contains('active')) renderAnalytics();
   if (document.getElementById('budgets').classList.contains('active')) renderBudgets();
@@ -3069,6 +3124,7 @@ loadData();
 populateHistoryCategoryFilter();
 updateHeaderDate();
 renderDashboard();
+initReceiptTapeMotion();
 loadSyncUI();
 syncWritesEnabled = true;
 autoPullGist();
@@ -3085,341 +3141,6 @@ var periodBtn = document.querySelector('[data-period="all"]');
 if (periodBtn) { periodBtn.classList.add('active'); }
 console.log('%c[Finance Tracker] build: ' + BUILD_VERSION + ' // 1987', 'color:#4A4339;font-weight:bold;font-family:JetBrains Mono,monospace');
 renderDiagnostics();
-// ==================== LIVING MOLESKINE — animation layer ====================
-// GSAP-powered motion. All animations are no-ops when GSAP is missing or reduced-motion is on.
-
-function __lmInit() {
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const gsapOK = typeof window.gsap !== 'undefined' && !reducedMotion;
-  if (!gsapOK || reducedMotion) {
-    // Reduced motion: still ensure balance shows immediately and FAB rotates when needed.
-    window.__lm = {
-      mountDashboard: function () { /* no-op */ },
-      inkWrite: function () { /* no-op */ },
-      startFabBreath: function () { /* no-op */ },
-      pauseFabBreath: function () { /* no-op */ },
-      tapFab: function () { /* no-op */ },
-      rotateFab: function (open) {
-        const fab = document.querySelector('.fab');
-        if (fab) fab.classList.toggle('is-rotated', Boolean(open));
-      },
-      openModalAnim: function (id) {
-        const modal = document.getElementById(id);
-        if (modal) modal.classList.add('open');
-      },
-      closeModalAnim: function (id) {
-        const modal = document.getElementById(id);
-        if (modal) modal.classList.remove('open');
-      },
-      turnPage: function (from, to) {
-        const fromEl = typeof from === 'string' ? document.getElementById(from) : from;
-        const toEl = typeof to === 'string' ? document.getElementById(to) : to;
-        if (fromEl) fromEl.classList.remove('active');
-        if (toEl) toEl.classList.add('active');
-      },
-      slideNavIndicator: function () { /* no-op */ },
-      tweenNumber: function (el, from, to) {
-        if (el && Number.isFinite(Number(to))) el.textContent = Number(to).toFixed(2);
-      },
-      enterTxRow: function () { /* no-op */ },
-      fillProgress: function (bar, targetPct) {
-        if (bar) bar.style.width = targetPct + '%';
-      },
-    };
-    return;
-  }
-
-  // Mark body so CSS animation conflicts get suppressed
-  try { document.body.classList.add('lm-ready'); } catch (e) {}
-
-   const gsap = window.gsap;
-  let fabBreath = null;
-
-  // Trigger dashboard entrance animation now that __lm is wired up.
-  // renderDashboard() ran earlier (before GSAP loaded) when __lm was undefined,
-  // so the mount hook inside it was a no-op. Replay it here so first paint animates.
-  try { mountDashboard(); } catch (e) { console.warn('[LM] mountDashboard failed', e); }
-
-   // ---------- FAB ----------
-  function inkWrite(balanceEl, unitEl, tl) {
-    if (!balanceEl) return;
-    const rect = balanceEl.getBoundingClientRect();
-    if (rect.width === 0) return;
-
-    // Wrap the text node in a relative container if not already
-    let wrap = balanceEl.parentElement;
-    if (!wrap.classList.contains('balance-ink-wrap')) {
-      wrap = document.createElement('span');
-      wrap.className = 'balance-ink-wrap ' + (balanceEl.className || '');
-      wrap.style.display = 'inline-block';
-      balanceEl.parentNode.insertBefore(wrap, balanceEl);
-      wrap.appendChild(balanceEl);
-    }
-
-    const cs = getComputedStyle(balanceEl);
-    const text = balanceEl.textContent;
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('viewBox', '0 0 ' + rect.width + ' ' + rect.height);
-    svg.setAttribute('preserveAspectRatio', 'none');
-    const txt = document.createElementNS(svgNS, 'text');
-    txt.setAttribute('x', '50%');
-    txt.setAttribute('y', '90%');
-    txt.setAttribute('text-anchor', 'middle');
-    txt.setAttribute('font-family', cs.fontFamily);
-    txt.setAttribute('font-weight', cs.fontWeight);
-    txt.setAttribute('font-size', cs.fontSize);
-    txt.textContent = text;
-    svg.appendChild(txt);
-    wrap.appendChild(svg);
-
-    // Hide real text while ink is drawing
-    balanceEl.style.color = 'transparent';
-
-    let length = 0;
-    try { length = txt.getComputedTextLength(); } catch (e) { length = rect.width; }
-    if (!length || !isFinite(length)) length = rect.width;
-
-    txt.style.strokeDasharray = length;
-    txt.style.strokeDashoffset = length;
-
-    const stepLabel = (tl ? tl : gsap.timeline()).fromTo(txt,
-      { strokeDashoffset: length },
-      {
-        strokeDashoffset: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-        onComplete: function () {
-          // Restore real text color, fade out overlay
-          balanceEl.style.color = '';
-          gsap.to(svg, { opacity: 0, duration: 0.24, onComplete: function () { svg.remove(); } });
-        }
-      }
-    );
-
-    if (unitEl && tl) {
-      tl.fromTo(unitEl,
-        { scale: 0.6, rotate: -8, opacity: 0 },
-        { scale: 1, rotate: 0, opacity: 1, duration: 0.32, ease: 'back.out(1.7)' },
-        '+=0.05'
-      );
-    } else if (unitEl) {
-      gsap.fromTo(unitEl,
-        { scale: 0.6, rotate: -8, opacity: 0 },
-        { scale: 1, rotate: 0, opacity: 1, duration: 0.32, ease: 'back.out(1.7)', delay: 0.85 }
-      );
-    }
-  }
-
-  // ---------- Number tween ----------
-  function tweenNumber(el, from, to, duration) {
-    if (!el) return;
-    if (from === to) { el.textContent = to.toFixed(2); return; }
-    duration = duration || 0.6;
-    const obj = { v: from };
-    gsap.to(obj, {
-      v: to, duration: duration, ease: 'power2.inOut', snap: { v: 0.01 },
-      onUpdate: function () { el.textContent = obj.v.toFixed(2); }
-    });
-  }
-
-  // ---------- Dashboard mount sequence ----------
-  let _mountedOnce = false;
-  function mountDashboard() {
-    const isFirst = !_mountedOnce;
-    _mountedOnce = true;
-
-    // Helper: tween number values to whatever the DOM currently shows
-    function tweenAll() {
-      ['#dashToday', '#dashWeek', '#dashIncome', '#dashExpense'].forEach(function (sel) {
-        const el = document.querySelector(sel);
-        if (!el) return;
-        const final = parseFloat(String(el.textContent).replace(/\s/g, '').replace(',', '.')) || 0;
-        const prev = parseFloat(el.getAttribute('data-prev')) || 0;
-        el.setAttribute('data-prev', String(final));
-        if (isFirst) {
-          el.textContent = '0.00';
-          setTimeout(function () { tweenNumber(el, 0, final, 0.7); }, 350);
-        } else if (Math.abs(final - prev) > 0.01) {
-          tweenNumber(el, prev, final, 0.5);
-        }
-      });
-    }
-
-    if (!isFirst) { tweenAll(); return; }
-
-    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-
-    tl.from('.dashboard-head, .balance, .mini-stats, .chart-card', {
-      y: 16, opacity: 0, duration: 0.32, stagger: 0.08
-    }, 0);
-
-    const bal = document.getElementById('dashBalance');
-    const unit = document.querySelector('.balance-unit');
-    inkWrite(bal, unit, tl);
-
-    tl.from('.balance-grid .stat', {
-      x: function (i) { return i === 0 ? -16 : 16; },
-      opacity: 0, duration: 0.32, stagger: 0.05
-    }, 0.5);
-
-    tweenAll();
-  }
-
-  // ---------- FAB ----------
-  function startFabBreath() {
-    const fab = document.querySelector('.fab');
-    if (!fab || fabBreath) return;
-    fabBreath = gsap.to(fab, {
-      scale: 1.03, duration: 2, ease: 'sine.inOut', yoyo: true, repeat: -1
-    });
-    fab.addEventListener('mouseenter', function () { if (fabBreath) fabBreath.pause(); });
-    fab.addEventListener('mouseleave', function () { if (fabBreath) fabBreath.resume(); });
-    fab.addEventListener('touchstart', function () { if (fabBreath) fabBreath.pause(); }, { passive: true });
-  }
-  function pauseFabBreath() { if (fabBreath) fabBreath.pause(); }
-  function resumeFabBreath() { if (fabBreath) fabBreath.resume(); }
-
-  function tapFab() {
-    const fab = document.querySelector('.fab');
-    if (!fab) return;
-    gsap.fromTo(fab, { scale: 0.88 }, { scale: 1, duration: 0.38, ease: 'elastic.out(1, 0.5)' });
-  }
-
-  function rotateFab(open) {
-    const fab = document.querySelector('.fab');
-    if (!fab) return;
-    gsap.to(fab, { rotation: open ? 45 : 0, duration: 0.28, ease: 'power3.out' });
-  }
-
-  // ---------- Modal slide ----------
-  function openModalAnim(id) {
-    const overlay = document.getElementById(id);
-    if (!overlay) return;
-    const inner = overlay.querySelector('.modal');
-    if (!inner) return;
-    overlay.classList.add('open');
-    gsap.fromTo(inner,
-      { y: '100%', rotateX: 8, opacity: 0 },
-      { y: '0%', rotateX: 0, opacity: 1, duration: 0.28, ease: 'expo.out' }
-    );
-  }
-  function closeModalAnim(id) {
-    const overlay = document.getElementById(id);
-    if (!overlay) return;
-    const inner = overlay.querySelector('.modal');
-    if (!inner) { overlay.classList.remove('open'); return; }
-    gsap.to(inner, {
-      y: '100%', rotateX: 8, opacity: 0, duration: 0.24, ease: 'power2.in',
-      onComplete: function () { overlay.classList.remove('open'); inner.style.transform = ''; inner.style.opacity = ''; }
-    });
-  }
-
-  // ---------- Page-turn transition ----------
-  function turnPage(fromId, toId) {
-    const from = fromId ? document.getElementById(fromId) : document.querySelector('.screen.active');
-    const to = document.getElementById(toId);
-    if (!to || from === to) return;
-
-    if (!from) {
-      to.classList.add('active');
-      return;
-    }
-
-    from.classList.add('turning-out');
-    to.classList.add('turning-in');
-    // Ensure incoming starts hidden
-    to.style.opacity = '0';
-    to.style.transform = 'rotateY(8deg) translateX(20px)';
-    to.classList.add('active');
-
-    const tl = gsap.timeline({ onComplete: function () {
-      from.classList.remove('active', 'turning-out');
-      to.classList.remove('turning-in');
-      to.style.transform = '';
-      to.style.opacity = '';
-      from.style.transform = '';
-      from.style.opacity = '';
-    }});
-
-    tl.to(from, { rotateY: -8, opacity: 0.4, duration: 0.28, ease: 'power2.in' }, 0);
-    tl.to(to, { rotateY: 0, opacity: 1, x: 0, duration: 0.32, ease: 'power3.out' }, 0.06);
-  }
-
-  // ---------- Bottom nav indicator ----------
-  let navIndicator = null;
-  function slideNavIndicator(targetPill) {
-    const navInner = document.querySelector('.bottom-nav-inner');
-    if (!navInner) return;
-    if (!navIndicator) {
-      navIndicator = document.createElement('div');
-      navIndicator.className = 'nav-indicator';
-      navInner.appendChild(navIndicator);
-      // Place initially on active pill without animation
-      const active = navInner.querySelector('.nav-pill.active');
-      if (active) {
-        const idx = Array.prototype.indexOf.call(navInner.querySelectorAll('.nav-pill'), active);
-        navIndicator.style.transform = 'translateX(' + (idx * active.offsetWidth) + 'px)';
-      }
-      return;
-    }
-    if (!targetPill) return;
-    const pills = navInner.querySelectorAll('.nav-pill');
-    const idx = Array.prototype.indexOf.call(pills, targetPill);
-    if (idx < 0) return;
-    const targetX = idx * targetPill.offsetWidth;
-    gsap.to(navIndicator, { x: targetX, duration: 0.4, ease: 'back.out(1.4)' });
-  }
-
-  // ---------- New transaction slide-from-right ----------
-  function enterTxRow(el) {
-    if (!el) return;
-    gsap.fromTo(el,
-      { x: 20, opacity: 0 },
-      { x: 0, opacity: 1, duration: 0.32, ease: 'power2.out' }
-    );
-  }
-
-  // ---------- Progress bar fill ----------
-  function fillProgress(bar, targetPct) {
-    if (!bar) return;
-    gsap.fromTo(bar,
-      { width: '0%' },
-      { width: targetPct + '%', duration: 0.8, ease: 'back.out(1.2)' }
-    );
-  }
-
-  // ---------- Public API ----------
-  window.__lm = {
-    mountDashboard: mountDashboard,
-    inkWrite: function (el) { inkWrite(el); },
-    startFabBreath: startFabBreath,
-    pauseFabBreath: pauseFabBreath,
-    resumeFabBreath: resumeFabBreath,
-    tapFab: tapFab,
-    rotateFab: rotateFab,
-    openModalAnim: openModalAnim,
-    closeModalAnim: closeModalAnim,
-    turnPage: turnPage,
-    slideNavIndicator: slideNavIndicator,
-    tweenNumber: tweenNumber,
-    enterTxRow: enterTxRow,
-    fillProgress: fillProgress,
-  };
-
-  // Auto-start FAB breath and nav indicator when DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      startFabBreath();
-      slideNavIndicator();
-    });
-  } else {
-    startFabBreath();
-    slideNavIndicator();
-  }
-}
-if (document.readyState === 'complete') { __lmInit(); }
-else { window.addEventListener('load', __lmInit); }
 </script>
 </body>
 </html>
