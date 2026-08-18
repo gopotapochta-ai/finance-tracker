@@ -25,14 +25,14 @@
 |---|---|---|---|
 | Motion orchestrator | GSAP 3.12 via CDN (`cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js`) | ~50KB gz | Единая easing vocabulary, scroll triggers, FLIP, orchestration across many elements |
 | Detection | `gsap.matchMedia()` | 0 (in GSAP) | prefers-reduced-motion gate |
-| Existing | Tailwind CDN, Chart.js 4.4.8, Google Fonts | unchanged | — |
+| Existing | Chart.js 4.4.8, Google Fonts, project CSS | unchanged | Tailwind is not used; no production CDN warning |
 | Service worker | `sw.js` CACHE_VERSION bump `2026-08-18-r1` → `2026-08-18-r2` | — | чтобы юзеры получили новый билд |
 
 **Load order:**
 ```html
 <head>
   ...
-  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 </head>
 ```
 GSAP загружается `defer` — не блокирует first paint. Анимации стартуют после `DOMContentLoaded`.

@@ -9,33 +9,11 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231A1815'/><text y='.85em' x='50' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-weight='400' font-size='68' fill='%23F4F1EA'>₽</text</svg>">
 <title>Финансы — Личный учёт</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
-<script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js</script>
-<script>
-if (typeof tailwind !== 'undefined') tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'Menlo', 'monospace'],
-        display: ['"Major Mono Display"', '"JetBrains Mono"', 'monospace'],
-        crt: ['VT323', '"JetBrains Mono"', 'monospace'],
-      },
-      colors: {
-        term: { DEFAULT: '#F4EFE6', grid: '#1A1A1A', line: '#2A2A2A' },
-        amber: { DEFAULT: '#4A4339', dim: '#7A6F5F', bright: '#2B2520' },
-        mint: { DEFAULT: '#5B7553' },
-        crimson: { DEFAULT: '#C45A2D' },
-        income: '#5B7553',
-        expense: '#C45A2D',
-      }
-    }
-  }
-};
-</script>
+<script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <style>
 /* =========================================================
      FINANCE — NOTEBOOK
@@ -2178,7 +2156,7 @@ function getChartContext(id) {
     canvas.hidden = true;
     if (!fallback) {
       fallback = document.createElement('p');
-      fallback.className = 'chart-fallback text-xs text-gray-500 text-center';
+      fallback.className = 'chart-fallback';
       fallback.textContent = 'График доступен при подключении к интернету';
       fallback.style.padding = '2rem 0';
       parent.appendChild(fallback);
