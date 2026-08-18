@@ -1,12 +1,12 @@
 {
-  "name": "FINANCE_TRACKER // 1987",
-  "short_name": "FINANCE",
+  "name": "Финансы — Личный учёт",
+  "short_name": "Финансы",
   "start_url": "./",
   "scope": "./",
   "id": "./",
   "display": "standalone",
-  "background_color": "#0A0A0A",
-  "theme_color": "#0A0A0A",
+  "background_color": "#F4F1EA",
+  "theme_color": "#F4F1EA",
   "icons": [
     {
       "src": "./icon-192.png",

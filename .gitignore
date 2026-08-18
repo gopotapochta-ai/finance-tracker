@@ -1,0 +1,17 @@
+# Session memory / agent runtime — local only
+AGENTS.md
+AGENTS.session.md
+memory/
+*.py
+.script_*.js
+.main.js
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Node
+node_modules/
