@@ -1462,10 +1462,12 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
 .rt-sync-grid .field-label { color: var(--rt-muted); font: 600 10px/1 "IBM Plex Sans Condensed", sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
 .rt-sync-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 .rt-sync-buttons button { flex: 1 1 140px; }
+.rt-sync-share { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--rt-rule); }
+.rt-sync-share .rt-control { width: 100%; }
 @media (max-width: 420px) { .rt-filter-line { grid-template-columns: 1fr; gap: 6px; } .rt-report-title strong { font-size: 20px; } }
 </style>
 </head>
-<body class="receipt-tape" data-build="2026-08-18-r4">
+<body class="receipt-tape" data-build="2026-08-18-r5">
 
 <div id="toast" class="toast"></div>
 
@@ -1599,8 +1601,12 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
         <div class="rt-sync-grid">
           <label class="field-group"><span class="field-label">GitHub token</span><input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="input" autocomplete="off"></label>
           <label class="field-group"><span class="field-label">Gist ID</span><input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="input" autocomplete="off"></label>
-          <div class="rt-sync-buttons"><button class="rt-add-entry" onclick="saveSyncSettings()">СОХРАНИТЬ</button><button class="rt-add-entry" onclick="createGist()">СОЗДАТЬ GIST</button></div>
-          <div class="rt-sync-buttons"><button class="rt-settings-actions" onclick="pullFromGist()">ЗАГРУЗИТЬ</button><button class="rt-settings-actions" onclick="pushToGist()">ВЫГРУЗИТЬ</button></div>
+          <div class="rt-sync-buttons"><button class="rt-add-entry" onclick="pullFromGist()">ЗАГРУЗИТЬ</button><button class="rt-add-entry" onclick="pushToGist()">ВЫГРУЗИТЬ</button></div>
+          <div class="rt-sync-buttons"><button class="rt-settings-actions" onclick="copyShareLink()">ПОДЕЛИТЬСЯ ССЫЛКОЙ</button></div>
+          <div class="rt-sync-share">
+            <input id="syncShareInput" type="text" class="rt-control" placeholder="ВСТАВЬ КЛЮЧ ИЛИ ССЫЛКУ С ДРУГОГО УСТРОЙСТВА">
+            <button class="rt-add-entry" onclick="importShareText()" style="margin-top:8px">ИМПОРТ</button>
+          </div>
           <div id="syncStatus" class="rt-section-meta"></div>
         </div>
       </section>
@@ -2717,6 +2723,88 @@ function saveSyncSettings() {
   document.getElementById('syncStatus').textContent = '✅ Настройки сохранены. Направление синхронизации выбери вручную.';
   showToast('Синхронизация настроена', 'success');
 }
+
+// ===== SYNC CONFIG SHARING =====
+function encodeSyncShare() {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) return null;
+  try {
+    const payload = JSON.stringify({ t: cfg.token, g: cfg.gistId });
+    return 'ft-sync:' + btoa(unescape(encodeURIComponent(payload)));
+  } catch (e) { return null; }
+}
+
+function decodeSyncShare(text) {
+  if (!text || typeof text !== 'string') return null;
+  const trimmed = text.trim();
+  const code = trimmed.startsWith('ft-sync:') ? trimmed.slice('ft-sync:'.length) : trimmed;
+  // Also accept URL fragments of the form "#ft-sync=..."
+  const urlMatch = /[#?&]ft-sync=([^&]+)/.exec(trimmed);
+  const raw = urlMatch ? urlMatch[1] : code;
+  try {
+    const decoded = decodeURIComponent(escape(atob(raw.replace(/-/g, '+').replace(/_/g, '/'))));
+    const data = JSON.parse(decoded);
+    if (typeof data.t === 'string' && data.t.length > 10 && typeof data.g === 'string' && /^[A-Za-z0-9_-]+$/.test(data.g)) {
+      return { token: data.t, gistId: data.g };
+    }
+  } catch (e) {}
+  return null;
+}
+
+function applySyncShare(text) {
+  const parsed = decodeSyncShare(text);
+  if (!parsed) { showToast('Ключ не распознан', 'error'); return false; }
+  localStorage.setItem(STORAGE_KEYS.syncToken, parsed.token);
+  localStorage.setItem(STORAGE_KEYS.syncConfig, JSON.stringify({ gistId: parsed.gistId }));
+  loadSyncUI();
+  showToast('Синхронизация подключена', 'success');
+  return true;
+}
+
+async function copyShareLink() {
+  const code = encodeSyncShare();
+  if (!code) { showToast('Сначала настрой синхронизацию', 'error'); return; }
+  const url = location.origin + location.pathname + '#ft-sync=' + code.slice('ft-sync:'.length);
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('Ссылка скопирована', 'success');
+  } catch (e) {
+    // Fallback for older browsers / insecure contexts
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Ссылка скопирована', 'success');
+  }
+}
+
+function importShareText() {
+  const input = document.getElementById('syncShareInput');
+  if (!input) return;
+  if (applySyncShare(input.value)) {
+    input.value = '';
+    refreshAll();
+    restoreCustomCategoriesFromCloud().then(restored => {
+      if (restored) { refreshAll(); showToast('Категории из облака подгружены', 'success'); }
+      else if (typeof autoPullGist === 'function') autoPullGist();
+    });
+  }
+}
+
+function consumeSyncHash() {
+  // Auto-import if the URL was opened with #ft-sync=...
+  const hash = (typeof location !== 'undefined' && location.hash) || '';
+  if (!/ft-sync=/.test(hash)) return;
+  const match = /[#?&]ft-sync=([^&]+)/.exec(hash);
+  if (!match) return;
+  if (applySyncShare(decodeURIComponent(match[1]))) {
+    // Strip the fragment so a refresh doesn't re-import
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  }
+}
+
 function resetAllData() {
   Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
   localStorage.removeItem(STORAGE_KEYS.syncToken);
@@ -2794,8 +2882,6 @@ function pullFromGist() {
     const remote = JSON.parse(file.content);
     applyDataPayload(remote, false);
     localStorage.setItem(STORAGE_KEYS.lastSync, normalizedSyncTimestamp(remote.updated) || new Date().toISOString());
-    document.getElementById('syncStatus').textContent = '⬇️ Загружено ' + new Date().toLocaleTimeString('ru-RU');
-    refreshAll();
     showToast('Синхронизировано!', 'success');
   }).catch(e => showToast('Ошибка: ' + e.message, 'error'));
 }
@@ -2837,7 +2923,6 @@ function autoPushGist() {
       }
     });
 }
-const BUILD_VERSION = '2026-08-18-r3';
 function diagSnapshot() {
   const cfg = (typeof getSyncConfig === 'function') ? getSyncConfig() : { token: '', gistId: '' };
   const localCats = readStoredJson(STORAGE_KEYS.categories);
@@ -2880,7 +2965,6 @@ async function manualRestoreFromCloud() {
   try {
     const gist = await gistApi('GET');
     const file = gist && gist.files && gist.files['finance-data.json'];
-const BUILD_VERSION = '2026-08-18-r4';
     const remote = JSON.parse(file.content);
     if (!remote || !isRecord(remote.categories)) { showToast('В гисте нет категорий', 'error'); return; }
     if (!hasAnyCustomCats(remote.categories)) {
@@ -2998,7 +3082,6 @@ function animateReceiptBalance(previousText) {
   if (!element || receiptMotionReduced()) return;
   const start = parseReceiptAmount(previousText);
   const target = parseReceiptAmount(element.textContent);
-  if (start === null || target === null || Math.abs(start - target) < 0.01) return;
   const startedAt = performance.now();
   const duration = 320;
   if (typeof element.animate === 'function') {
@@ -3024,10 +3107,10 @@ function animateReceiptEntry() {
     requestAnimationFrame(() => row.classList.add('rt-entry-in'));
   }
 }
+const BUILD_VERSION = '2026-08-18-r5';
 // ==================== INIT ====================
 // ==================== BOOT SEQUENCE ====================
 (function bootSequence() {
-  var KEY = "boot_seen_2026-08-18-r3";
   var overlay = document.getElementById("bootOverlay");
   if (!overlay) return;
   if (sessionStorage.getItem(KEY)) { overlay.remove(); return; }
@@ -3077,6 +3160,7 @@ function updateHeaderTime() {
 setInterval(updateHeaderTime, 1000);
 
 
+consumeSyncHash();
 loadData();
 populateHistoryCategoryFilter();
 updateHeaderDate();
@@ -3084,7 +3168,7 @@ renderDashboard();
 initReceiptTapeMotion();
 loadSyncUI();
 syncWritesEnabled = true;
-  var KEY = "boot_seen_2026-08-18-r4";
+  var KEY = "boot_seen_2026-08-18-r5";
 // Если локально кастомных нет, но в гисте они есть — восстанавливаем (иначе пользователь думает, что всё пропало).
 restoreCustomCategoriesFromCloud().then(restored => {
   if (restored) {
