@@ -1465,15 +1465,15 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
 @media (max-width: 420px) { .rt-filter-line { grid-template-columns: 1fr; gap: 6px; } .rt-report-title strong { font-size: 20px; } }
 </style>
 </head>
-<body class="receipt-tape" data-build="2026-08-18-r3">
+<body class="receipt-tape" data-build="2026-08-18-r4">
 
 <div id="toast" class="toast"></div>
 
 <!-- ===== RECEIPT TAPE HEADER ===== -->
 <header class="app-header">
   <div class="container rt-header-row">
-    <div><span class="rt-wordmark">FINANCE</span><span class="rt-path">/ PERSONAL LEDGER</span></div>
-    <div class="rt-status"><span class="rt-status-date" id="headerDate"></span><span class="rt-live">● LIVE</span><span id="headerTime"></span></div>
+    <div><span class="rt-wordmark">ФИНАНСЫ</span><span class="rt-path">/ ЛИЧНАЯ КНИГА</span></div>
+    <div class="rt-status"><span class="rt-status-date" id="headerDate"></span><span class="rt-live">● В ЭФИРЕ</span><span id="headerTime"></span></div>
   </div>
 </header>
 
@@ -1483,133 +1483,133 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
   <section id="dashboard" class="screen active rt-dashboard">
     <div class="rt-receipt">
       <div class="rt-receipt-head">
-        <span class="rt-receipt-code">ACCOUNT / AUG 2026</span>
-        <span class="rt-receipt-status">[ ONLINE ]</span>
+        <span class="rt-receipt-code">СЧЁТ / АВГ 2026</span>
+        <span class="rt-receipt-status">[ ОНЛАЙН ]</span>
       </div>
       <section class="rt-hero">
-        <div class="rt-label">Available balance</div>
+        <div class="rt-label">Доступный баланс</div>
         <div class="rt-balance-line"><span class="rt-balance-amount" id="dashBalance">0</span><span class="rt-currency">₽</span></div>
         <div class="rt-balance-trend" id="dashBalanceTrend"></div>
       </section>
       <section class="rt-ledger-grid" aria-label="Monthly totals">
         <div class="rt-ledger-cell">
-          <div class="rt-label">Income / month</div>
+          <div class="rt-label">Доходы / месяц</div>
           <div class="rt-ledger-value rt-income" id="dashIncome">0.00</div>
         </div>
         <div class="rt-ledger-cell">
-          <div class="rt-label">Expense / month</div>
+          <div class="rt-label">Расходы / месяц</div>
           <div class="rt-ledger-value rt-expense" id="dashExpense">0.00</div>
         </div>
       </section>
       <section class="rt-signal">
-        <div class="rt-section-head"><span class="rt-label">Balance signal</span><span class="rt-section-meta">30 DAYS</span></div>
+        <div class="rt-section-head"><span class="rt-label">Динамика баланса</span><span class="rt-section-meta">30 ДНЕЙ</span></div>
         <div class="rt-chart rt-signal-chart"><canvas id="lineChart"></canvas></div>
       </section>
       <section class="rt-metrics" aria-label="Recent expense totals">
-        <div class="rt-metric"><span class="rt-label">Last 24 hours</span><strong class="rt-metric-value rt-expense" id="dashToday">0.00</strong></div>
-        <div class="rt-metric"><span class="rt-label">Last 7 days</span><strong class="rt-metric-value rt-expense" id="dashWeek">0.00</strong></div>
+        <div class="rt-metric"><span class="rt-label">За 24 часа</span><strong class="rt-metric-value rt-expense" id="dashToday">0.00</strong></div>
+        <div class="rt-metric"><span class="rt-label">За 7 дней</span><strong class="rt-metric-value rt-expense" id="dashWeek">0.00</strong></div>
       </section>
       <section class="rt-activity">
-        <div class="rt-section-head"><span class="rt-label">Recent activity</span><span class="rt-section-meta">LATEST 5</span></div>
+        <div class="rt-section-head"><span class="rt-label">Последние операции</span><span class="rt-section-meta">ПОСЛЕДНИЕ 5</span></div>
         <div id="dashActivity" class="rt-activity-list"></div>
       </section>
       <section class="rt-spend">
-        <div class="rt-section-head"><span class="rt-label">Spend mix</span><span class="rt-section-meta">ALL TIME</span></div>
+        <div class="rt-section-head"><span class="rt-label">Структура расходов</span><span class="rt-section-meta">ВСЁ ВРЕМЯ</span></div>
         <div class="rt-chart rt-spend-chart"><canvas id="doughnutChart"></canvas></div>
       </section>
-      <button class="rt-add-entry" onclick="openAddModal()" aria-label="Add transaction"><span>＋</span><b>ADD ENTRY</b><span>↵</span></button>
-      <span class="rt-finish">END OF STATEMENT</span>
+      <button class="rt-add-entry" onclick="openAddModal()" aria-label="Добавить запись"><span>＋</span><b>ДОБАВИТЬ ЗАПИСЬ</b><span>↵</span></button>
+      <span class="rt-finish">КОНЕЦ ВЫПИСКИ</span>
     </div>
   </section>
 
   <!-- ========== RECEIPT TAPE HISTORY ========== -->
   <section id="history" class="screen rt-screen">
     <div class="rt-receipt rt-report">
-      <div class="rt-receipt-head"><span class="rt-receipt-code">ACCOUNT / HISTORY</span><span class="rt-receipt-status" id="historyCount"></span></div>
-      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Transaction log</span><strong>HISTORY</strong></div></div>
+      <div class="rt-receipt-head"><span class="rt-receipt-code">СЧЁТ / ИСТОРИЯ</span><span class="rt-receipt-status" id="historyCount"></span></div>
+      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Журнал операций</span><strong>ИСТОРИЯ</strong></div></div>
       <div class="rt-filter-line">
-        <select id="histType" class="rt-control"><option value="all">ALL TYPES</option><option value="income">INCOME</option><option value="expense">EXPENSE</option></select>
-        <select id="histCategory" class="rt-control"><option value="all">ALL CATEGORIES</option></select>
+        <select id="histType" class="rt-control"><option value="all">ВСЕ ТИПЫ</option><option value="income">ДОХОД</option><option value="expense">РАСХОД</option></select>
+        <select id="histCategory" class="rt-control"><option value="all">ВСЕ КАТЕГОРИИ</option></select>
         <input id="histDateFrom" type="date" class="rt-control">
         <input id="histDateTo" type="date" class="rt-control">
-        <input id="histSearch" type="text" placeholder="SEARCH COMMENT" class="rt-control">
+        <input id="histSearch" type="text" placeholder="ПОИСК В КОММЕНТАРИИ" class="rt-control">
       </div>
       <div id="historyList" class="rt-report-list"></div>
-      <span class="rt-finish">END OF LOG</span>
+      <span class="rt-finish">КОНЕЦ ЖУРНАЛА</span>
     </div>
   </section>
   <!-- ========== RECEIPT TAPE ANALYTICS ========== -->
   <section id="analytics" class="screen rt-screen">
     <div class="rt-receipt rt-report">
-      <div class="rt-receipt-head"><span class="rt-receipt-code">ACCOUNT / ANALYTICS</span><span class="rt-receipt-status">[ REPORT ]</span></div>
-      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Performance report</span><strong>ANALYTICS</strong></div></div>
+      <div class="rt-receipt-head"><span class="rt-receipt-code">СЧЁТ / АНАЛИТИКА</span><span class="rt-receipt-status">[ ОТЧЁТ ]</span></div>
+      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Сводный отчёт</span><strong>АНАЛИТИКА</strong></div></div>
       <div class="rt-period-row">
-        <button class="rt-period period-btn" data-period="all">ALL TIME</button>
-        <button class="rt-period period-btn" data-period="week">7 DAYS</button>
-        <button class="rt-period period-btn" data-period="month">30 DAYS</button>
-        <button class="rt-period period-btn" data-period="year">YEAR</button>
+        <button class="rt-period period-btn" data-period="all">ВСЁ ВРЕМЯ</button>
+        <button class="rt-period period-btn" data-period="week">7 ДНЕЙ</button>
+        <button class="rt-period period-btn" data-period="month">30 ДНЕЙ</button>
+        <button class="rt-period period-btn" data-period="year">ГОД</button>
       </div>
       <div class="rt-filter-line">
         <input id="analDateFrom" type="date" class="rt-control">
         <input id="analDateTo" type="date" class="rt-control">
       </div>
       <div class="rt-stat-strip">
-        <div class="rt-stat"><span class="rt-label">Net</span><strong class="rt-stat-value" id="analSum">0.00</strong></div>
-        <div class="rt-stat"><span class="rt-label">Avg ticket</span><strong class="rt-stat-value" id="analAvg">0.00</strong></div>
-        <div class="rt-stat"><span class="rt-label">Entries</span><strong class="rt-stat-value" id="analCount">0</strong></div>
+        <div class="rt-stat"><span class="rt-label">Сальдо</span><strong class="rt-stat-value" id="analSum">0.00</strong></div>
+        <div class="rt-stat"><span class="rt-label">Средний чек</span><strong class="rt-stat-value" id="analAvg">0.00</strong></div>
+        <div class="rt-stat"><span class="rt-label">Кол-во</span><strong class="rt-stat-value" id="analCount">0</strong></div>
       </div>
-      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Income / expense</span><span class="rt-section-meta">BY PERIOD</span></div><div class="rt-report-chart rt-report-chart-tall"><canvas id="barChart"></canvas></div></section>
-      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Expense mix</span><span class="rt-section-meta">OUTFLOW</span></div><div class="rt-report-chart"><canvas id="analDoughnutExpense"></canvas></div></section>
-      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Income mix</span><span class="rt-section-meta">INFLOW</span></div><div class="rt-report-chart"><canvas id="analDoughnutIncome"></canvas></div></section>
-      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Top categories</span><span class="rt-section-meta">TOP 5</span></div><div id="top5List" class="rt-report-list"></div></section>
-      <span class="rt-finish">END OF REPORT</span>
+      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Доходы / расходы</span><span class="rt-section-meta">ПО ПЕРИОДУ</span></div><div class="rt-report-chart rt-report-chart-tall"><canvas id="barChart"></canvas></div></section>
+      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Структура расходов</span><span class="rt-section-meta">РАСХОД</span></div><div class="rt-report-chart"><canvas id="analDoughnutExpense"></canvas></div></section>
+      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Структура доходов</span><span class="rt-section-meta">ПРИХОД</span></div><div class="rt-report-chart"><canvas id="analDoughnutIncome"></canvas></div></section>
+      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Топ категорий</span><span class="rt-section-meta">ТОП 5</span></div><div id="top5List" class="rt-report-list"></div></section>
+      <span class="rt-finish">КОНЕЦ ОТЧЁТА</span>
     </div>
   </section>
   <!-- ========== RECEIPT TAPE LIMITS ========== -->
   <section id="budgets" class="screen rt-screen">
     <div class="rt-receipt rt-report">
-      <div class="rt-receipt-head"><span class="rt-receipt-code">ACCOUNT / LIMITS</span><span class="rt-receipt-status">[ MONTHLY ]</span></div>
-      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Spending control</span><strong>LIMITS</strong></div></div>
+      <div class="rt-receipt-head"><span class="rt-receipt-code">СЧЁТ / ЛИМИТЫ</span><span class="rt-receipt-status">[ МЕСЯЧНО ]</span></div>
+      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Контроль расходов</span><strong>ЛИМИТЫ</strong></div></div>
       <div id="budgetList" class="rt-report-list"></div>
-      <button onclick="showAddBudget()" class="rt-add-entry" aria-label="Add spending limit"><span>＋</span><b>ADD LIMIT</b><span>↵</span></button>
-      <span class="rt-finish">END OF CONTROL SHEET</span>
+      <button onclick="showAddBudget()" class="rt-add-entry" aria-label="Добавить лимит"><span>＋</span><b>ДОБАВИТЬ ЛИМИТ</b><span>↵</span></button>
+      <span class="rt-finish">КОНЕЦ КОНТРОЛЬНОГО ЛИСТА</span>
     </div>
   </section>
 
   <!-- ========== RECEIPT TAPE SETTINGS ========== -->
   <section id="settings" class="screen rt-screen">
     <div class="rt-receipt rt-report">
-      <div class="rt-receipt-head"><span class="rt-receipt-code">ACCOUNT / SETTINGS</span><span class="rt-receipt-status">[ LOCAL ]</span></div>
-      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">System utility</span><strong>SETTINGS</strong></div></div>
+      <div class="rt-receipt-head"><span class="rt-receipt-code">СЧЁТ / НАСТРОЙКИ</span><span class="rt-receipt-status">[ ЛОКАЛЬНО ]</span></div>
+      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Системные настройки</span><strong>НАСТРОЙКИ</strong></div></div>
       <section class="rt-settings-section">
-        <div class="rt-settings-section-head"><span class="rt-label">Income categories</span><button class="rt-period" onclick="showAddCatModal('income')">＋ ADD</button></div>
+        <div class="rt-settings-section-head"><span class="rt-label">Категории доходов</span><button class="rt-period" onclick="showAddCatModal('income')">＋ ДОБАВИТЬ</button></div>
         <div id="settingsIncomeList" class="rt-settings-list"></div>
       </section>
       <section class="rt-settings-section">
-        <div class="rt-settings-section-head"><span class="rt-label">Expense categories</span><button class="rt-period" onclick="showAddCatModal('expense')">＋ ADD</button></div>
+        <div class="rt-settings-section-head"><span class="rt-label">Категории расходов</span><button class="rt-period" onclick="showAddCatModal('expense')">＋ ДОБАВИТЬ</button></div>
         <div id="settingsExpenseList" class="rt-settings-list"></div>
       </section>
       <section class="rt-settings-section">
-        <div class="rt-settings-section-head"><span class="rt-label">Data</span><span class="rt-section-meta">JSON</span></div>
-        <div class="rt-settings-actions"><button onclick="exportData()">EXPORT JSON</button><button onclick="document.getElementById('importFile').click()">IMPORT JSON</button><button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) resetAllData()">CLEAR ALL</button></div>
+        <div class="rt-settings-section-head"><span class="rt-label">Данные</span><span class="rt-section-meta">JSON</span></div>
+        <div class="rt-settings-actions"><button onclick="exportData()">ЭКСПОРТ JSON</button><button onclick="document.getElementById('importFile').click()">ИМПОРТ JSON</button><button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) resetAllData()">ОЧИСТИТЬ ВСЁ</button></div>
         <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
       </section>
       <section class="rt-settings-section">
-        <div class="rt-settings-section-head"><span class="rt-label">Cloud sync</span><span class="rt-section-meta">GIST</span></div>
+        <div class="rt-settings-section-head"><span class="rt-label">Облачная синхронизация</span><span class="rt-section-meta">GIST</span></div>
         <div class="rt-sync-grid">
           <label class="field-group"><span class="field-label">GitHub token</span><input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="input" autocomplete="off"></label>
           <label class="field-group"><span class="field-label">Gist ID</span><input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="input" autocomplete="off"></label>
-          <div class="rt-sync-buttons"><button class="rt-add-entry" onclick="saveSyncSettings()">SAVE</button><button class="rt-add-entry" onclick="createGist()">NEW GIST</button></div>
-          <div class="rt-sync-buttons"><button class="rt-settings-actions" onclick="pullFromGist()">PULL</button><button class="rt-settings-actions" onclick="pushToGist()">PUSH</button></div>
+          <div class="rt-sync-buttons"><button class="rt-add-entry" onclick="saveSyncSettings()">СОХРАНИТЬ</button><button class="rt-add-entry" onclick="createGist()">СОЗДАТЬ GIST</button></div>
+          <div class="rt-sync-buttons"><button class="rt-settings-actions" onclick="pullFromGist()">ЗАГРУЗИТЬ</button><button class="rt-settings-actions" onclick="pushToGist()">ВЫГРУЗИТЬ</button></div>
           <div id="syncStatus" class="rt-section-meta"></div>
         </div>
       </section>
       <section class="rt-settings-section">
-        <div class="rt-settings-section-head"><span class="rt-label">Diagnostics</span><span class="rt-section-meta">BUILD</span></div>
+        <div class="rt-settings-section-head"><span class="rt-label">Диагностика</span><span class="rt-section-meta">СБОРКА</span></div>
         <div id="diagInfo" class="rt-report-list"></div>
-        <div class="rt-settings-actions"><button onclick="manualRestoreFromCloud()">RESTORE</button><button onclick="forcePullAndMerge()">MERGE</button><button onclick="checkForUpdate()">CHECK UPDATE</button><button onclick="hardResetApp()">RESET CACHE</button></div>
+        <div class="rt-settings-actions"><button onclick="manualRestoreFromCloud()">ВОССТАНОВИТЬ</button><button onclick="forcePullAndMerge()">СЛИТЬ</button><button onclick="checkForUpdate()">ПРОВЕРИТЬ ОБНОВЛЕНИЕ</button><button onclick="hardResetApp()">СБРОС КЭША</button></div>
       </section>
-      <span class="rt-finish">END OF CONFIGURATION</span>
+      <span class="rt-finish">КОНЕЦ НАСТРОЕК</span>
     </div>
   </section>
 </main>
@@ -1824,8 +1824,9 @@ function hasAnyCustomCats(value) {
   return lists.some(c => c && isCustomCatId(c.id));
 }
 function loadCategories() {
+  // Load only. Do NOT write to localStorage here — defaults must not overwrite
+  // a fresh state that may still be restored from the cloud.
   CATEGORIES = normalizeCategories(readStoredJson(STORAGE_KEYS.categories));
-  localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(CATEGORIES));
 }
 function restoreCustomCategoriesFromCloud() {
   // Last-ditch: gist may carry cats that localStorage lost (cleared cache, reset, fresh profile).
@@ -2117,7 +2118,7 @@ function renderDashboardActivity() {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
   if (!recent.length) {
-    container.innerHTML = '<div class="rt-empty">NO ACTIVITY</div>';
+    container.innerHTML = '<div class="rt-empty">НЕТ ОПЕРАЦИЙ</div>';
     return;
   }
   container.innerHTML = recent.map(t => {
@@ -2273,9 +2274,9 @@ function renderHistory() {
   if (search) filtered = filtered.filter(t => String(t.comment || '').toLowerCase().includes(search));
   const container = document.getElementById('historyList');
   const count = document.getElementById('historyCount');
-  if (count) count.textContent = String(filtered.length).padStart(2, '0') + ' ROWS';
+  if (count) count.textContent = String(filtered.length).padStart(2, '0') + ' ЗАП.';
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="rt-empty">NO RECORDS FOUND</div>';
+    container.innerHTML = '<div class="rt-empty">ЗАПИСЕЙ НЕ НАЙДЕНО</div>';
     return;
   }
   container.innerHTML = filtered.map(t => {
@@ -2285,7 +2286,7 @@ function renderHistory() {
     const date = escapeHtml(formatDateShort(t.createdAt).replace('.', '').toUpperCase());
     const name = escapeHtml(catName(t.category));
     const comment = escapeHtml(t.comment || '—');
-    return `<div class="rt-report-row"><div class="rt-report-row-main"><div class="rt-report-row-name">${name}</div><div class="rt-report-row-sub">${date} · ${comment}</div></div><div class="rt-report-row-value ${amountClass}">${sign}${formatCurrency(t.amount)} <button class="rt-delete" data-delete-transaction="${escapeHtml(t.id)}">DEL</button></div></div>`;
+    return `<div class="rt-report-row"><div class="rt-report-row-main"><div class="rt-report-row-name">${name}</div><div class="rt-report-row-sub">${date} · ${comment}</div></div><div class="rt-report-row-value ${amountClass}">${sign}${formatCurrency(t.amount)} <button class="rt-delete" data-delete-transaction="${escapeHtml(t.id)}">УДАЛ</button></div></div>`;
   }).join('');
 }
 
@@ -2497,8 +2498,8 @@ function renderTop5(rangeTx) {
   document.getElementById('top5List').innerHTML = sorted.map(([cat, sum]) => {
     const pct = Math.round(sum / max * 100);
     const name = (catById(cat)?.name || cat).toUpperCase();
-    return `<div class="rt-report-row"><div class="rt-report-row-main"><div class="rt-report-row-name">${escapeHtml(name)}</div><div class="rt-report-row-sub">${pct}% OF TOP OUTFLOW</div></div><span class="rt-report-row-value rt-expense">−${formatCurrency(sum)}</span></div>`;
-  }).join('') || '<div class="rt-empty">NO DATA</div>';
+    return `<div class="rt-report-row"><div class="rt-report-row-main"><div class="rt-report-row-name">${escapeHtml(name)}</div><div class="rt-report-row-sub">${pct}% ОТ ОБЩЕГО РАСХОДА</div></div><span class="rt-report-row-value rt-expense">−${formatCurrency(sum)}</span></div>`;
+  }).join('') || '<div class="rt-empty">НЕТ ДАННЫХ</div>';
 }
 
 document.querySelectorAll('.period-btn').forEach(btn => {
@@ -2521,7 +2522,7 @@ function renderBudgets() {
 
   const container = document.getElementById('budgetList');
   if (budgets.length === 0) {
-    container.innerHTML = '<div class="rt-empty">NO LIMITS SET</div>';
+    container.innerHTML = '<div class="rt-empty">ЛИМИТЫ НЕ УСТАНОВЛЕНЫ</div>';
     return;
   }
   container.innerHTML = budgets.map(b => {
@@ -2529,7 +2530,7 @@ function renderBudgets() {
     const pct = Math.min(100, Math.round(spent / b.limit * 100));
     const over = spent > b.limit;
     const name = (catById(b.category)?.name || b.category).toUpperCase();
-    return `<div class="rt-limit-row"><div class="rt-limit-head"><span class="rt-limit-name">${escapeHtml(name)}</span><span class="rt-limit-meta">${formatCurrency(spent)} / ${formatCurrency(b.limit)} <button class="rt-delete" data-delete-budget="${escapeHtml(b.category)}">DEL</button></span></div><div class="rt-limit-track"><div class="rt-limit-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>${over ? `<div class="rt-limit-warning">OVERRUN BY ${formatCurrency(spent - b.limit)}</div>` : ''}</div>`;
+    return `<div class="rt-limit-row"><div class="rt-limit-head"><span class="rt-limit-name">${escapeHtml(name)}</span><span class="rt-limit-meta">${formatCurrency(spent)} / ${formatCurrency(b.limit)} <button class="rt-delete" data-delete-budget="${escapeHtml(b.category)}">УДАЛ</button></span></div><div class="rt-limit-track"><div class="rt-limit-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>${over ? `<div class="rt-limit-warning">ПЕРЕРАСХОД НА ${formatCurrency(spent - b.limit)}</div>` : ''}</div>`;
   }).join('');
 }
 
@@ -2698,11 +2699,11 @@ function importData(input) {
 function getSyncConfig() {
   const stored = readStoredJson(STORAGE_KEYS.syncConfig);
   const legacyToken = isRecord(stored) && typeof stored.token === 'string' ? stored.token.trim() : '';
-  const token = sessionStorage.getItem(STORAGE_KEYS.syncToken) || legacyToken;
+  const token = localStorage.getItem(STORAGE_KEYS.syncToken) || legacyToken;
   const gistIdValue = isRecord(stored) ? stored.gistId : '';
   const gistId = typeof gistIdValue === 'string' && /^[A-Za-z0-9_-]+$/.test(gistIdValue.trim()) ? gistIdValue.trim() : '';
   if (legacyToken) {
-    sessionStorage.setItem(STORAGE_KEYS.syncToken, legacyToken);
+    localStorage.setItem(STORAGE_KEYS.syncToken, legacyToken);
     localStorage.setItem(STORAGE_KEYS.syncConfig, JSON.stringify({ gistId }));
   }
   return { token, gistId };
@@ -2711,14 +2712,14 @@ function saveSyncSettings() {
   const token = document.getElementById('syncToken').value.trim();
   const gistId = document.getElementById('syncGistId').value.trim();
   if (!token || !/^[A-Za-z0-9_-]+$/.test(gistId)) { showToast('Заполни корректные данные', 'error'); return; }
-  sessionStorage.setItem(STORAGE_KEYS.syncToken, token);
+  localStorage.setItem(STORAGE_KEYS.syncToken, token);
   localStorage.setItem(STORAGE_KEYS.syncConfig, JSON.stringify({ gistId }));
   document.getElementById('syncStatus').textContent = '✅ Настройки сохранены. Направление синхронизации выбери вручную.';
   showToast('Синхронизация настроена', 'success');
 }
 function resetAllData() {
   Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
-  sessionStorage.removeItem(STORAGE_KEYS.syncToken);
+  localStorage.removeItem(STORAGE_KEYS.syncToken);
   location.reload();
 }
 function loadSyncUI() {
@@ -2879,7 +2880,7 @@ async function manualRestoreFromCloud() {
   try {
     const gist = await gistApi('GET');
     const file = gist && gist.files && gist.files['finance-data.json'];
-    if (!file || typeof file.content !== 'string') { showToast('Gist пуст', 'error'); return; }
+const BUILD_VERSION = '2026-08-18-r4';
     const remote = JSON.parse(file.content);
     if (!remote || !isRecord(remote.categories)) { showToast('В гисте нет категорий', 'error'); return; }
     if (!hasAnyCustomCats(remote.categories)) {
@@ -3083,7 +3084,7 @@ renderDashboard();
 initReceiptTapeMotion();
 loadSyncUI();
 syncWritesEnabled = true;
-autoPullGist();
+  var KEY = "boot_seen_2026-08-18-r4";
 // Если локально кастомных нет, но в гисте они есть — восстанавливаем (иначе пользователь думает, что всё пропало).
 restoreCustomCategoriesFromCloud().then(restored => {
   if (restored) {
