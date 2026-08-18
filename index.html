@@ -3142,7 +3142,12 @@ function __lmInit() {
    const gsap = window.gsap;
   let fabBreath = null;
 
-  // ---------- Ink-write balance hero ----------
+  // Trigger dashboard entrance animation now that __lm is wired up.
+  // renderDashboard() ran earlier (before GSAP loaded) when __lm was undefined,
+  // so the mount hook inside it was a no-op. Replay it here so first paint animates.
+  try { mountDashboard(); } catch (e) { console.warn('[LM] mountDashboard failed', e); }
+
+   // ---------- FAB ----------
   function inkWrite(balanceEl, unitEl, tl) {
     if (!balanceEl) return;
     const rect = balanceEl.getBoundingClientRect();
