@@ -3099,17 +3099,32 @@ function __lmInit() {
       startFabBreath: function () { /* no-op */ },
       pauseFabBreath: function () { /* no-op */ },
       tapFab: function () { /* no-op */ },
-      rotateFab: function () { /* no-op */ },
-      openModalAnim: function () { /* no-op */ },
-      closeModalAnim: function () { /* no-op */ },
-      turnPage: function (from, to) { /* plain swap */
-        if (from) from.classList.remove('active');
-        if (to) to.classList.add('active');
+      rotateFab: function (open) {
+        const fab = document.querySelector('.fab');
+        if (fab) fab.classList.toggle('is-rotated', Boolean(open));
+      },
+      openModalAnim: function (id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.add('open');
+      },
+      closeModalAnim: function (id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('open');
+      },
+      turnPage: function (from, to) {
+        const fromEl = typeof from === 'string' ? document.getElementById(from) : from;
+        const toEl = typeof to === 'string' ? document.getElementById(to) : to;
+        if (fromEl) fromEl.classList.remove('active');
+        if (toEl) toEl.classList.add('active');
       },
       slideNavIndicator: function () { /* no-op */ },
-      tweenNumber: function () { /* no-op */ },
+      tweenNumber: function (el, from, to) {
+        if (el && Number.isFinite(Number(to))) el.textContent = Number(to).toFixed(2);
+      },
       enterTxRow: function () { /* no-op */ },
-      fillProgress: function () { /* no-op */ },
+      fillProgress: function (bar, targetPct) {
+        if (bar) bar.style.width = targetPct + '%';
+      },
     };
     return;
   }
