@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="theme-color" content="#F4EFE6">
+<meta name="theme-color" content="#151718">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Финансы">
@@ -1346,7 +1346,8 @@ body.receipt-tape .container { max-width: 560px; padding-left: 16px; padding-rig
 .rt-live { color: var(--rt-cobalt); letter-spacing: 0.04em; }
 body.receipt-tape .rt-main { padding-top: 18px; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 body.receipt-tape .screen.active { display: block !important; animation: none !important; }
-body.receipt-tape .rt-dashboard { display: block !important; }
+body.receipt-tape .rt-dashboard { display: none !important; }
+body.receipt-tape .rt-dashboard.active { display: block !important; }
 .rt-receipt { position: relative; max-width: 560px; margin: 0 auto; padding: 0 20px 20px; color: var(--rt-ink); background: var(--rt-paper); box-shadow: 0 22px 48px rgba(0,0,0,0.28); }
 .rt-receipt::before, .rt-receipt::after { content: ""; position: absolute; left: 0; right: 0; height: 8px; background: radial-gradient(circle at 5px 0, transparent 3px, var(--rt-paper) 3.5px) repeat-x; background-size: 10px 8px; pointer-events: none; }
 .rt-receipt::before { top: -7px; transform: rotate(180deg); }
@@ -1407,9 +1408,64 @@ body.receipt-tape .chart-fallback { padding: 24px 0; color: var(--rt-muted); fon
 @media (prefers-reduced-motion: reduce) {
   .rt-print-item, .rt-print-item.rt-print-in, .rt-entry-in { opacity: 1; transform: none; animation: none; }
 }
+/* ===== RECEIPT TAPE — report screens ===== */
+body.receipt-tape .rt-screen { display: none !important; }
+body.receipt-tape .rt-screen.active { display: block !important; }
+.rt-report { min-height: 420px; }
+.rt-report-head { padding: 22px 0 16px; border-bottom: 1px solid var(--rt-ink); }
+.rt-report-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.rt-report-title strong { font: 500 24px/1 "IBM Plex Mono", monospace; letter-spacing: -0.06em; }
+.rt-filter-line { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px dashed var(--rt-rule); }
+.rt-control { min-width: 0; width: 100%; padding: 7px 0; color: var(--rt-ink); background: transparent; border: 0; border-bottom: 1px solid var(--rt-rule); border-radius: 0; font: 10px/1.2 "IBM Plex Mono", monospace; text-transform: uppercase; }
+.rt-control:focus { outline: 0; border-color: var(--rt-cobalt); }
+.rt-control::placeholder { color: var(--rt-muted); }
+.rt-period-row { display: flex; flex-wrap: wrap; gap: 16px; padding: 14px 0 4px; }
+.rt-period { padding: 0 0 5px; color: var(--rt-muted); background: transparent; border: 0; border-bottom: 1px solid transparent; font: 500 10px/1 "IBM Plex Mono", monospace; cursor: pointer; }
+.rt-period.active { color: var(--rt-ink); border-bottom-color: var(--rt-cobalt); }
+.rt-stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--rt-ink); }
+.rt-stat { min-width: 0; padding: 16px 0; }
+.rt-stat + .rt-stat { padding-left: 12px; border-left: 1px dashed var(--rt-rule); }
+.rt-stat-value { display: block; margin-top: 8px; overflow: hidden; font: 500 15px/1 "IBM Plex Mono", monospace; letter-spacing: -0.04em; text-overflow: ellipsis; white-space: nowrap; }
+.rt-report-section { padding-top: 4px; }
+.rt-report-chart { position: relative; height: 214px; border-top: 1px solid var(--rt-ink); border-bottom: 1px dashed var(--rt-rule); }
+.rt-report-chart-tall { height: 260px; }
+.rt-report-chart canvas { display: block; width: 100% !important; height: 100% !important; }
+.rt-report-list { border-top: 1px solid var(--rt-ink); }
+.rt-report-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 11px 0; border-bottom: 1px dashed var(--rt-rule); font-size: 11px; }
+.rt-report-row-main { min-width: 0; }
+.rt-report-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rt-report-row-sub { margin-top: 4px; color: var(--rt-muted); font-size: 10px; }
+.rt-report-row-value { white-space: nowrap; }
+.rt-delete { padding: 0 0 0 10px; color: var(--rt-vermilion); background: none; border: 0; font: inherit; cursor: pointer; }
+.rt-limit-row { padding: 14px 0; border-bottom: 1px dashed var(--rt-rule); }
+.rt-limit-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.rt-limit-name { font: 500 12px/1 "IBM Plex Mono", monospace; }
+.rt-limit-meta { color: var(--rt-muted); font-size: 10px; white-space: nowrap; }
+.rt-limit-track { height: 8px; margin-top: 10px; background: var(--rt-paper-2); border: 1px solid var(--rt-rule); }
+.rt-limit-fill { height: 100%; background: var(--rt-cobalt); }
+.rt-limit-fill.over { background: var(--rt-vermilion); }
+.rt-limit-warning { margin-top: 7px; color: var(--rt-vermilion); font-size: 10px; }
+.rt-settings-section { padding: 16px 0; border-bottom: 1px solid var(--rt-ink); }
+.rt-settings-section:last-of-type { border-bottom: 0; }
+.rt-settings-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 10px; }
+.rt-settings-list { border-top: 1px solid var(--rt-ink); }
+body.receipt-tape .rt-settings-list .cat-row { min-height: 38px; padding: 9px 0; background: transparent; border: 0; border-bottom: 1px dashed var(--rt-rule); border-radius: 0; }
+body.receipt-tape .rt-settings-list .cat-row .cat-icon { width: 22px; height: 22px; border: 0; background: transparent; }
+body.receipt-tape .rt-settings-list .cat-row .cat-name { color: var(--rt-ink); font: 11px/1 "IBM Plex Mono", monospace; }
+body.receipt-tape .rt-settings-list .cat-row .cat-tag { color: var(--rt-muted); font-size: 9px; }
+body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilion); background: transparent; border: 0; }
+.rt-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.rt-settings-actions button { padding: 8px 10px; color: var(--rt-ink); background: transparent; border: 1px solid var(--rt-rule); border-radius: 0; font: 10px/1 "IBM Plex Mono", monospace; cursor: pointer; }
+.rt-settings-actions button:hover, .rt-settings-actions button:focus-visible { border-color: var(--rt-cobalt); outline: 0; }
+.rt-sync-grid { display: grid; gap: 10px; }
+.rt-sync-grid .input { width: 100%; color: var(--rt-ink); background: transparent; border: 0; border-bottom: 1px solid var(--rt-rule); border-radius: 0; font: 11px/1.2 "IBM Plex Mono", monospace; }
+.rt-sync-grid .field-label { color: var(--rt-muted); font: 600 10px/1 "IBM Plex Sans Condensed", sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
+.rt-sync-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.rt-sync-buttons button { flex: 1 1 140px; }
+@media (max-width: 420px) { .rt-filter-line { grid-template-columns: 1fr; gap: 6px; } .rt-report-title strong { font-size: 20px; } }
 </style>
 </head>
-<body class="receipt-tape" data-build="2026-08-18-r2">
+<body class="receipt-tape" data-build="2026-08-18-r3">
 
 <div id="toast" class="toast"></div>
 
@@ -1466,164 +1522,96 @@ body.receipt-tape .chart-fallback { padding: 24px 0; color: var(--rt-muted); fon
     </div>
   </section>
 
-  <!-- ========== HISTORY ========== -->
-  <section id="history" class="screen" style="display:flex;flex-direction:column;gap:14px">
-    <div class="section-head">
-      <h2 class="section-title">История</h2>
-      <div class="section-sub" id="historyCount"></div>
-   </div>
-    <div class="filter-bar">
-      <select id="histType" class="select" style="flex:0 0 auto;width:auto">
-        <option value="all">Все</option>
-        <option value="income">Доход</option>
-        <option value="expense">Расход</option>
-     </select>
-      <select id="histCategory" class="select" style="flex:1">
-        <option value="all">Все категории</option>
-     </select>
-      <input id="histDateFrom" type="date" class="input" style="flex:0 0 auto;width:auto">
-      <input id="histDateTo" type="date" class="input" style="flex:0 0 auto;width:auto">
-      <input id="histSearch" type="text" placeholder="Поиск по комментарию" class="input" style="flex:1 1 100%;min-width:0">
-   </div>
-    <div id="historyList" class="list"></div>
- </section>
+  <!-- ========== RECEIPT TAPE HISTORY ========== -->
+  <section id="history" class="screen rt-screen">
+    <div class="rt-receipt rt-report">
+      <div class="rt-receipt-head"><span class="rt-receipt-code">ACCOUNT / HISTORY</span><span class="rt-receipt-status" id="historyCount"></span></div>
+      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Transaction log</span><strong>HISTORY</strong></div></div>
+      <div class="rt-filter-line">
+        <select id="histType" class="rt-control"><option value="all">ALL TYPES</option><option value="income">INCOME</option><option value="expense">EXPENSE</option></select>
+        <select id="histCategory" class="rt-control"><option value="all">ALL CATEGORIES</option></select>
+        <input id="histDateFrom" type="date" class="rt-control">
+        <input id="histDateTo" type="date" class="rt-control">
+        <input id="histSearch" type="text" placeholder="SEARCH COMMENT" class="rt-control">
+      </div>
+      <div id="historyList" class="rt-report-list"></div>
+      <span class="rt-finish">END OF LOG</span>
+    </div>
+  </section>
+  <!-- ========== RECEIPT TAPE ANALYTICS ========== -->
+  <section id="analytics" class="screen rt-screen">
+    <div class="rt-receipt rt-report">
+      <div class="rt-receipt-head"><span class="rt-receipt-code">ACCOUNT / ANALYTICS</span><span class="rt-receipt-status">[ REPORT ]</span></div>
+      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Performance report</span><strong>ANALYTICS</strong></div></div>
+      <div class="rt-period-row">
+        <button class="rt-period period-btn" data-period="all">ALL TIME</button>
+        <button class="rt-period period-btn" data-period="week">7 DAYS</button>
+        <button class="rt-period period-btn" data-period="month">30 DAYS</button>
+        <button class="rt-period period-btn" data-period="year">YEAR</button>
+      </div>
+      <div class="rt-filter-line">
+        <input id="analDateFrom" type="date" class="rt-control">
+        <input id="analDateTo" type="date" class="rt-control">
+      </div>
+      <div class="rt-stat-strip">
+        <div class="rt-stat"><span class="rt-label">Net</span><strong class="rt-stat-value" id="analSum">0.00</strong></div>
+        <div class="rt-stat"><span class="rt-label">Avg ticket</span><strong class="rt-stat-value" id="analAvg">0.00</strong></div>
+        <div class="rt-stat"><span class="rt-label">Entries</span><strong class="rt-stat-value" id="analCount">0</strong></div>
+      </div>
+      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Income / expense</span><span class="rt-section-meta">BY PERIOD</span></div><div class="rt-report-chart rt-report-chart-tall"><canvas id="barChart"></canvas></div></section>
+      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Expense mix</span><span class="rt-section-meta">OUTFLOW</span></div><div class="rt-report-chart"><canvas id="analDoughnutExpense"></canvas></div></section>
+      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Income mix</span><span class="rt-section-meta">INFLOW</span></div><div class="rt-report-chart"><canvas id="analDoughnutIncome"></canvas></div></section>
+      <section class="rt-report-section"><div class="rt-section-head"><span class="rt-label">Top categories</span><span class="rt-section-meta">TOP 5</span></div><div id="top5List" class="rt-report-list"></div></section>
+      <span class="rt-finish">END OF REPORT</span>
+    </div>
+  </section>
+  <!-- ========== RECEIPT TAPE LIMITS ========== -->
+  <section id="budgets" class="screen rt-screen">
+    <div class="rt-receipt rt-report">
+      <div class="rt-receipt-head"><span class="rt-receipt-code">ACCOUNT / LIMITS</span><span class="rt-receipt-status">[ MONTHLY ]</span></div>
+      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">Spending control</span><strong>LIMITS</strong></div></div>
+      <div id="budgetList" class="rt-report-list"></div>
+      <button onclick="showAddBudget()" class="rt-add-entry" aria-label="Add spending limit"><span>＋</span><b>ADD LIMIT</b><span>↵</span></button>
+      <span class="rt-finish">END OF CONTROL SHEET</span>
+    </div>
+  </section>
 
-  <!-- ========== ANALYTICS ========== -->
-  <section id="analytics" class="screen" style="display:flex;flex-direction:column;gap:16px">
-    <div class="section-head">
-      <h2 class="section-title">Аналитика</h2>
-   </div>
-    <div class="chip-row">
-      <button class="chip period-btn" data-period="all">Всё время</button>
-      <button class="chip period-btn" data-period="week">7 дней</button>
-      <button class="chip period-btn" data-period="month">30 дней</button>
-      <button class="chip period-btn" data-period="year">Год</button>
-   </div>
-    <div class="row" style="gap:8px">
-      <input id="analDateFrom" type="date" class="input" style="flex:1">
-      <input id="analDateTo" type="date" class="input" style="flex:1">
-   </div>
-    <div class="stat-grid">
-      <div class="stat-cell">
-        <div class="label">Сальдо</div>
-        <div class="stat-cell-val" id="analSum">0.00</div>
-     </div>
-      <div class="stat-cell">
-        <div class="label">Средний чек</div>
-        <div class="stat-cell-val" id="analAvg">0.00</div>
-     </div>
-      <div class="stat-cell">
-        <div class="label">Кол-во</div>
-        <div class="stat-cell-val" id="analCount">0</div>
-     </div>
-   </div>
-    <div class="chart-card">
-      <div class="chart-card-head">
-        <div class="chart-card-title">Доходы и расходы</div>
-        <div class="chart-card-sub">динамика</div>
-     </div>
-      <div class="chart-wrap chart-wrap-tall"><canvas id="barChart"></canvas></div>
-   </div>
-    <div class="chart-card">
-      <div class="chart-card-head">
-        <div class="chart-card-title">Где уходят деньги</div>
-        <div class="chart-card-sub">расходы</div>
-     </div>
-      <div class="chart-wrap"><canvas id="analDoughnutExpense"></canvas></div>
-   </div>
-    <div class="chart-card">
-      <div class="chart-card-head">
-        <div class="chart-card-title">Откуда приходят</div>
-        <div class="chart-card-sub">доходы</div>
-     </div>
-      <div class="chart-wrap"><canvas id="analDoughnutIncome"></canvas></div>
-   </div>
-    <div class="card">
-      <div class="chart-card-head">
-        <div class="chart-card-title">Топ-5 категорий</div>
-        <div class="chart-card-sub">расходы</div>
-     </div>
-      <div id="top5List"></div>
-   </div>
- </section>
-
-  <!-- ========== BUDGETS ========== -->
-  <section id="budgets" class="screen" style="display:flex;flex-direction:column;gap:14px">
-    <div class="section-head">
-      <h2 class="section-title">Лимиты</h2>
-   </div>
-    <div id="budgetList" style="display:flex;flex-direction:column;gap:10px"></div>
-    <button onclick="showAddBudget()" class="btn btn-ghost btn-block" style="border-style:dashed">+ Добавить лимит</button>
- </section>
-
-  <!-- ========== SETTINGS ========== -->
-  <section id="settings" class="screen" style="display:flex;flex-direction:column;gap:14px">
-    <div class="section-head">
-      <h2 class="section-title">Категории</h2>
-   </div>
-
-    <div class="settings-group">
-      <div class="row between" style="margin-bottom:12px">
-        <h3 class="settings-group-title">Доходы</h3>
-     </div>
-      <div id="settingsIncomeList" style="display:flex;flex-direction:column;gap:4px"></div>
-   </div>
-
-    <div class="settings-group">
-      <div class="row between" style="margin-bottom:12px">
-        <h3 class="settings-group-title">Расходы</h3>
-        <button onclick="showAddCatModal('expense')" class="btn btn-sm btn-ghost">+ Категория</button>
-     </div>
-      <div id="settingsExpenseList" style="display:flex;flex-direction:column;gap:4px"></div>
-   </div>
-
-    <div class="settings-group">
-      <h3 class="settings-group-title">Данные</h3>
-      <div class="row" style="gap:8px;flex-wrap:wrap">
-        <button onclick="exportData()" class="btn btn-ghost btn-sm">Экспорт JSON</button>
-        <button onclick="document.getElementById('importFile').click()" class="btn btn-ghost btn-sm">Импорт JSON</button>
-     </div>
-      <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
-      <div style="margin-top:12px">
-        <button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) resetAllData();" class="btn btn-danger btn-sm btn-block">Очистить всё</button>
-     </div>
-   </div>
-
-    <div class="settings-group">
-      <h3 class="settings-group-title">Облачная синхронизация</h3>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="field-group">
-          <span class="field-label">GitHub Token</span>
-          <input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="input" autocomplete="off">
-       </div>
-        <div class="field-group">
-          <span class="field-label">Gist ID</span>
-          <input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="input" autocomplete="off">
-       </div>
-        <div class="row" style="gap:8px">
-          <button onclick="saveSyncSettings()" class="btn" style="flex:1">Сохранить</button>
-          <button onclick="createGist()" class="btn btn-ghost">Новый</button>
-       </div>
-        <div class="row" style="gap:8px">
-          <button onclick="pullFromGist()" class="btn btn-ghost btn-sm" style="flex:1">Загрузить из облака</button>
-          <button onclick="pushToGist()" class="btn btn-ghost btn-sm" style="flex:1">Выгрузить в облако</button>
-       </div>
-        <div id="syncStatus" style="font-size:12px;color:var(--ink-3);min-height:16px"></div>
-     </div>
-   </div>
-
-    <div class="settings-group">
-      <h3 class="settings-group-title">Диагностика</h3>
-      <div id="diagInfo" style="display:flex;flex-direction:column"></div>
-      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
-        <button onclick="manualRestoreFromCloud()" class="btn btn-ghost btn-sm">Восстановить категории</button>
-        <button onclick="forcePullAndMerge()" class="btn btn-ghost btn-sm">Слить с облаком</button>
-        <button onclick="checkForUpdate()" class="btn btn-ghost btn-sm">Проверить обновления</button>
-        <button onclick="hardResetApp()" class="btn btn-danger btn-sm">Сброс кэша</button>
-     </div>
-   </div>
- </section>
-
+  <!-- ========== RECEIPT TAPE SETTINGS ========== -->
+  <section id="settings" class="screen rt-screen">
+    <div class="rt-receipt rt-report">
+      <div class="rt-receipt-head"><span class="rt-receipt-code">ACCOUNT / SETTINGS</span><span class="rt-receipt-status">[ LOCAL ]</span></div>
+      <div class="rt-report-head"><div class="rt-report-title"><span class="rt-label">System utility</span><strong>SETTINGS</strong></div></div>
+      <section class="rt-settings-section">
+        <div class="rt-settings-section-head"><span class="rt-label">Income categories</span><button class="rt-period" onclick="showAddCatModal('income')">＋ ADD</button></div>
+        <div id="settingsIncomeList" class="rt-settings-list"></div>
+      </section>
+      <section class="rt-settings-section">
+        <div class="rt-settings-section-head"><span class="rt-label">Expense categories</span><button class="rt-period" onclick="showAddCatModal('expense')">＋ ADD</button></div>
+        <div id="settingsExpenseList" class="rt-settings-list"></div>
+      </section>
+      <section class="rt-settings-section">
+        <div class="rt-settings-section-head"><span class="rt-label">Data</span><span class="rt-section-meta">JSON</span></div>
+        <div class="rt-settings-actions"><button onclick="exportData()">EXPORT JSON</button><button onclick="document.getElementById('importFile').click()">IMPORT JSON</button><button onclick="if(confirm('Удалить ВСЕ данные? Это нельзя отменить.')) resetAllData()">CLEAR ALL</button></div>
+        <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
+      </section>
+      <section class="rt-settings-section">
+        <div class="rt-settings-section-head"><span class="rt-label">Cloud sync</span><span class="rt-section-meta">GIST</span></div>
+        <div class="rt-sync-grid">
+          <label class="field-group"><span class="field-label">GitHub token</span><input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="input" autocomplete="off"></label>
+          <label class="field-group"><span class="field-label">Gist ID</span><input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="input" autocomplete="off"></label>
+          <div class="rt-sync-buttons"><button class="rt-add-entry" onclick="saveSyncSettings()">SAVE</button><button class="rt-add-entry" onclick="createGist()">NEW GIST</button></div>
+          <div class="rt-sync-buttons"><button class="rt-settings-actions" onclick="pullFromGist()">PULL</button><button class="rt-settings-actions" onclick="pushToGist()">PUSH</button></div>
+          <div id="syncStatus" class="rt-section-meta"></div>
+        </div>
+      </section>
+      <section class="rt-settings-section">
+        <div class="rt-settings-section-head"><span class="rt-label">Diagnostics</span><span class="rt-section-meta">BUILD</span></div>
+        <div id="diagInfo" class="rt-report-list"></div>
+        <div class="rt-settings-actions"><button onclick="manualRestoreFromCloud()">RESTORE</button><button onclick="forcePullAndMerge()">MERGE</button><button onclick="checkForUpdate()">CHECK UPDATE</button><button onclick="hardResetApp()">RESET CACHE</button></div>
+      </section>
+      <span class="rt-finish">END OF CONFIGURATION</span>
+    </div>
+  </section>
 </main>
 
 <!-- ========== RECEIPT TAPE NAV ========== -->
@@ -2284,28 +2272,20 @@ function renderHistory() {
   if (dateTo) filtered = filtered.filter(t => new Date(t.createdAt) <= new Date(dateTo + 'T23:59:59'));
   if (search) filtered = filtered.filter(t => String(t.comment || '').toLowerCase().includes(search));
   const container = document.getElementById('historyList');
+  const count = document.getElementById('historyCount');
+  if (count) count.textContent = String(filtered.length).padStart(2, '0') + ' ROWS';
   if (filtered.length === 0) {
-    container.innerHTML = '<div style="text-align: center; padding: 2.5rem 1rem; color: var(--amber-dim); font-family: JetBrains Mono, monospace; font-size: 11px">&gt; NO_RECORDS_FOUND</div>';
+    container.innerHTML = '<div class="rt-empty">NO RECORDS FOUND</div>';
     return;
   }
   container.innerHTML = filtered.map(t => {
-    const sign = t.type === 'income' ? '+' : '-';
-    const color = t.type === 'income' ? 'var(--mint)' : 'var(--crimson)';
-    const prefix = t.type === 'income' ? '[+]' : '[-]';
-    return `
-    <div class="list-item" onmouseover="this.style.background='var(--paper-2)'" onmouseout="this.style.background='transparent'">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${t.type === 'income' ? 'var(--sage-soft)' : 'var(--terracotta-soft)'};border:1.5px solid ${color};font-size:14px;flex-shrink:0">${t.type === 'income' ? '↗' : '↘'}</span>
-      <div style="flex: 1; min-width: 0; overflow: hidden">
-        <p style="font-size: 12px; color: var(--amber); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500">${escapeHtml(catName(t.category))}</p>
-        <p style="font-size: 11px; color: var(--amber-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px">${escapeHtml(t.comment || '—') || '—'}</p>
-        <p style="font-size: 10px; color: var(--amber-dim); margin-top: 2px; opacity: 0.8">${formatDate(t.createdAt)}</p>
-      </div>
-      <div style="text-align: right; flex-shrink: 0">
-        <p class="mono" style="font-size: 14px; color: ${color}; font-weight: 600">${sign}${formatCurrency(t.amount)}</p>
-        <button data-delete-transaction="${escapeHtml(t.id)}" style="font:500 14px 'Kalam', cursive;color:var(--terracotta);background:transparent;border:none;cursor:pointer;margin-top:2px;padding:0 4px">удалить</button>
-      </div>
-    </div>
-  `;
+    const income = t.type === 'income';
+    const sign = income ? '+' : '−';
+    const amountClass = income ? 'rt-income' : 'rt-expense';
+    const date = escapeHtml(formatDateShort(t.createdAt).replace('.', '').toUpperCase());
+    const name = escapeHtml(catName(t.category));
+    const comment = escapeHtml(t.comment || '—');
+    return `<div class="rt-report-row"><div class="rt-report-row-main"><div class="rt-report-row-name">${name}</div><div class="rt-report-row-sub">${date} · ${comment}</div></div><div class="rt-report-row-value ${amountClass}">${sign}${formatCurrency(t.amount)} <button class="rt-delete" data-delete-transaction="${escapeHtml(t.id)}">DEL</button></div></div>`;
   }).join('');
 }
 
@@ -2435,8 +2415,8 @@ function renderBarChart(rangeTx, from, to) {
     data: {
       labels,
       datasets: [
-        { label: 'Доход', data: incomeData, backgroundColor: '#5B7553', borderRadius: 0, borderSkipped: false, maxBarThickness: 30, borderColor: '#5B7553', borderWidth: { top: 1, right: 1, left: 1, bottom: 0 } },
-        { label: 'Расход', data: expenseData, backgroundColor: '#C45A2D', borderRadius: 0, borderSkipped: false, maxBarThickness: 30, borderColor: '#C45A2D', borderWidth: { top: 1, right: 1, left: 1, bottom: 0 } },
+        { label: 'Доход', data: incomeData, backgroundColor: '#255CFF', borderRadius: 0, borderSkipped: false, maxBarThickness: 30, borderColor: '#255CFF', borderWidth: { top: 1, right: 1, left: 1, bottom: 0 } },
+        { label: 'Расход', data: expenseData, backgroundColor: '#D94F3D', borderRadius: 0, borderSkipped: false, maxBarThickness: 30, borderColor: '#D94F3D', borderWidth: { top: 1, right: 1, left: 1, bottom: 0 } },
       ]
     },
     options: {
@@ -2465,12 +2445,12 @@ if (!ctx) return;
   const byCat = {};
   rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const colors = ['#4A4339','#2B2520','#7A6F5F','#B47B2C','#8A6E2A','#B47B2C','#A47325','#5C4422'];
+  const colors = ['#255CFF','#D94F3D','#17191A','#777A76','#E6AE3D','#4C80FF','#B84738','#A9AAA3'];
   analDoughnutExpenseInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: entries.map(([cat]) => catName(cat).toUpperCase()),
-      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#F4EFE6', borderWidth: 2, hoverOffset: 6 }]
+      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#ECEAE2', borderWidth: 2, hoverOffset: 6 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: '60%',
@@ -2492,12 +2472,12 @@ if (!ctx) return;
   const byCat = {};
   rangeTx.filter(t => t.type === 'income').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const colors = ['#5B7553','#5B7553','#4A6346','#5B7553','#7A8A6E','#5B7553','#9AAA8E','#4A6346'];
+  const colors = ['#255CFF','#4C80FF','#8BA6FF','#E6AE3D','#A9AAA3','#D94F3D','#6E87D9','#B8B9B3'];
   analDoughnutIncomeInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: entries.map(([cat]) => catName(cat).toUpperCase()),
-      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#F4EFE6', borderWidth: 2, hoverOffset: 6 }]
+      datasets: [{ data: entries.map(([, sum]) => sum), backgroundColor: colors.slice(0, entries.length), borderColor: '#ECEAE2', borderWidth: 2, hoverOffset: 6 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: '60%',
@@ -2514,27 +2494,16 @@ function renderTop5(rangeTx) {
   rangeTx.filter(t => t.type === 'expense').forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
   const sorted = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const max = sorted.length > 0 ? sorted[0][1] : 1;
-  const bar = (pct) => '█'.repeat(Math.round(pct / 5)) + '░'.repeat(20 - Math.round(pct / 5));
   document.getElementById('top5List').innerHTML = sorted.map(([cat, sum]) => {
-    const pct = sum / max * 100;
+    const pct = Math.round(sum / max * 100);
     const name = (catById(cat)?.name || cat).toUpperCase();
-    return `<div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--amber); line-height: 1.5; padding: 4px 0">
-      <div style="display: flex; justify-content: space-between; gap: 0.5rem; margin-bottom: 2px"><span style="color: var(--amber-bright)">${escapeHtml(name)}</span><span style="color: var(--crimson)">-${formatCurrency(sum)}</span></div>
-      <div class="ascii-bar">[${bar(pct)}] ${pct.toFixed(0).padStart(3, ' ')}%</div>
-    </div>`;
-  }).join('') || '<div style="color: var(--amber-dim); font-size: 11px">&gt; NO_DATA</div>';
+    return `<div class="rt-report-row"><div class="rt-report-row-main"><div class="rt-report-row-name">${escapeHtml(name)}</div><div class="rt-report-row-sub">${pct}% OF TOP OUTFLOW</div></div><span class="rt-report-row-value rt-expense">−${formatCurrency(sum)}</span></div>`;
+  }).join('') || '<div class="rt-empty">NO DATA</div>';
 }
 
 document.querySelectorAll('.period-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.period-btn').forEach(b => {
-      b.style.background = 'var(--term-2)';
-      b.style.color = 'var(--amber-dim)';
-      b.style.borderColor = 'var(--amber-dim)';
-    });
-    btn.classList.add('active');
-    
-    
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.toggle('active', b === btn));
     currentPeriod = btn.dataset.period;
     renderAnalytics();
   });
@@ -2552,28 +2521,15 @@ function renderBudgets() {
 
   const container = document.getElementById('budgetList');
   if (budgets.length === 0) {
-    container.innerHTML = '<div style="text-align: center; padding: 2.5rem 1rem; color: var(--amber-dim); font-family: JetBrains Mono, monospace; font-size: 11px">Лимиты ещё не заданы</div>';
+    container.innerHTML = '<div class="rt-empty">NO LIMITS SET</div>';
     return;
   }
-  const bar = (pct, w) => '█'.repeat(Math.round(pct / 100 * w)) + '░'.repeat(w - Math.round(pct / 100 * w));
   container.innerHTML = budgets.map(b => {
     const spent = spentByCat[b.category] || 0;
     const pct = Math.min(100, Math.round(spent / b.limit * 100));
     const over = spent > b.limit;
-    const fillColor = over ? 'var(--crimson)' : pct > 80 ? 'var(--amber-bright)' : 'var(--mint)';
     const name = (catById(b.category)?.name || b.category).toUpperCase();
-    return `<div class="budget-card ${over ? 'over' : ''}">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem">
-          <span style="font: 600 12px 'JetBrains Mono', monospace; color: var(--amber); letter-spacing: 0.04em">&gt; ${escapeHtml(name)}</span>
-          <button data-delete-budget="${escapeHtml(b.category)}" style="font: 600 9px 'JetBrains Mono', monospace; color: var(--amber-dim); background: transparent; border: 1px solid var(--amber-dim); padding: 1px 5px; cursor: pointer; text-transform: uppercase">[ DEL ]</button>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--amber-dim); margin-bottom: 0.3rem; font-family: 'JetBrains Mono', monospace">
-          <span style="color: ${fillColor}">SPENT: ${formatCurrency(spent)}</span>
-          <span>LIMIT: ${formatCurrency(b.limit)}</span>
-        </div>
-        <div class="ascii-bar" style="color: ${fillColor}">[${bar(pct, 30)}] ${String(pct).padStart(3, ' ')}%</div>
-        ${over ? `<div style="font: 600 10px 'JetBrains Mono', monospace; color: var(--crimson); margin-top: 0.4rem; letter-spacing: 0.05em">! OVERRUN BY ${formatCurrency(spent - b.limit)}</div>` : ''}
-      </div>`;
+    return `<div class="rt-limit-row"><div class="rt-limit-head"><span class="rt-limit-name">${escapeHtml(name)}</span><span class="rt-limit-meta">${formatCurrency(spent)} / ${formatCurrency(b.limit)} <button class="rt-delete" data-delete-budget="${escapeHtml(b.category)}">DEL</button></span></div><div class="rt-limit-track"><div class="rt-limit-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>${over ? `<div class="rt-limit-warning">OVERRUN BY ${formatCurrency(spent - b.limit)}</div>` : ''}</div>`;
   }).join('');
 }
 
@@ -2880,7 +2836,7 @@ function autoPushGist() {
       }
     });
 }
-const BUILD_VERSION = '2026-08-18-r2';
+const BUILD_VERSION = '2026-08-18-r3';
 function diagSnapshot() {
   const cfg = (typeof getSyncConfig === 'function') ? getSyncConfig() : { token: '', gistId: '' };
   const localCats = readStoredJson(STORAGE_KEYS.categories);
@@ -3070,7 +3026,7 @@ function animateReceiptEntry() {
 // ==================== INIT ====================
 // ==================== BOOT SEQUENCE ====================
 (function bootSequence() {
-  var KEY = "boot_seen_2026-08-18-r2";
+  var KEY = "boot_seen_2026-08-18-r3";
   var overlay = document.getElementById("bootOverlay");
   if (!overlay) return;
   if (sessionStorage.getItem(KEY)) { overlay.remove(); return; }
