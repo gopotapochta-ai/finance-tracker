@@ -1,4 +1,4 @@
-const CACHE = 'finance-v8';
+const CACHE = 'finance-v10';
 const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('message', event => {
