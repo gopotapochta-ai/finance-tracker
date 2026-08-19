@@ -1465,22 +1465,10 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
 .rt-sync-share .rt-control { width: 100%; }
 .rt-share-btn { margin: 0 !important; background: transparent; color: var(--rt-ink); border: 1px solid var(--rt-rule) !important; }
 .rt-share-btn:hover, .rt-share-btn:focus-visible { border-color: var(--rt-cobalt) !important; outline: 0; }
-.rt-share-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 20px; }
-.rt-share-dialog { background: var(--rt-paper); color: var(--rt-ink); border: 1.5px solid var(--rt-ink); max-width: 460px; width: 100%; padding: 18px 18px 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
-.rt-share-title { font: 600 11px/1 "IBM Plex Sans Condensed", sans-serif; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 8px; }
-.rt-share-hint { color: var(--rt-muted); font-size: 10px; margin-bottom: 10px; }
-.rt-share-text { width: 100%; min-height: 80px; padding: 8px; font: 11px/1.4 "IBM Plex Mono", monospace; color: var(--rt-ink); background: var(--rt-stage); border: 1px solid var(--rt-rule); resize: none; word-break: break-all; }
-.rt-share-text:focus { outline: 0; border-color: var(--rt-cobalt); }
-.rt-share-actions { display: flex; gap: 8px; margin-top: 10px; }
-.rt-share-actions button { flex: 1; padding: 10px; color: var(--rt-ink); background: transparent; border: 1px solid var(--rt-rule); font: 600 11px/1 "IBM Plex Mono", monospace; cursor: pointer; }
-.rt-share-actions button:first-child { background: var(--rt-ink); color: var(--rt-paper); border-color: var(--rt-ink); }
-.rt-share-actions button:hover { border-color: var(--rt-cobalt); }
 @media (max-width: 420px) { .rt-filter-line { grid-template-columns: 1fr; gap: 6px; } .rt-report-title strong { font-size: 20px; } }
 </style>
 </head>
-<body class="receipt-tape" data-build="2026-08-18-r6">
 <div id="toast" class="toast"></div>
-
 <!-- ===== RECEIPT TAPE HEADER ===== -->
 <header class="app-header">
   <div class="container rt-header-row">
@@ -1488,7 +1476,7 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
     <div class="rt-status"><span class="rt-status-date" id="headerDate"></span><span class="rt-live">● В ЭФИРЕ</span><span id="headerTime"></span></div>
   </div>
 </header>
-
+<body class="receipt-tape" data-build="2026-08-18-r7">
 <main class="container rt-main">
 
   <!-- ========== RECEIPT TAPE DASHBOARD ========== -->
@@ -1610,10 +1598,10 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
         <div class="rt-settings-section-head"><span class="rt-label">Облачная синхронизация</span><span class="rt-section-meta">GIST</span></div>
         <div class="rt-sync-grid">
           <label class="field-group"><span class="field-label">GitHub token</span><input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="input" autocomplete="off"></label>
-          <div class="rt-sync-buttons"><button class="rt-share-btn" onclick="copyShareLink()">ПОДЕЛИТЬСЯ ССЫЛКОЙ</button></div>
+          <div class="rt-sync-buttons"><button class="rt-share-btn" onclick="shareLink()">ПОДЕЛИТЬСЯ ССЫЛКОЙ</button></div>
           <div class="rt-sync-buttons"><button class="rt-add-entry" onclick="pullFromGist()">ЗАГРУЗИТЬ</button><button class="rt-add-entry" onclick="pushToGist()">ВЫГРУЗИТЬ</button></div>
           <div class="rt-sync-share">
-            <input id="syncShareInput" type="text" class="rt-control" placeholder="ВСТАВЬ КЛЮЧ ИЛИ ССЫЛКУ С ДРУГОГО УСТРОЙСТВА">
+            <input id="syncShareInput" type="text" class="rt-control" placeholder="ЗДЕСЬ ПОЯВИТСЯ ССЫЛКА ИЛИ ВСТАВЬ СВОЮ">
             <button class="rt-add-entry" onclick="importShareText()" style="margin-top:8px">ИМПОРТ</button>
           </div>
           <div id="syncStatus" class="rt-section-meta"></div>
@@ -1623,7 +1611,6 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
         <div class="rt-settings-section-head"><span class="rt-label">Диагностика</span><span class="rt-section-meta">СБОРКА</span></div>
         <div id="diagInfo" class="rt-report-list"></div>
         <div class="rt-settings-actions"><button onclick="manualRestoreFromCloud()">ВОССТАНОВИТЬ</button><button onclick="forcePullAndMerge()">СЛИТЬ</button><button onclick="checkForUpdate()">ПРОВЕРИТЬ ОБНОВЛЕНИЕ</button><button onclick="hardResetApp()">СБРОС КЭША</button></div>
-      </section>
       <span class="rt-finish">КОНЕЦ НАСТРОЕК</span>
     </div>
   </section>
@@ -2760,65 +2747,26 @@ function decodeSyncShare(text) {
   return null;
 }
 
-function applySyncShare(text) {
-  const parsed = decodeSyncShare(text);
-  if (!parsed) { showToast('Ключ не распознан', 'error'); return false; }
-  localStorage.setItem(STORAGE_KEYS.syncToken, parsed.token);
-  localStorage.setItem(STORAGE_KEYS.syncConfig, JSON.stringify({ gistId: parsed.gistId }));
-  loadSyncUI();
-  showToast('Синхронизация подключена', 'success');
-  return true;
-}
-
-async function copyShareLink() {
+function shareLink() {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) {
+    showToast('Сначала заполни токен и Gist ID', 'error');
+    document.getElementById('syncToken').focus();
+    return;
+  }
   const code = encodeSyncShare();
-  if (!code) { showToast('Сначала настрой синхронизацию', 'error'); return; }
+  if (!code) {
+    showToast('Не удалось создать ключ', 'error');
+    return;
+  }
   const url = location.origin + location.pathname + '#ft-sync=' + code.slice('ft-sync:'.length);
-  await showShareDialog(url);
-}
-
-function closeShareDialog() {
-  const el = document.querySelector('.rt-share-overlay');
-  if (el) el.remove();
-}
-
-async function showShareDialog(url) {
-  closeShareDialog();
-  const overlay = document.createElement('div');
-  overlay.className = 'rt-share-overlay';
-  overlay.innerHTML = ''
-    + '<div class="rt-share-dialog">'
-    +   '<div class="rt-share-title">ПОДЕЛИТЬСЯ СИНХРОНИЗАЦИЕЙ</div>'
-    +   '<div class="rt-share-hint">Открой эту ссылку на втором устройстве или вставь её в поле «ИМПОРТ».</div>'
-    +   '<textarea id="rtShareLink" class="rt-share-text" readonly></textarea>'
-    +   '<div class="rt-share-actions">'
-    +     '<button type="button" id="rtShareCopyBtn" class="rt-share-btn">КОПИРОВАТЬ</button>'
-    +     '<button type="button" id="rtShareCloseBtn" class="rt-share-btn">ЗАКРЫТЬ</button>'
-    +   '</div>'
-    + '</div>';
-  document.body.appendChild(overlay);
-  const ta = document.getElementById('rtShareLink');
-  ta.value = url;
-  ta.focus();
-  ta.select();
-  document.getElementById('rtShareCopyBtn').addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      showToast('Скопировано', 'success');
-      closeShareDialog();
-    } catch (e) {
-      try {
-        ta.focus(); ta.select();
-        const ok = document.execCommand('copy');
-        showToast(ok ? 'Скопировано' : 'Скопируй вручную', ok ? 'success' : 'info');
-        if (ok) closeShareDialog();
-      } catch (e2) {
-        showToast('Скопируй вручную', 'info');
-      }
-    }
-  });
-  document.getElementById('rtShareCloseBtn').addEventListener('click', closeShareDialog);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeShareDialog(); });
+  const input = document.getElementById('syncShareInput');
+  input.value = url;
+  input.removeAttribute('readonly');
+  input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  input.focus();
+  input.select();
+  showToast('Скопируй ссылку из поля ниже', 'success');
 }
 
 function importShareText() {
@@ -3148,23 +3096,21 @@ function animateReceiptEntry() {
     requestAnimationFrame(() => row.classList.add('rt-entry-in'));
   }
 }
-const BUILD_VERSION = '2026-08-18-r6';
+const BUILD_VERSION = '2026-08-18-r7';
 // ==================== INIT ====================
 // ==================== BOOT SEQUENCE ====================
 (function bootSequence() {
-  var KEY = "boot_seen_2026-08-18-r6";
+  var KEY = "boot_seen_2026-08-18-r7";
   var overlay = document.getElementById("bootOverlay");
   if (!overlay) return;
   if (sessionStorage.getItem(KEY)) { overlay.remove(); return; }
   document.body.style.overflow = "hidden";
-  var lines = overlay.querySelectorAll(".boot-line");
   lines.forEach(function(l) { l.style.opacity = "0"; });
   var i = 0;
   function tick() {
     if (i >= lines.length) {
       return;
     }
-    var line = lines[i++];
     line.style.transition = "opacity 0.05s steps(2)";
     line.style.opacity = "1";
     setTimeout(tick, 110);
