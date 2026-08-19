@@ -1376,7 +1376,6 @@ body.receipt-tape .rt-dashboard.active { display: block !important; }
 .rt-metric { padding: 14px 0 15px; }
 .rt-metric + .rt-metric { padding-left: 16px; border-left: 1px dashed var(--rt-rule); }
 .rt-metric-value { display: block; margin-top: 7px; font-size: 14px; }
-.rt-activity-list { border-top: 1px solid var(--rt-ink); }
 .rt-activity-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: baseline; gap: 10px; padding: 11px 0; border-bottom: 1px dashed var(--rt-rule); font-size: 11px; }
 .rt-row-date { color: var(--rt-muted); font-size: 10px; }
 .rt-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1464,11 +1463,12 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
 .rt-sync-buttons button { flex: 1 1 140px; }
 .rt-sync-share { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--rt-rule); }
 .rt-sync-share .rt-control { width: 100%; }
+.rt-share-btn { margin: 0 !important; background: transparent; color: var(--rt-ink); border: 1px solid var(--rt-rule) !important; }
+.rt-share-btn:hover, .rt-share-btn:focus-visible { border-color: var(--rt-cobalt) !important; outline: 0; }
 @media (max-width: 420px) { .rt-filter-line { grid-template-columns: 1fr; gap: 6px; } .rt-report-title strong { font-size: 20px; } }
 </style>
 </head>
-<body class="receipt-tape" data-build="2026-08-18-r5">
-
+<body class="receipt-tape" data-build="2026-08-18-r6">
 <div id="toast" class="toast"></div>
 
 <!-- ===== RECEIPT TAPE HEADER ===== -->
@@ -1600,9 +1600,8 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
         <div class="rt-settings-section-head"><span class="rt-label">Облачная синхронизация</span><span class="rt-section-meta">GIST</span></div>
         <div class="rt-sync-grid">
           <label class="field-group"><span class="field-label">GitHub token</span><input id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxx" class="input" autocomplete="off"></label>
-          <label class="field-group"><span class="field-label">Gist ID</span><input id="syncGistId" type="text" placeholder="a1b2c3d4e5f6..." class="input" autocomplete="off"></label>
+          <div class="rt-sync-buttons"><button class="rt-share-btn" onclick="copyShareLink()">ПОДЕЛИТЬСЯ ССЫЛКОЙ</button></div>
           <div class="rt-sync-buttons"><button class="rt-add-entry" onclick="pullFromGist()">ЗАГРУЗИТЬ</button><button class="rt-add-entry" onclick="pushToGist()">ВЫГРУЗИТЬ</button></div>
-          <div class="rt-sync-buttons"><button class="rt-settings-actions" onclick="copyShareLink()">ПОДЕЛИТЬСЯ ССЫЛКОЙ</button></div>
           <div class="rt-sync-share">
             <input id="syncShareInput" type="text" class="rt-control" placeholder="ВСТАВЬ КЛЮЧ ИЛИ ССЫЛКУ С ДРУГОГО УСТРОЙСТВА">
             <button class="rt-add-entry" onclick="importShareText()" style="margin-top:8px">ИМПОРТ</button>
@@ -3107,10 +3106,11 @@ function animateReceiptEntry() {
     requestAnimationFrame(() => row.classList.add('rt-entry-in'));
   }
 }
-const BUILD_VERSION = '2026-08-18-r5';
+const BUILD_VERSION = '2026-08-18-r6';
 // ==================== INIT ====================
 // ==================== BOOT SEQUENCE ====================
 (function bootSequence() {
+  var KEY = "boot_seen_2026-08-18-r6";
   var overlay = document.getElementById("bootOverlay");
   if (!overlay) return;
   if (sessionStorage.getItem(KEY)) { overlay.remove(); return; }
@@ -3168,15 +3168,13 @@ renderDashboard();
 initReceiptTapeMotion();
 loadSyncUI();
 syncWritesEnabled = true;
-  var KEY = "boot_seen_2026-08-18-r5";
-// Если локально кастомных нет, но в гисте они есть — восстанавливаем (иначе пользователь думает, что всё пропало).
-restoreCustomCategoriesFromCloud().then(restored => {
-  if (restored) {
-    populateHistoryCategoryFilter();
-    refreshAll();
-    showToast('Кастомные категории восстановлены из облака', 'success');
-  }
-});
+  // Если локально кастомных нет, но в гисте они есть — восстанавливаем (иначе пользователь думает, что всё пропало).
+  restoreCustomCategoriesFromCloud().then(restored => {
+    if (restored) {
+      populateHistoryCategoryFilter();
+      refreshAll();
+    }
+  });
 
 var periodBtn = document.querySelector('[data-period="all"]');
 if (periodBtn) { periodBtn.classList.add('active'); }
