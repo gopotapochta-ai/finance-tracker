@@ -1435,7 +1435,8 @@ body.receipt-tape .rt-screen.active { display: block !important; }
 .rt-report-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rt-report-row-sub { margin-top: 4px; color: var(--rt-muted); font-size: 10px; }
 .rt-report-row-value { white-space: nowrap; }
-.rt-delete { padding: 0 0 0 10px; color: var(--rt-vermilion); background: none; border: 0; font: inherit; cursor: pointer; }
+.rt-delete { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 8px; color: var(--rt-vermilion); background: none; border: 0; font: 600 14px/1 "IBM Plex Mono", monospace; cursor: pointer; opacity: 0.7; transition: opacity 0.15s; }
+.rt-delete:hover, .rt-delete:focus-visible { opacity: 1; outline: 0; }
 .rt-limit-row { padding: 14px 0; border-bottom: 1px dashed var(--rt-rule); }
 .rt-limit-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .rt-limit-name { font: 500 12px/1 "IBM Plex Mono", monospace; }
@@ -2289,7 +2290,7 @@ function renderHistory() {
     const date = escapeHtml(formatDateShort(t.createdAt).replace('.', '').toUpperCase());
     const name = escapeHtml(catName(t.category));
     const comment = escapeHtml(t.comment || '—');
-    return `<div class="rt-report-row"><div class="rt-report-row-main"><div class="rt-report-row-name">${name}</div><div class="rt-report-row-sub">${date} · ${comment}</div></div><div class="rt-report-row-value ${amountClass}">${sign}${formatCurrency(t.amount)} <button class="rt-delete" data-delete-transaction="${escapeHtml(t.id)}">УДАЛ</button></div></div>`;
+    return `<div class="rt-report-row"><div class="rt-report-row-main"><div class="rt-report-row-name">${name}</div><div class="rt-report-row-sub">${date} · ${comment}</div></div><div class="rt-report-row-value ${amountClass}"><span class="rt-amount">${sign}${formatCurrency(t.amount)}</span><button class="rt-delete" data-delete-transaction="${escapeHtml(t.id)}" aria-label="Удалить">×</button></div></div>`;
   }).join('');
 }
 
@@ -2533,7 +2534,7 @@ function renderBudgets() {
     const pct = Math.min(100, Math.round(spent / b.limit * 100));
     const over = spent > b.limit;
     const name = (catById(b.category)?.name || b.category).toUpperCase();
-    return `<div class="rt-limit-row"><div class="rt-limit-head"><span class="rt-limit-name">${escapeHtml(name)}</span><span class="rt-limit-meta">${formatCurrency(spent)} / ${formatCurrency(b.limit)} <button class="rt-delete" data-delete-budget="${escapeHtml(b.category)}">УДАЛ</button></span></div><div class="rt-limit-track"><div class="rt-limit-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>${over ? `<div class="rt-limit-warning">ПЕРЕРАСХОД НА ${formatCurrency(spent - b.limit)}</div>` : ''}</div>`;
+    return `<div class="rt-limit-row"><div class="rt-limit-head"><span class="rt-limit-name">${escapeHtml(name)}</span><span class="rt-limit-meta">${formatCurrency(spent)} / ${formatCurrency(b.limit)}</span><button class="rt-delete" data-delete-budget="${escapeHtml(b.category)}" aria-label="Удалить">×</button></div><div class="rt-limit-track"><div class="rt-limit-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>${over ? `<div class="rt-limit-warning">ПЕРЕРАСХОД НА ${formatCurrency(spent - b.limit)}</div>` : ''}</div>`;
   }).join('');
 }
 
