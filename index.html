@@ -1476,7 +1476,7 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
     <div class="rt-status"><span class="rt-status-date" id="headerDate"></span><span class="rt-live">● В ЭФИРЕ</span><span id="headerTime"></span></div>
   </div>
 </header>
-<body class="receipt-tape" data-build="2026-08-18-r7">
+<body class="receipt-tape" data-build="2026-08-18-r8">
 <main class="container rt-main">
 
   <!-- ========== RECEIPT TAPE DASHBOARD ========== -->
@@ -2748,10 +2748,19 @@ function decodeSyncShare(text) {
 }
 
 function shareLink() {
+  // Drain values from the form first so a fresh "type and click" flow just works.
+  const formToken = document.getElementById('syncToken').value.trim();
+  const formGistId = document.getElementById('syncGistId').value.trim();
+  if (formToken && formGistId && /^[A-Za-z0-9_-]+$/.test(formGistId)) {
+    localStorage.setItem(STORAGE_KEYS.syncToken, formToken);
+    localStorage.setItem(STORAGE_KEYS.syncConfig, JSON.stringify({ gistId: formGistId }));
+    loadSyncUI();
+  }
   const cfg = getSyncConfig();
   if (!cfg.token || !cfg.gistId) {
     showToast('Сначала заполни токен и Gist ID', 'error');
-    document.getElementById('syncToken').focus();
+    const tokenEl = document.getElementById('syncToken');
+    if (tokenEl) tokenEl.focus();
     return;
   }
   const code = encodeSyncShare();
@@ -3087,20 +3096,18 @@ function animateReceiptBalance(previousText) {
   }
   requestAnimationFrame(tick);
 }
-
+const BUILD_VERSION = '2026-08-18-r8';
 function animateReceiptEntry() {
   if (receiptMotionReduced()) return;
-  const row = document.querySelector('#dashActivity .rt-activity-row');
   if (row) {
     row.classList.remove('rt-entry-in');
     requestAnimationFrame(() => row.classList.add('rt-entry-in'));
   }
 }
-const BUILD_VERSION = '2026-08-18-r7';
 // ==================== INIT ====================
 // ==================== BOOT SEQUENCE ====================
 (function bootSequence() {
-  var KEY = "boot_seen_2026-08-18-r7";
+  var KEY = "boot_seen_2026-08-18-r8";
   var overlay = document.getElementById("bootOverlay");
   if (!overlay) return;
   if (sessionStorage.getItem(KEY)) { overlay.remove(); return; }
