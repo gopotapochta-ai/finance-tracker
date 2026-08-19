@@ -1476,7 +1476,7 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
     <div class="rt-status"><span class="rt-status-date" id="headerDate"></span><span class="rt-live">● В ЭФИРЕ</span><span id="headerTime"></span></div>
   </div>
 </header>
-<body class="receipt-tape" data-build="2026-08-18-r9">
+<body class="receipt-tape" data-build="2026-08-18-r10">
 <main class="container rt-main">
 
   <!-- ========== RECEIPT TAPE DASHBOARD ========== -->
@@ -2782,14 +2782,44 @@ function shareLink() {
 function importShareText() {
   const input = document.getElementById('syncShareInput');
   if (!input) return;
-  if (applySyncShare(input.value)) {
-    input.value = '';
-    refreshAll();
-    restoreCustomCategoriesFromCloud().then(restored => {
-      if (restored) { refreshAll(); showToast('Категории из облака подгружены', 'success'); }
-      else if (typeof autoPullGist === 'function') autoPullGist();
-    });
+  if (!input.value.trim()) {
+    showToast('Сначала вставь ключ или ссылку', 'error');
+    input.focus();
+    return;
   }
+  if (!applySyncShare(input.value)) {
+    showToast('Ключ не распознан', 'error');
+    return;
+  }
+  input.value = '';
+  input.removeAttribute('readonly');
+  showToast('Синхронизация подключена', 'success');
+  // Reflect the new config in the form fields and surface progress in the dedicated status line.
+  loadSyncUI();
+  const status = document.getElementById('syncStatus');
+  if (status) status.textContent = '⏳ Тяну кастомные категории из облака…';
+  restoreCustomCategoriesFromCloud().then(restored => {
+    if (restored) {
+      if (status) status.textContent = '✅ Категории из облака подгружены';
+      refreshAll();
+      showToast('Категории из облака подгружены', 'success');
+    } else {
+      if (status) status.textContent = '⚠️ Категорий в облаке не найдено, но синхронизация подключена';
+      if (typeof autoPullGist === 'function') autoPullGist();
+    }
+  }).catch(() => {
+    if (status) status.textContent = '⚠️ Не удалось связаться с Gist';
+  });
+}
+
+function applySyncShare(text) {
+  const parsed = decodeSyncShare(text);
+  if (!parsed) { showToast('Ключ не распознан', 'error'); return false; }
+  localStorage.setItem(STORAGE_KEYS.syncToken, parsed.token);
+  localStorage.setItem(STORAGE_KEYS.syncConfig, JSON.stringify({ gistId: parsed.gistId }));
+  loadSyncUI();
+  showToast('Синхронизация подключена', 'success');
+  return true;
 }
 
 function consumeSyncHash() {
@@ -3097,7 +3127,7 @@ function animateReceiptBalance(previousText) {
   }
   requestAnimationFrame(tick);
 }
-const BUILD_VERSION = '2026-08-18-r9';
+const BUILD_VERSION = '2026-08-18-r10';
 function animateReceiptEntry() {
   if (receiptMotionReduced()) return;
   if (row) {
@@ -3108,7 +3138,7 @@ function animateReceiptEntry() {
 // ==================== INIT ====================
 // ==================== BOOT SEQUENCE ====================
 (function bootSequence() {
-  var KEY = "boot_seen_2026-08-18-r9";
+  var KEY = "boot_seen_2026-08-18-r10";
   var overlay = document.getElementById("bootOverlay");
   if (!overlay) return;
   if (sessionStorage.getItem(KEY)) { overlay.remove(); return; }
