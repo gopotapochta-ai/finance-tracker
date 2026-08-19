@@ -1465,6 +1465,16 @@ body.receipt-tape .rt-settings-list .cat-row .cat-del { color: var(--rt-vermilio
 .rt-sync-share .rt-control { width: 100%; }
 .rt-share-btn { margin: 0 !important; background: transparent; color: var(--rt-ink); border: 1px solid var(--rt-rule) !important; }
 .rt-share-btn:hover, .rt-share-btn:focus-visible { border-color: var(--rt-cobalt) !important; outline: 0; }
+.rt-share-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.rt-share-dialog { background: var(--rt-paper); color: var(--rt-ink); border: 1.5px solid var(--rt-ink); max-width: 460px; width: 100%; padding: 18px 18px 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+.rt-share-title { font: 600 11px/1 "IBM Plex Sans Condensed", sans-serif; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 8px; }
+.rt-share-hint { color: var(--rt-muted); font-size: 10px; margin-bottom: 10px; }
+.rt-share-text { width: 100%; min-height: 80px; padding: 8px; font: 11px/1.4 "IBM Plex Mono", monospace; color: var(--rt-ink); background: var(--rt-stage); border: 1px solid var(--rt-rule); resize: none; word-break: break-all; }
+.rt-share-text:focus { outline: 0; border-color: var(--rt-cobalt); }
+.rt-share-actions { display: flex; gap: 8px; margin-top: 10px; }
+.rt-share-actions button { flex: 1; padding: 10px; color: var(--rt-ink); background: transparent; border: 1px solid var(--rt-rule); font: 600 11px/1 "IBM Plex Mono", monospace; cursor: pointer; }
+.rt-share-actions button:first-child { background: var(--rt-ink); color: var(--rt-paper); border-color: var(--rt-ink); }
+.rt-share-actions button:hover { border-color: var(--rt-cobalt); }
 @media (max-width: 420px) { .rt-filter-line { grid-template-columns: 1fr; gap: 6px; } .rt-report-title strong { font-size: 20px; } }
 </style>
 </head>
@@ -2764,19 +2774,51 @@ async function copyShareLink() {
   const code = encodeSyncShare();
   if (!code) { showToast('Сначала настрой синхронизацию', 'error'); return; }
   const url = location.origin + location.pathname + '#ft-sync=' + code.slice('ft-sync:'.length);
-  try {
-    await navigator.clipboard.writeText(url);
-    showToast('Ссылка скопирована', 'success');
-  } catch (e) {
-    // Fallback for older browsers / insecure contexts
-    const ta = document.createElement('textarea');
-    ta.value = url;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('Ссылка скопирована', 'success');
-  }
+  await showShareDialog(url);
+}
+
+function closeShareDialog() {
+  const el = document.querySelector('.rt-share-overlay');
+  if (el) el.remove();
+}
+
+async function showShareDialog(url) {
+  closeShareDialog();
+  const overlay = document.createElement('div');
+  overlay.className = 'rt-share-overlay';
+  overlay.innerHTML = ''
+    + '<div class="rt-share-dialog">'
+    +   '<div class="rt-share-title">ПОДЕЛИТЬСЯ СИНХРОНИЗАЦИЕЙ</div>'
+    +   '<div class="rt-share-hint">Открой эту ссылку на втором устройстве или вставь её в поле «ИМПОРТ».</div>'
+    +   '<textarea id="rtShareLink" class="rt-share-text" readonly></textarea>'
+    +   '<div class="rt-share-actions">'
+    +     '<button type="button" id="rtShareCopyBtn" class="rt-share-btn">КОПИРОВАТЬ</button>'
+    +     '<button type="button" id="rtShareCloseBtn" class="rt-share-btn">ЗАКРЫТЬ</button>'
+    +   '</div>'
+    + '</div>';
+  document.body.appendChild(overlay);
+  const ta = document.getElementById('rtShareLink');
+  ta.value = url;
+  ta.focus();
+  ta.select();
+  document.getElementById('rtShareCopyBtn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('Скопировано', 'success');
+      closeShareDialog();
+    } catch (e) {
+      try {
+        ta.focus(); ta.select();
+        const ok = document.execCommand('copy');
+        showToast(ok ? 'Скопировано' : 'Скопируй вручную', ok ? 'success' : 'info');
+        if (ok) closeShareDialog();
+      } catch (e2) {
+        showToast('Скопируй вручную', 'info');
+      }
+    }
+  });
+  document.getElementById('rtShareCloseBtn').addEventListener('click', closeShareDialog);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeShareDialog(); });
 }
 
 function importShareText() {
